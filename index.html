@@ -425,6 +425,23 @@
   .pick-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1.5px solid var(--border);border-radius:16px;margin-bottom:8px;transition:.2s}
   .pick-row.on{border-color:var(--rose);background:var(--rose-pale)}
   .card.editing{border-color:var(--rose-line)}
+
+  /* ===== 衛教叮嚀 ===== */
+  .care-edit{padding:16px 0;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+  .care-edit:last-child{border-bottom:none}
+  .care-edit .nm{font-weight:700}
+  .care-edit textarea{min-height:96px}
+  .mini-field{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--sub);font-weight:600}
+  .mini-field span{white-space:nowrap}
+  .mini-field input{min-height:42px;font-size:14px}
+  .care-pick{margin:10px 0 4px;padding:14px;border:1.5px solid var(--border);border-radius:18px;background:var(--bg-soft)}
+  .cp-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .cp-head .muted{font-size:12.5px}
+  .care-pick textarea{min-height:92px;background:#fff}
+
+  /* ===== LINE 按鈕 ===== */
+  .btn.line-btn{background:var(--ink);color:#fff;box-shadow:0 6px 16px rgba(47,43,42,.18)}
+  .btn.line-btn:hover{box-shadow:0 10px 22px rgba(47,43,42,.24)}
   .steps{margin:0;padding-left:22px;line-height:2}
   .steps li::marker{color:var(--rose-deep);font-weight:700}
 
@@ -812,6 +829,7 @@
         <button onclick="openShopSettings('bundle')">快捷套餐</button>
         <button onclick="openShopSettings('coupon')">優惠券</button>
         <button onclick="openShopSettings('plan')">包套專案</button>
+        <button onclick="openShopSettings('care')">衛教叮嚀</button>
         <button onclick="openShopSettings('tags')">皮膚標籤</button>
         <button onclick="openSetup()">重新開店設定</button>
       </div>
@@ -845,11 +863,19 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>居家保養叮嚀</h3><p>結帳時勾選後，內容會自動附在 LINE 收據中</p></div>
-      <div id="careList"></div>
-      <label class="field" style="margin-top:14px"><span>叮嚀標題</span><input type="text" id="newCareTitle" placeholder="例：雷射術後須知"></label>
-      <label class="field"><span>叮嚀內容</span><textarea id="newCareText" placeholder="・每行一點，會照原樣出現在收據中"></textarea></label>
-      <button class="btn dashed" onclick="addCare()">＋ 新增保養叮嚀</button>
+      <div class="card-head"><h3>LINE 官方帳號</h3><p>收據彈窗的「📱 開啟 LINE 發送」會先複製文字，再一鍵切換到 LINE</p></div>
+      <label class="field"><span>店家 LINE 官方帳號 ID / 連結</span><input type="text" id="setLineId" placeholder="例：@your_shop_id 或 https://line.me/R/ti/p/@your_shop_id" autocapitalize="off" autocorrect="off"></label>
+      <div class="field-label">開啟 LINE 的方式</div>
+      <div id="lineModeSeg"></div>
+      <p class="muted" id="lineModeHint" style="margin:0 0 14px"></p>
+      <button class="btn sm" onclick="saveShop()">儲存</button>
+    </div>
+
+    <div class="card">
+      <div class="card-head row-head">
+        <div><h3>衛教叮嚀</h3><p class="muted" style="margin:2px 0 0">目前 <span id="careCount">0</span> 個主題，可自由新增、修改、刪除</p></div>
+        <button class="btn sm" onclick="openShopSettings('care')">管理</button>
+      </div>
     </div>
 
     <div class="card">
@@ -904,9 +930,10 @@
     <div class="rc-feed" id="receiptFeed"><div class="printer-slot"></div><div id="receiptCard"></div></div>
     <div class="rc-btns">
       <button class="btn" id="copyBtn" onclick="copyReceipt()">一鍵複製 LINE 文字收據</button>
-      <button class="btn ghost" onclick="printReceipt()">🖨️ 列印熱感應收據</button>
+      <button class="btn line-btn" onclick="sendReceiptLine()">📱 開啟 LINE 發送</button>
     </div>
-    <p class="muted" style="text-align:center;margin:10px 0 14px">複製後貼到顧客的 LINE 聊天室即可</p>
+    <button class="btn ghost block" style="margin-top:10px;min-height:52px;font-size:15.5px" onclick="printReceipt()">🖨️ 列印熱感應收據</button>
+    <p class="muted" style="text-align:center;margin:10px 0 14px">「開啟 LINE 發送」會先複製收據，再切換到 LINE，選顧客聊天室貼上即可</p>
     <button class="btn ghost block" id="rebookBtn" style="margin-bottom:14px">＋ 依回訪建議建立下次預約</button>
     <details id="receiptDetails" class="rc-text"><summary>查看 LINE 文字收據</summary><pre class="receipt" id="receiptText"></pre></details>
   </div>
@@ -958,7 +985,7 @@ const TEMPLATES = {
       {title:'酸類保養須知', text:'・3–5 天內避免去角質、A 酸、果酸等刺激性保養\n・加強保濕，白天務必擦防曬（SPF30 以上）\n・輕微脫皮屬正常代謝，請勿用手摳除'},
       {title:'保濕修復須知', text:'・24 小時內以溫和清潔為主，避免三溫暖與劇烈運動\n・早晚使用修復霜，加強屏障修護\n・多補充水分，規律作息有助膚況穩定'},
       {title:'外泌體育膚後須知', text:'・3 天內以溫和保濕為主，暫停酸類與去角質\n・避免高溫三溫暖與長時間曝曬\n・搭配外泌體精華早晚使用，修護效果更持久'},
-      {title:'除毛後須知', text:'・24 小時內避免熱水澡、三溫暖與游泳\n・48 小時內避免去角質與香氛產品\n・局部微紅屬正常，可冷敷或擦舒緩凝膠'},
+      {title:'熱蠟除毛術後須知', text:'・24 小時內避免熱水澡、三溫暖與游泳\n・48 小時內避免去角質與香氛產品\n・局部微紅屬正常，可冷敷或擦舒緩凝膠'},
       {title:'體雕保養後須知', text:'・當日多喝溫開水，幫助代謝\n・2 小時內避免冰飲與大量進食\n・規律運動與飲食，維持雕塑效果'},
       {title:'清粉刺後須知', text:'・24 小時內暫停上妝，讓毛孔自然收斂\n・避免用手觸碰或擠壓\n・如有微紅屬正常現象，冷敷即可舒緩'},
     ],
@@ -995,7 +1022,7 @@ function applyTemplate(d, key){
     ...t.products.map(([name,price])=>({id:uid(), catId:cid('home'), cat:'product', name, price})),
   ];
   d.bundles = bundlesByName(d.items, t.bundles);
-  d.careTips = t.care.map(c=>({id:uid(), ...c}));
+  d.careTips = t.care.map(c=>({id:uid(), ...c, keys:c.keys || inferCareKeys(c)}));
   d.tags = JSON.parse(JSON.stringify(t.tags));
   d.template = key;
   return d;
@@ -1029,6 +1056,9 @@ function migrate(d){
     }
   });
   if(!Array.isArray(d.careTips)) d.careTips = TEMPLATES.skin.care.map(t=>({id:uid(),...t}));
+  d.careTips.forEach(t=>{ if(!Array.isArray(t.keys)) t.keys = inferCareKeys(t); });
+  if(d.lineId===undefined) d.lineId = '';
+  if(d.lineMode===undefined) d.lineMode = 'share';
   if(!Array.isArray(d.bundles)) d.bundles = bundlesByName(d.items, TEMPLATES.skin.bundles);
   if(!d.tags) d.tags = JSON.parse(JSON.stringify(TEMPLATES.skin.tags));
   ['types','notes','cautions','prefs'].forEach(k=>{ if(!Array.isArray(d.tags[k])) d.tags[k] = []; });
@@ -1468,8 +1498,8 @@ function saveTopup(id){
 
 /* ================= 結帳（POS 複合付款） ================= */
 const PAY_REMAIN = [['cash','現金'],['transfer','轉帳'],['linepay','LINE Pay']];
-const co = { catFilter:'', staffId:'', customerId:'', cart:{}, usePkg:false, useBal:false, balAmt:0, usePts:false, ptsAmt:0, payMethod:'cash', cashIn:'', addRecord:true, couponId:'', manualOff:'', care:[], skinNote:'', apptId:'' };
-function resetCheckout(){ Object.assign(co, {staffId:db.lastStaff||'', customerId:'', cart:{}, usePkg:false, useBal:false, balAmt:0, usePts:false, ptsAmt:0, payMethod:'cash', cashIn:'', couponId:'', manualOff:'', care:[], skinNote:'', apptId:''}); }
+const co = { catFilter:'', staffId:'', customerId:'', cart:{}, usePkg:false, useBal:false, balAmt:0, usePts:false, ptsAmt:0, payMethod:'cash', cashIn:'', addRecord:true, couponId:'', manualOff:'', care:[], careOff:[], careEdit:{}, skinNote:'', apptId:'' };
+function resetCheckout(){ Object.assign(co, {staffId:db.lastStaff||'', customerId:'', cart:{}, usePkg:false, useBal:false, balAmt:0, usePts:false, ptsAmt:0, payMethod:'cash', cashIn:'', couponId:'', manualOff:'', care:[], careOff:[], careEdit:{}, skinNote:'', apptId:''}); }
 
 function checkoutFor(id){ closeModal(); resetCheckout(); co.customerId = id; go('checkout'); }
 
@@ -1634,15 +1664,21 @@ function renderCheckout(){
   `;
   $('#coMsg').innerHTML = k.lines.length ? k.msgs.map(m=>`<div class="warn">${esc(m)}</div>`).join('') : '';
 
-  // 貼心服務：壽星優惠 / 居家保養叮嚀 / 本次膚況
+  // 衛教叮嚀：依服務自動勾選，勾選後可即時微調本次文字
+  autoPickCare(k.lines);
   $('#coCare').innerHTML = `
     <div class="sub-title" style="margin-top:0">本次服務師 · THERAPIST</div>
     ${staffSelect('coStaff', co.staffId, "co.staffId=this.value;db.lastStaff=this.value;save()")}
     <div class="sub-title">本次膚況 / 服務備註 · NOTES</div>
     ${quickTagsHTML('coSkinNote')}
     <textarea id="coSkinNote" class="note-mini" placeholder="例：兩頰加強修復，退紅狀況良好" oninput="co.skinNote=this.value">${esc(co.skinNote)}</textarea>
-    <div class="sub-title">居家保養提醒 Post-care<span class="muted" style="letter-spacing:0;font-weight:400">・勾選後帶入 LINE 收據</span></div>
-    <div class="quick">${db.careTips.map(t=>`<button type="button" class="${co.care.includes(t.id)?'on':''}" onclick="toggleCare('${t.id}')">${esc(t.title)}</button>`).join('') || '<span class="muted">尚無叮嚀，可至設定新增</span>'}</div>
+    <div class="sub-title">衛教叮嚀 · POST-CARE<span class="muted" style="letter-spacing:0;font-weight:400">・勾選後帶入 LINE 收據，可直接修改本次文字</span></div>
+    <div class="quick">${db.careTips.map(t=>`<button type="button" class="${co.care.includes(t.id)?'on':''}" onclick="toggleCare('${t.id}')">${esc(t.title)}</button>`).join('') || '<span class="muted">尚無叮嚀，可至「店務設定 → 衛教叮嚀」新增</span>'}</div>
+    ${co.care.map(id=>{ const t = db.careTips.find(x=>x.id===id); if(!t) return ''; const edited = co.careEdit[id] != null && co.careEdit[id] !== t.text; return `
+      <div class="care-pick">
+        <div class="cp-head"><b>${esc(t.title)}</b>${edited ? `<span class="soft rose">本次已修改</span><button type="button" class="link-btn" onclick="resetCareEdit('${id}')">還原範本</button>` : '<span class="muted">可直接修改，只套用這一次</span>'}</div>
+        <textarea oninput="co.careEdit['${id}']=this.value">${esc(co.careEdit[id] ?? t.text)}</textarea>
+      </div>`; }).join('')}
     ${c ? `<label class="option-row">
       <div><b>寫入顧客服務時間軸</b><div class="muted">結帳後自動記錄日期、服務師、服務項目與本次備註</div></div>
       <span class="switch"><input type="checkbox" ${co.addRecord?'checked':''} onchange="co.addRecord=this.checked"><i></i></span>
@@ -1717,7 +1753,11 @@ function toggleBal(on){
 function toggleItem(id){ if(!co.cart[id]){ co.cart[id] = 1; renderCheckout(); } }
 function setPayMethod(v){ co.payMethod = v; co.cashIn = ''; renderCheckout(); }
 function changeQty(id, d){ co.cart[id] = Math.max(0,(co.cart[id]||0)+d); renderCheckout(); }
-function toggleCare(id){ co.care = co.care.includes(id) ? co.care.filter(x=>x!==id) : [...co.care, id]; renderCheckout(); }
+function toggleCare(id){
+  if(co.care.includes(id)){ co.care = co.care.filter(x=>x!==id); if(!co.careOff.includes(id)) co.careOff.push(id); }
+  else { co.care.push(id); co.careOff = co.careOff.filter(x=>x!==id); }
+  renderCheckout();
+}
 function applyBundle(id){
   const b = db.bundles.find(x=>x.id===id); if(!b) return;
   bundleItems(b).forEach(x=>{ co.cart[x.itemId] = Math.max(co.cart[x.itemId]||0, x.qty); });
@@ -1793,7 +1833,7 @@ function confirmCheckout(){
     paid:k.paid, payMethod:k.paid ? co.payMethod : null,
     cashIn:cs.cashIn, change:cs.cashIn===null ? null : cs.change,
     creditsAfter:c?c.credits:null, balanceAfter:c?c.balance:null,
-    careTips: db.careTips.filter(t=>co.care.includes(t.id)).map(({title,text})=>({title,text})),
+    careTips: co.care.map(id=>db.careTips.find(t=>t.id===id)).filter(Boolean).map(t=>({title:t.title, text:careTextOf(t)})).filter(t=>t.text),
     rebook:k.rebook,
     notices: c ? pkgNotices(c, c.credits, k.creditsUse).map(n=>n.text) : [],
   };
@@ -2405,13 +2445,15 @@ function renderFollowups(){
       </div>
       <div class="appt-acts">
         <button class="btn sm" onclick="copyFollow(${i})">複製 LINE ${x.kind==='care'?'關心':'喚回'}訊息</button>
+        <button class="btn sm line-btn" onclick="copyFollow(${i},true)">📱 LINE</button>
         <button class="btn sm ghost" onclick="openApptForm('',{customerId:'${x.c.id}'})">預約</button>
         <button class="btn sm light" onclick="openDetail('${x.c.id}')">檔案</button>
       </div>
     </div>`).join('') : `<div class="empty">目前沒有需要追訪的顧客<br><span class="muted">術後 ${Number(db.followDays)||3} 天內、課程即將到期／完銷、本月壽星會自動出現在這裡</span></div>`;
 }
-async function copyFollow(i){
+async function copyFollow(i, viaLine){
   const x = followCache[i]; if(!x) return;
+  if(viaLine){ db.contactLog[x.key] = todayStr(); save(); renderTaskSeg(); renderFollowups(); openLine(x.msg); return; }
   const ok = await copyText(x.msg);
   if(ok){ db.contactLog[x.key] = todayStr(); save(); renderTaskSeg(); renderFollowups(); }
   toast(ok ? '已複製，貼到顧客的 LINE 即可（已標記聯繫）' : '複製失敗');
@@ -2433,7 +2475,7 @@ function renderTaskSeg(){
 function setTaskTab(t){ taskTab = t; renderAppointments(); }
 
 /* ================= 店家設定匯出 / 匯入（複製到其他 iPad） ================= */
-const SETTINGS_KEYS = ['shopName','footer','template','categories','staff','items','bundles','careTips','tags','coupons','packagePlans','pointsOn','pointsEvery','pointValue','followDays'];
+const SETTINGS_KEYS = ['shopName','footer','template','categories','staff','items','bundles','careTips','tags','coupons','packagePlans','lineId','lineMode','pointsOn','pointsEvery','pointValue','followDays'];
 const settingsPayload = () => ({type:'skincare-crm-settings', version:1, exportedAt:new Date().toISOString(),
   settings:Object.fromEntries(SETTINGS_KEYS.map(k=>[k, db[k]]))});
 function downloadJSON(obj, filename){
@@ -2951,6 +2993,86 @@ function printReceipt(){
   try{ window.print(); }catch(e){ toast('此環境無法開啟列印，請改用瀏覽器直接開啟檔案'); }
 }
 
+/* ================= 衛教叮嚀管理（自動勾選關鍵字） ================= */
+// 舊資料沒有關鍵字時，依標題推定：選到相關服務會自動勾選
+function inferCareKeys(t){
+  const rules = [[/酸|煥膚/,['酸','煥膚']],[/外泌體/,['外泌體']],[/除毛|熱蠟|蜜蠟/,['除毛']],[/體雕/,['體雕']],[/粉刺/,['粉刺']],[/保濕|修復/,['水飛梭','PDRN','紅光']]];
+  const hit = rules.find(([re])=>re.test(t.title));
+  return hit ? [...hit[1]] : [];
+}
+const parseKeys = v => [...new Set(String(v).split(/[、,，\s]+/).map(s=>s.trim()).filter(Boolean))];
+function careTabHTML(){
+  return `<div class="card">
+    <div class="card-head"><h3>衛教叮嚀管理</h3><p>結帳時勾選後會附在 LINE 收據中；設定關鍵字後，選到名稱含關鍵字的服務會自動勾選。修改後自動儲存</p></div>
+    ${db.careTips.length ? db.careTips.map(t=>`
+      <div class="care-edit">
+        <div class="row">
+          <input type="text" class="nm" value="${esc(t.title)}" onchange="updateCare('${t.id}','title',this.value)" aria-label="衛教主題">
+          <button class="btn sm danger" onclick="deleteCare('${t.id}')">刪除</button>
+        </div>
+        <textarea onchange="updateCare('${t.id}','text',this.value)" aria-label="衛教內容">${esc(t.text)}</textarea>
+        <label class="mini-field"><span>自動勾選關鍵字</span>
+          <input type="text" value="${esc((t.keys||[]).join('、'))}" placeholder="例：酸、煥膚（留空＝不自動勾選）" onchange="updateCare('${t.id}','keys',this.value)"></label>
+      </div>`).join('') : '<div class="muted">尚無衛教叮嚀</div>'}
+  </div>
+  <div class="card">
+    <div class="card-head"><h3>新增衛教主題</h3><p>每行一點，會照原樣出現在收據中</p></div>
+    <label class="field"><span>主題</span><input type="text" id="ccTitle" placeholder="例：熱蠟除毛術後須知"></label>
+    <label class="field"><span>說明文字</span><textarea id="ccText" placeholder="・24 小時內避免熱水澡與三溫暖&#10;・局部微紅可冷敷舒緩"></textarea></label>
+    <label class="field"><span>自動勾選關鍵字（選填）</span><input type="text" id="ccKeys" placeholder="例：除毛、熱蠟"></label>
+    <button class="btn block" onclick="addCare()">＋ 新增衛教主題</button>
+  </div>`;
+}
+function updateCare(id, key, v){
+  const t = db.careTips.find(x=>x.id===id); if(!t) return;
+  if(key==='keys') t.keys = parseKeys(v);
+  else if(key==='title') t.title = v.trim() || t.title;
+  else t.text = v.replace(/\s+$/,'');
+  save(); toast('已更新衛教叮嚀');
+}
+function addCare(){
+  const title = $('#ccTitle').value.trim(), text = $('#ccText').value.trim();
+  if(!title || !text){ toast('請輸入主題與說明文字'); return; }
+  const keys = parseKeys($('#ccKeys').value);
+  db.careTips.push({id:uid(), title, text, keys: keys.length ? keys : inferCareKeys({title})});
+  save(); renderShopSettings(); toast('已新增衛教主題');
+}
+function deleteCare(id){
+  if(!confirm('確定刪除此衛教主題？')) return;
+  db.careTips = db.careTips.filter(t=>t.id!==id);
+  co.care = co.care.filter(x=>x!==id);
+  save(); renderShopSettings();
+}
+// 結帳：依購物車服務名稱自動勾選（美容師手動取消的不再自動勾回）
+function autoPickCare(lines){
+  const names = lines.map(l=>l.name).join('｜');
+  db.careTips.forEach(t=>{
+    if(co.care.includes(t.id) || co.careOff.includes(t.id)) return;
+    if((t.keys||[]).some(kw=>names.includes(kw))) co.care.push(t.id);
+  });
+}
+function resetCareEdit(id){ delete co.careEdit[id]; renderCheckout(); }
+const careTextOf = t => (co.careEdit[t.id] ?? t.text).trim();
+
+/* ================= LINE 快速連動 ================= */
+// share：開啟 LINE 選擇聊天室（傳給顧客）；oa：開啟與店家官方帳號的聊天並帶入文字
+function lineURL(text){
+  const id = (db.lineId||'').trim().replace(/^https?:\/\/[^@]*/,'');
+  if(db.lineMode==='oa' && id){
+    const oa = id.startsWith('@') ? id : '@' + id;
+    return `https://line.me/R/oaMessage/${encodeURIComponent(oa)}/?${encodeURIComponent(text)}`;
+  }
+  return `https://line.me/R/share?text=${encodeURIComponent(text)}`;
+}
+async function openLine(text){
+  if(db.lineMode==='oa' && !(db.lineId||'').trim()){ toast('請先到「店家設定」填寫 LINE 官方帳號 ID'); return; }
+  await copyText(text);                    // 先複製，跳到 LINE 後也能直接貼上
+  toast('已複製文字，正在開啟 LINE…');
+  const url = lineURL(text);
+  setTimeout(()=>{ const w = window.open(url, '_blank'); if(!w) location.href = url; }, 200);
+}
+function sendReceiptLine(){ openLine($('#receiptText').textContent); }
+
 /* ================= 消費紀錄 ================= */
 function renderOrders(){
   const t = todayStr();
@@ -3051,6 +3173,9 @@ async function copyDaily(date){
 /* ================= 設定頁 ================= */
 function renderSettings(){
   $('#setFooter').value = db.footer || '';
+  $('#setLineId').value = db.lineId || '';
+  $('#careCount').textContent = db.careTips.length;
+  renderLineMode();
   $('#setFollowDays').value = db.followDays;
   $('#setSoundOn').checked = db.soundOn !== false;
   $('#setPtsOn').checked = ptsOn();
@@ -3058,42 +3183,34 @@ function renderSettings(){
   $('#setPtsEvery').value = db.pointsEvery;
   $('#setPtsValue').value = db.pointValue;
   $('#shopSummary').textContent = `${db.shopName}・服務 ${db.items.filter(i=>i.cat==='service').length} 項・保養品 ${db.items.filter(i=>i.cat==='product').length} 項・套餐 ${db.bundles.length} 組・優惠券 ${db.coupons.length} 張`;
-  $('#careList').innerHTML = db.careTips.length ? db.careTips.map(t=>`
-    <div class="list-item" style="align-items:flex-start">
-      <div class="grow"><div style="font-weight:700">${esc(t.title)}</div><div class="muted" style="white-space:pre-wrap">${esc(t.text)}</div></div>
-      <button class="btn sm danger" onclick="deleteCare('${t.id}')">刪除</button>
-    </div>`).join('') : '<div class="muted">尚無保養叮嚀</div>';
   renderInstall();
   $('#lastBackup').textContent = db.lastBackup ? `上次匯出備份：${fmtDT(db.lastBackup)}` : '尚未匯出過備份';
 }
 function saveShop(){
   db.footer = $('#setFooter').value.trim();
+  db.lineId = $('#setLineId').value.trim();
   db.followDays = Math.min(30, Math.max(0, parseInt($('#setFollowDays').value)||0));
   db.pointsEvery = Math.max(0, parseFloat($('#setPtsEvery').value)||0);
   db.pointValue = Math.max(0, parseFloat($('#setPtsValue').value)||0);
   save(); toast('已儲存設定');
 }
+const LINE_MODES = {
+  share:'開啟 LINE 選擇聊天室（建議）：可直接選顧客的聊天室貼上傳送',
+  oa:'開啟店家官方帳號聊天並帶入文字（line.me/R/oaMessage），適合轉傳或店內測試',
+};
+function renderLineMode(){
+  $('#lineModeSeg').innerHTML = segHTML([['share','選擇聊天室傳送'],['oa','官方帳號聊天']], db.lineMode, 'setLineMode');
+  $('#lineModeHint').textContent = LINE_MODES[db.lineMode];
+}
+function setLineMode(v){ db.lineMode = v; save(); renderLineMode(); }
 function setPointsOn(on){
   db.pointsOn = on; resetCheckout(); save(); renderSettings();
   toast(on ? '已開啟會員點數' : '已關閉會員點數，相關欄位已隱藏');
 }
-function addCare(){
-  const title = $('#newCareTitle').value.trim(), text = $('#newCareText').value.trim();
-  if(!title || !text){ toast('請輸入叮嚀標題與內容'); return; }
-  db.careTips.push({id:uid(), title, text});
-  $('#newCareTitle').value=''; $('#newCareText').value='';
-  save(); renderSettings(); toast('已新增保養叮嚀');
-}
-function deleteCare(id){
-  if(!confirm('確定刪除此保養叮嚀？')) return;
-  db.careTips = db.careTips.filter(t=>t.id!==id); co.care = co.care.filter(x=>x!==id);
-  save(); renderSettings();
-}
-
 /* ================= 店務設定彈窗：店名 / 服務 / 保養品 / 套餐 ================= */
 let shopTab = 'shop';
 let bDraft = {id:null, name:'', items:{}};
-const SHOP_TABS = [['shop','店家資訊'],['items','服務項目'],['category','服務大類'],['staff','服務師'],['bundle','快捷套餐'],['coupon','優惠券'],['plan','包套專案'],['tags','皮膚標籤'],['template','預設品項']];
+const SHOP_TABS = [['shop','店家資訊'],['items','服務項目'],['category','服務大類'],['staff','服務師'],['bundle','快捷套餐'],['coupon','優惠券'],['plan','包套專案'],['care','衛教叮嚀'],['tags','皮膚標籤'],['template','預設品項']];
 function openShopSettings(tab){
   if(tab) shopTab = tab;
   if(shopTab==='service' || shopTab==='product') shopTab = 'items';
@@ -3108,7 +3225,7 @@ function renderShopSettings(){
   el.innerHTML = `
     <div class="sheet-head"><h2>店務設定</h2><button class="close" onclick="closeShopSettings()">✕</button></div>
     <div class="chips">${SHOP_TABS.map(([v,l])=>`<button class="${shopTab===v?'active':''}" onclick="setShopTab('${v}')">${l}</button>`).join('')}</div>
-    ${({shop:shopInfoHTML, bundle:bundleEditorHTML, template:templateTabHTML, tags:tagsTabHTML, coupon:couponsTabHTML, plan:plansTabHTML, category:categoryTabHTML, staff:staffTabHTML}[shopTab] || itemsTabHTML)()}
+    ${({shop:shopInfoHTML, bundle:bundleEditorHTML, template:templateTabHTML, tags:tagsTabHTML, care:careTabHTML, coupon:couponsTabHTML, plan:plansTabHTML, category:categoryTabHTML, staff:staffTabHTML}[shopTab] || itemsTabHTML)()}
   `;
   $('#sheet').scrollTop = sc;
   const ch = el.querySelector('.chips'), act = ch?.querySelector('.active');
