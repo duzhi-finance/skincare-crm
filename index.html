@@ -3,440 +3,477 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#FBF4F3">
+<meta name="theme-color" content="#FAF8F7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>皮膚管理 CRM</title>
 <!-- 字體：有網路時載入 Google Fonts，離線自動退回系統字體 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@500;600&display=swap" rel="stylesheet">
 <style>
-  /* ===== Blush & Champagne ===== */
+  /* ===== Soft Blush（參考 duzhi 度支 風格） ===== */
   :root{
-    --bg:#FBF4F3;            /* 粉白 */
+    --bg:#FAF8F7;            /* 主畫面暖白 */
+    --side:#FBEFEB;          /* 側欄粉白 */
     --card:#FFFFFF;
-    --border:#F1E4E2;
-    --text:#4B3B40;          /* 可可玫瑰灰 */
-    --sub:#9C878C;
-    --rose:#D9A3A8;          /* 霧玫瑰粉 */
-    --rose-deep:#B8737D;     /* 深玫瑰（金額強調） */
-    --rose-pale:#FCEDEC;
-    --champ:#C5A880;         /* 香檳金（選取框 / VIP） */
-    --cta:#3A4A40;           /* 確認結帳按鈕（可改成 #8E5A63 深玫瑰） */
-    --gray:#F7F0EF;
-    --danger:#B5605F;
-    --ok:#8BA88F;
-    --radius:24px;
-    --gap:22px;              /* 卡片間距 */
-    --shadow:0 12px 32px rgba(120,70,80,.06);
-    --shadow-hover:0 16px 38px rgba(120,70,80,.10);
-    --inset:inset 0 1px 2px rgba(120,70,80,.06), inset 0 -1px 0 rgba(255,255,255,.85);
-    --serif:"Noto Serif TC","Songti TC","PMingLiU",serif;
+    --border:#F1DDD8;
+    --text:#3B3634;
+    --sub:#9C9290;
+    --rose:#C8918A;          /* 霧玫瑰主色（按鈕 / 選取） */
+    --rose-deep:#B67A73;
+    --rose-date:#C27F78;
+    --tile:#FCF2EF;          /* 磚塊卡片底色 */
+    --tile-on:#F6E5E2;
+    --ink:#333030;           /* 深色小膠囊 */
+    --danger:#C0605A;
+    --ok:#8FAE94;
+    --radius:28px;
+    --gap:22px;
+    --shadow:0 10px 36px rgba(160,110,100,.07);
+    --shadow-hover:0 14px 40px rgba(160,110,100,.12);
     --sans:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+    --serif:"Noto Serif TC","Times New Roman","Songti TC",serif;
     --safe-b:env(safe-area-inset-bottom,0px);
-    --nav-h:74px;
+    --nav-h:72px;
+    --side-w:300px;
     /* 舊變數別名（JS 內聯樣式使用） */
     --line:var(--border);
-    --gold:var(--champ);
+    --gold:var(--rose);
     --ochre:var(--rose-deep);
     --milk:var(--rose);
     --milk-dark:var(--rose-deep);
-    --milk-soft:#F3D9D9;
-    --milk-pale:var(--rose-pale);
+    --milk-soft:var(--border);
+    --milk-pale:var(--tile);
+    --gray:#F5F1F0;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
   body{
     font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;
     padding-bottom:calc(var(--nav-h) + 24px + var(--safe-b));-webkit-font-smoothing:antialiased;
-    background-image:radial-gradient(1100px 520px at 105% -10%,rgba(232,180,184,.22),transparent 60%),
-                     radial-gradient(900px 520px at -10% 110%,rgba(197,168,128,.12),transparent 60%);
-    background-attachment:fixed;
   }
-  body.on-checkout{padding-bottom:calc(var(--nav-h) + 120px + var(--safe-b))}
+  body.on-checkout{padding-bottom:calc(var(--nav-h) + 110px + var(--safe-b))}
   button,input,select,textarea{font:inherit;color:inherit}
-  h1,h2,h3{margin:0;font-family:var(--serif);font-weight:600;letter-spacing:.04em}
+  h1,h2,h3{margin:0;font-weight:700;letter-spacing:.02em}
+  small{font-weight:400}
 
-  /* ===== Header ===== */
-  header{
-    position:sticky;top:0;z-index:20;background:rgba(251,244,243,.86);
-    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    padding:16px 20px 12px;border-bottom:1px solid var(--border);
+  /* ===== 側欄 / 底部導覽 ===== */
+  .side{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;
+    background:rgba(255,255,255,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-top:1px solid var(--border);padding:6px 8px calc(6px + var(--safe-b));
   }
-  header .brand{font-family:var(--serif);font-size:11px;color:var(--champ);letter-spacing:.32em}
-  header h1{font-size:22px;margin-top:2px}
+  .side-brand{display:none}
+  .side nav{display:flex;gap:4px;height:calc(var(--nav-h) - 12px)}
+  .side nav button{
+    flex:1;border:none;background:none;border-radius:16px;cursor:pointer;color:var(--sub);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:.2s;
+  }
+  .side nav .ico{font-size:22px;line-height:1.1}
+  .side nav b{font-size:12px;font-weight:600}
+  .side nav small{display:none}
+  .side nav button.active{background:var(--tile);color:var(--text)}
+  .side nav button.active b{font-weight:700}
 
-  main{max-width:860px;margin:0 auto;padding:20px 16px}
+  @media (min-width:900px){
+    body,body.on-checkout{padding-bottom:40px;padding-left:var(--side-w)}
+    .side{
+      top:0;right:auto;width:var(--side-w);border-top:none;border-right:1px solid #F3E2DD;
+      background:var(--side);backdrop-filter:none;-webkit-backdrop-filter:none;padding:48px 24px;
+      display:flex;flex-direction:column;
+    }
+    .side-brand{display:block;margin-bottom:48px}
+    .side-brand h1{font-size:30px;line-height:1.3}
+    .side-brand p{margin:8px 0 0;color:var(--sub);font-size:15px;line-height:1.6}
+    .side nav{flex-direction:column;height:auto;gap:12px}
+    .side nav button{flex:none;flex-direction:row;justify-content:flex-start;gap:16px;padding:14px 20px;border-radius:18px;text-align:left}
+    .side nav .ico{font-size:26px;width:32px;text-align:center}
+    .side nav .lb{display:flex;flex-direction:column;line-height:1.25}
+    .side nav b{font-size:19px;color:var(--text)}
+    .side nav small{display:block;font-size:12.5px;color:var(--sub);letter-spacing:.04em}
+    .side nav button.active{background:#fff;box-shadow:0 6px 20px rgba(160,110,100,.08)}
+    .side nav button:not(.active):hover{background:rgba(255,255,255,.55)}
+  }
+
+  /* ===== 主內容 ===== */
+  main{max-width:1000px;margin:0 auto;padding:22px 16px}
+  @media (min-width:900px){ main{padding:44px 40px} }
+  .page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+  .page-head h2{font-size:30px;line-height:1.25}
+  .page-head .date{font-family:var(--serif);font-size:13px;letter-spacing:.2em;color:var(--rose-date);margin-top:6px;text-transform:uppercase}
+  .head-avatar{
+    width:58px;height:58px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:26px;
+    background:linear-gradient(140deg,#F3D9D4,#DCE3EE);box-shadow:0 6px 18px rgba(160,110,100,.12)
+  }
+  @media (min-width:900px){ .page-head h2{font-size:38px} .head-avatar{width:60px;height:60px} }
+
   .page{display:none;animation:fade .3s ease}
   .page.active{display:block}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-  /* ===== Common ===== */
+  /* 篩選膠囊列 */
+  .chips{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px var(--gap);scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chips button{
+    flex-shrink:0;border:none;background:var(--tile);color:var(--text);border-radius:999px;padding:0 18px;min-height:46px;
+    font-size:15px;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap
+  }
+  .chips button.active{background:var(--rose);color:#fff;box-shadow:0 6px 16px rgba(200,145,138,.35)}
+
   .card{
-    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-    box-shadow:var(--shadow);padding:20px;margin-bottom:var(--gap);transition:transform .25s ease,box-shadow .25s ease;
+    background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:22px;margin-bottom:var(--gap);transition:transform .25s ease,box-shadow .25s ease;
   }
-  /* 典雅小字號襯線標題 */
+  @media (min-width:900px){ .card{padding:30px} }
+  /* 卡片大標題：emoji + 中文 + English */
+  .card-title{font-size:19px;font-weight:700;margin:0 0 18px;display:flex;align-items:center;gap:8px}
+  .card-title small{font-weight:600;color:var(--text)}
+  /* 小節標題：基本資訊 · Basic Info */
   .section-title{
-    font-family:var(--serif);font-size:13px;font-weight:600;color:var(--text);margin:28px 6px 12px;letter-spacing:.22em;
-    display:flex;align-items:baseline;gap:10px;
+    font-size:15px;font-weight:600;color:var(--sub);margin:26px 2px 12px;letter-spacing:.04em;
+    display:flex;align-items:center;gap:8px;
   }
-  .card>.section-title:first-child{margin-top:0;margin-left:0}
-  .section-title em{font-style:italic;font-weight:500;font-size:11px;color:var(--champ);letter-spacing:.14em}
-  .section-title span{margin-left:auto;font-family:var(--sans);font-size:12px;font-weight:400;color:var(--sub);letter-spacing:.04em;order:10}
-  .section-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);align-self:center;order:9}
-  .sub-title{font-family:var(--serif);font-size:12px;color:var(--sub);letter-spacing:.2em;margin:18px 0 10px}
+  .card>.section-title:first-child{margin-top:0}
+  .section-title em{font-style:normal;font-weight:600}
+  .section-title em::before{content:"·";margin:0 8px 0 2px}
+  .section-title span{margin-left:auto;font-size:13px;font-weight:400}
+  .label{font-size:16px;font-weight:600;margin:20px 0 12px}
+  .label:first-child{margin-top:0}
+  .sub-title{font-size:14px;font-weight:600;color:var(--sub);margin:18px 0 10px}
+  .sub-title:first-child{margin-top:0}
   .row{display:flex;gap:12px;align-items:center}
   .grow{flex:1;min-width:0}
   .muted{color:var(--sub);font-size:13px}
-  .empty{text-align:center;color:var(--sub);padding:38px 10px;font-size:14px;font-family:var(--serif);letter-spacing:.06em}
+  .empty{text-align:center;color:var(--sub);padding:46px 10px;font-size:15px;font-weight:500}
+  .empty .big{display:block;font-size:44px;margin-bottom:8px}
 
+  /* 按鈕 */
   .btn{
-    border:none;border-radius:16px;padding:13px 18px;min-height:48px;cursor:pointer;
-    background:linear-gradient(180deg,#E7B9BD 0%,var(--rose) 45%,#C98990 100%);color:#fff;
-    font-weight:500;letter-spacing:.08em;white-space:nowrap;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 4px rgba(140,70,80,.14),0 6px 16px rgba(201,137,144,.28);
-    transition:transform .2s ease,box-shadow .2s ease,filter .2s;
+    border:none;border-radius:999px;padding:13px 22px;min-height:50px;cursor:pointer;
+    background:var(--rose);color:#fff;font-weight:600;letter-spacing:.04em;white-space:nowrap;
+    box-shadow:0 6px 16px rgba(200,145,138,.28);transition:transform .2s ease,box-shadow .2s ease,background .2s;
   }
-  .btn:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 4px rgba(140,70,80,.14),0 10px 22px rgba(201,137,144,.34)}
-  .btn:active{transform:translateY(0) scale(.98)}
-  .btn.ghost{background:#FFF8F7;color:var(--rose-deep);border:1px solid #F3D9D9;box-shadow:inset 0 1px 0 #fff,0 4px 12px rgba(120,70,80,.04)}
-  .btn.light{background:var(--gray);color:var(--text);border:1px solid var(--border);box-shadow:var(--inset)}
-  .btn.danger{background:#FBEDEB;color:var(--danger);border:1px solid #F2D6D3;box-shadow:inset 0 1px 0 #fff}
-  .btn.block{width:100%;padding:16px;font-size:16px;min-height:56px;border-radius:20px}
-  .btn.sm{padding:9px 14px;min-height:40px;font-size:13px;border-radius:13px;letter-spacing:.04em}
-  .btn:disabled{opacity:.4;pointer-events:none;filter:grayscale(.3)}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(200,145,138,.36)}
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:#fff;color:var(--rose-deep);border:1.5px solid var(--border);box-shadow:none}
+  .btn.light{background:var(--tile);color:var(--text);box-shadow:none}
+  .btn.danger{background:#FBECE9;color:var(--danger);box-shadow:none}
+  .btn.block{width:100%;font-size:18px;min-height:64px}
+  .btn.sm{padding:8px 16px;min-height:40px;font-size:13.5px;box-shadow:none}
+  .btn:disabled{opacity:.45;pointer-events:none}
 
+  /* 表單 */
   input[type=text],input[type=tel],input[type=number],input[type=date],input[type=search],textarea{
-    width:100%;border:1px solid var(--border);background:#FFFBFA;border-radius:14px;min-height:50px;
-    padding:12px 15px;outline:none;transition:.2s;font-size:16px; /* 16px 防 iOS 放大 */
-    box-shadow:var(--inset);-webkit-appearance:none;appearance:none;
+    width:100%;border:1.5px solid var(--border);background:#fff;border-radius:16px;min-height:52px;
+    padding:12px 16px;outline:none;transition:.2s;font-size:16px;-webkit-appearance:none;appearance:none;
   }
-  input:focus,textarea:focus{border-color:var(--rose);background-color:#fff;box-shadow:var(--inset),0 0 0 4px rgba(217,163,168,.18)}
-  textarea{min-height:100px;resize:vertical}
-  label.field{display:block;margin-bottom:14px}
-  label.field>span,.field-label{display:block;font-size:12.5px;color:var(--sub);margin-bottom:7px;letter-spacing:.06em}
+  input:focus,textarea:focus{border-color:var(--rose);box-shadow:0 0 0 4px rgba(200,145,138,.15)}
+  textarea{min-height:110px;resize:vertical}
+  label.field{display:block;margin-bottom:16px}
+  label.field>span,.field-label{display:block;font-size:14px;font-weight:600;margin-bottom:8px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-  .search{position:relative}
-  .search input{padding-left:46px;border-radius:20px;min-height:56px;background:#fff;box-shadow:var(--shadow),var(--inset)}
-  .search::before{content:"";position:absolute;left:18px;top:50%;width:13px;height:13px;border:1.6px solid var(--rose);border-radius:50%;transform:translateY(-62%)}
-  .search::after{content:"";position:absolute;left:30px;top:50%;width:6px;height:1.6px;background:var(--rose);transform:translateY(5px) rotate(45deg)}
+  .search{position:relative;margin-bottom:var(--gap)}
+  .search input{padding-left:48px;min-height:58px;border-radius:20px;border-color:transparent;box-shadow:var(--shadow)}
+  .search::before{content:"🔍";position:absolute;left:17px;top:50%;transform:translateY(-50%);font-size:17px;opacity:.6}
 
-  /* Tags */
+  /* 標籤 */
   .tags{display:flex;flex-wrap:wrap;gap:6px}
-  .tag{font-size:12px;padding:3px 11px;border-radius:20px;background:var(--rose-pale);color:#9A5E67;border:1px solid #F4DCDC;letter-spacing:.04em}
-  .tag.vip{
-    font-family:var(--serif);font-weight:600;letter-spacing:.14em;color:#fff;border:none;padding:2px 10px;font-size:11px;
-    background:linear-gradient(135deg,#E2CB9F,var(--champ) 50%,#A9824F);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
-    vertical-align:middle;margin-left:6px
-  }
-  .chip-select{display:flex;flex-wrap:wrap;gap:8px}
+  .tag{font-size:12.5px;padding:3px 11px;border-radius:999px;background:var(--tile);color:var(--rose-deep);font-weight:500}
+  .tag.vip{background:var(--ink);color:#fff;font-weight:700;letter-spacing:.08em;font-size:11px;padding:2px 10px;margin-left:8px;vertical-align:middle}
+  .chip-select{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
   .chip-select label{cursor:pointer}
   .chip-select input{display:none}
   .chip-select span{
-    display:inline-flex;align-items:center;min-height:42px;padding:8px 16px;border-radius:22px;background:#FFFBFA;
-    border:1px solid var(--border);font-size:14px;transition:.2s;box-shadow:var(--inset)
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:76px;
+    border-radius:18px;background:var(--tile);border:2px solid transparent;font-size:14px;font-weight:600;transition:.2s
   }
-  .chip-select input:checked+span{background:var(--rose-pale);color:var(--rose-deep);border-color:var(--rose);box-shadow:inset 0 0 0 1px var(--rose)}
+  .chip-select span i{font-style:normal;font-size:24px}
+  .chip-select input:checked+span{background:var(--tile-on);border-color:#D9A49E}
 
-  /* Customer list */
-  .cust{display:flex;align-items:center;gap:14px;cursor:pointer}
+  /* 顧客列表 */
+  .cust{display:flex;align-items:center;gap:16px;cursor:pointer;margin-bottom:14px;padding:18px 20px}
   .cust:hover,.order:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover)}
   .avatar{
-    width:50px;height:50px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;
-    background:linear-gradient(140deg,#F8E1E1,#DDA7AC);color:#fff;font-family:var(--serif);font-weight:600;font-size:20px;
-    box-shadow:inset 0 1px 2px rgba(255,255,255,.6),0 0 0 3px #fff,0 0 0 4px #EEDDC6;
+    width:52px;height:52px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;
+    background:linear-gradient(140deg,#F3D9D4,#DCE3EE);color:var(--rose-deep);font-weight:700;font-size:20px;
   }
-  .cust .name{font-family:var(--serif);font-weight:600;font-size:17px;letter-spacing:.04em}
-  .cust .meta{text-align:right;font-size:12px;color:var(--sub);flex-shrink:0;line-height:1.8}
-  .cust .meta b{color:var(--rose-deep);font-family:var(--serif);font-size:15px}
+  .cust .name{font-weight:700;font-size:17px}
+  .cust .meta{text-align:right;font-size:12.5px;color:var(--sub);flex-shrink:0;line-height:1.9}
+  .cust .meta b{color:var(--text);font-size:16px}
 
-  /* Stats */
-  .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
-  .stat{background:linear-gradient(180deg,#FFF8F7,#FCEFEE);border:1px solid #F5E0DF;border-radius:18px;padding:14px 16px;box-shadow:inset 0 1px 0 #fff}
-  .stat .k{font-size:12px;color:var(--sub);letter-spacing:.08em}
-  .stat .v{font-family:var(--serif);font-size:28px;font-weight:600;color:var(--rose-deep);line-height:1.3}
-  .stat .v small{font-size:13px;font-weight:400;margin-left:3px}
+  /* 數值面板（漸層） */
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+  .stat{background:linear-gradient(120deg,#F6E6E4,#EEF0F5);border-radius:20px;padding:16px 18px}
+  .stat .k{font-size:13px;color:var(--sub);font-weight:600}
+  .stat .v{font-size:30px;font-weight:700;color:var(--rose-deep);line-height:1.3}
+  .stat .v small{font-size:14px;margin-left:3px}
+
+  .amount-panel{
+    border-radius:24px;padding:26px 20px 22px;text-align:center;margin:4px 0 18px;
+    background:linear-gradient(115deg,#F5E3E1 0%,#EFEAEC 55%,#E3EBF5 100%);
+  }
+  .amount-panel .lbl{font-size:13px;font-weight:600;color:var(--sub);letter-spacing:.1em}
+  .amount-panel .num{font-size:52px;font-weight:700;line-height:1.2;color:var(--text)}
+  .amount-panel .num.zero{color:#E2BBB5}
+  .amount-panel .pills{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .amount-panel .pills span{background:#fff;border-radius:999px;padding:6px 16px;font-size:13.5px;font-weight:600}
+  .amount-panel .pills span.dark{background:var(--ink);color:#fff}
 
   /* Timeline */
-  .tl{border-left:1px solid #EEDDC6;margin-left:6px;padding-left:18px}
+  .tl{border-left:2px solid var(--tile-on);margin-left:6px;padding-left:18px}
   .tl-item{position:relative;padding:4px 0 16px}
-  .tl-item::before{content:"";position:absolute;left:-23px;top:10px;width:9px;height:9px;border-radius:50%;background:#fff;border:1.5px solid var(--champ)}
-  .tl-item .d{font-family:var(--serif);font-size:13px;color:var(--rose-deep);letter-spacing:.06em}
+  .tl-item::before{content:"";position:absolute;left:-25px;top:9px;width:12px;height:12px;border-radius:50%;background:var(--rose);border:3px solid #fff;box-shadow:0 0 0 1px var(--border)}
+  .tl-item .d{font-size:13px;color:var(--rose-date);font-weight:600}
   .tl-item .t{white-space:pre-wrap;word-break:break-word}
   .tl-item .x{float:right;background:none;border:none;color:var(--sub);cursor:pointer;font-size:12px;padding:6px 4px}
 
-  /* ===== 服務 / 產品卡片 ===== */
-  .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  /* ===== 服務 / 產品磚塊 ===== */
+  .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
   .item{
-    background:#FFFCFB;border:1px solid var(--border);border-radius:20px;padding:16px;cursor:pointer;
-    position:relative;transition:transform .2s,box-shadow .2s,border-color .2s,background .2s;user-select:none;
-    box-shadow:var(--inset);
+    background:var(--tile);border:2px solid transparent;border-radius:20px;padding:18px 12px 16px;cursor:pointer;
+    text-align:center;transition:transform .2s,background .2s,border-color .2s,box-shadow .2s;user-select:none;
   }
-  .item:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover)}
-  .item.on{
-    border:1.5px solid var(--champ);padding:15.5px;background:linear-gradient(180deg,#FFFFFF,#FFF7F2);
-    box-shadow:0 8px 22px rgba(197,168,128,.22),inset 0 1px 0 #fff;
-  }
-  .item.on::after{content:"";position:absolute;top:14px;right:14px;width:8px;height:8px;border-radius:50%;background:var(--champ);box-shadow:0 0 0 3px rgba(197,168,128,.2)}
-  .item .n{font-weight:500;font-size:14.5px;padding-right:16px}
-  .item .p{font-family:var(--serif);color:var(--rose-deep);font-weight:600;font-size:17px;margin-top:4px}
-  /* 膠囊數量鈕 */
+  .item:hover{transform:translateY(-2px)}
+  .item.on{background:var(--tile-on);border-color:#D9A49E;box-shadow:0 8px 20px rgba(200,145,138,.18)}
+  .item .ic{font-size:32px;line-height:1.2}
+  .item .n{font-weight:600;font-size:15px;margin-top:6px}
+  .item .p{color:var(--sub);font-weight:500;font-size:14px}
+  .item.on .p{color:var(--rose-deep);font-weight:700}
   .qty{
-    display:none;align-items:center;justify-content:space-between;margin-top:12px;
-    border:1px solid #EEDDC6;border-radius:999px;background:#fff;padding:3px;box-shadow:var(--inset);
+    display:none;align-items:center;justify-content:space-between;margin:12px auto 0;max-width:150px;
+    background:#fff;border-radius:999px;padding:3px;box-shadow:0 2px 8px rgba(160,110,100,.1)
   }
   .item.on .qty{display:flex}
-  .qty button{
-    width:40px;height:36px;border-radius:999px;border:none;background:transparent;cursor:pointer;
-    font-size:18px;line-height:1;color:var(--rose-deep);transition:background .15s
-  }
-  .qty button:active{background:var(--rose-pale)}
-  .qty b{font-family:var(--serif);font-size:15px;min-width:24px;text-align:center}
+  .qty button{width:40px;height:36px;border:none;border-radius:999px;background:transparent;cursor:pointer;font-size:19px;color:var(--rose-deep)}
+  .qty button:active{background:var(--tile)}
+  .qty b{min-width:24px;text-align:center;font-size:16px}
 
-  /* ===== 膠囊切換鈕 Segmented ===== */
-  .seg{
-    display:flex;gap:4px;background:#F8EEED;border:1px solid var(--border);border-radius:999px;padding:4px;
-    box-shadow:var(--inset);margin-bottom:12px;
-  }
+  /* ===== 選項按鈕（支出/收入 風格） ===== */
+  .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:12px;margin-bottom:12px}
   .seg button{
-    flex:1;min-width:0;border:none;background:none;min-height:46px;border-radius:999px;cursor:pointer;
-    font-size:14px;color:var(--sub);letter-spacing:.04em;padding:0 6px;transition:all .2s ease;white-space:nowrap
+    min-height:58px;border-radius:16px;border:1.5px solid var(--border);background:#fff;cursor:pointer;
+    font-size:15.5px;font-weight:600;color:var(--text);padding:0 6px;transition:.2s;white-space:nowrap
   }
-  .seg button.active{
-    background:linear-gradient(180deg,#E9BEC2,var(--rose) 60%,#CC9097);color:#fff;font-weight:600;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 4px 12px rgba(201,137,144,.3)
-  }
+  .seg button:hover{border-color:#E3B9B3}
+  .seg button.active{background:var(--rose);border-color:var(--rose);color:#fff;box-shadow:0 6px 16px rgba(200,145,138,.3)}
   .seg button:disabled{opacity:.35;cursor:not-allowed}
+  @media (max-width:420px){ .seg button{font-size:14px} }
 
-  .summary .line{display:flex;justify-content:space-between;padding:5px 0;font-size:14px}
-  .warn{background:#FBEDEB;color:var(--danger);border:1px solid #F2D6D3;border-radius:14px;padding:11px 14px;font-size:13px;margin-top:4px}
-  .info{background:#FFF8F2;color:#8C6A47;border:1px solid #F1E3CF;border-radius:14px;padding:11px 14px;font-size:13px;margin-top:4px}
+  .summary .line{display:flex;justify-content:space-between;padding:5px 0;font-size:14.5px}
+  .warn{background:#FBECE9;color:var(--danger);border-radius:16px;padding:12px 16px;font-size:13.5px;margin-top:4px}
+  .info{background:var(--tile);color:var(--rose-deep);border-radius:16px;padding:12px 16px;font-size:13.5px;margin-top:4px}
+
+  .option-row{
+    display:flex;align-items:center;gap:10px;min-height:60px;padding:0 20px;margin:18px 0;border-radius:18px;
+    background:#fff;box-shadow:0 4px 18px rgba(160,110,100,.08);font-weight:600;cursor:pointer
+  }
+  .option-row input{width:20px;height:20px;accent-color:var(--rose);margin-left:auto}
 
   .picker{position:relative}
   .picker-list{
-    position:absolute;left:0;right:0;top:calc(100% + 8px);background:#fff;border:1px solid var(--border);border-radius:18px;
-    box-shadow:0 18px 40px rgba(120,70,80,.12);max-height:280px;overflow:auto;z-index:15;display:none
+    position:absolute;left:0;right:0;top:calc(100% + 8px);background:#fff;border-radius:18px;
+    box-shadow:0 18px 40px rgba(160,110,100,.16);max-height:300px;overflow:auto;z-index:15;display:none
   }
   .picker-list.show{display:block}
-  .picker-list div{padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer}
-  .picker-list div b{font-family:var(--serif)}
+  .picker-list div{padding:14px 18px;border-bottom:1px solid #F6ECEA;cursor:pointer}
   .picker-list div:last-child{border:none}
-  .picker-list div:hover,.picker-list div:active{background:var(--rose-pale)}
+  .picker-list div:hover,.picker-list div:active{background:var(--tile)}
+  .picked{display:flex;align-items:center;gap:12px;background:var(--tile);border-radius:20px;padding:12px 14px}
 
-  /* ===== 固定底部結帳列 ===== */
+  /* ===== 手機固定底部結帳列 ===== */
   .paybar{
     position:fixed;left:0;right:0;bottom:calc(var(--nav-h) + var(--safe-b));z-index:28;display:none;
-    padding:12px 16px;background:rgba(255,250,249,.78);
-    backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);
-    border-top:1px solid rgba(241,228,226,.9);box-shadow:0 -10px 30px rgba(120,70,80,.06);
+    padding:12px 16px;background:rgba(250,248,247,.8);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--border);
   }
   body.on-checkout .paybar{display:block}
-  .paybar-inner{max-width:828px;margin:0 auto;display:flex;align-items:center;gap:14px}
-  .paybar .lbl{font-family:var(--serif);font-size:12px;color:var(--sub);letter-spacing:.2em}
-  .paybar .amt{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--text);line-height:1.2}
-  .btn-cta{
-    flex:1;max-width:280px;margin-left:auto;min-height:58px;border:none;border-radius:999px;cursor:pointer;
-    font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:.24em;color:#F8EFE6;
-    background:linear-gradient(180deg,#4A5C51 0%,var(--cta) 50%,#2E3B33 100%);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -2px 6px rgba(0,0,0,.18),0 10px 24px rgba(58,74,64,.28);
-    transition:transform .2s ease,box-shadow .2s ease,opacity .2s;
+  .paybar-inner{display:flex;align-items:center;gap:14px}
+  .paybar .lbl{font-size:12px;color:var(--sub);font-weight:600}
+  .paybar .amt{font-size:24px;font-weight:700;line-height:1.2}
+  .paybar .btn{flex:1;min-height:58px;font-size:17px;margin-left:auto}
+  .desk-only{display:none}
+  @media (min-width:900px){
+    body.on-checkout .paybar{display:none}
+    .desk-only{display:block}
   }
-  .btn-cta:hover{transform:translateY(-2px)}
-  .btn-cta:active{transform:scale(.97);box-shadow:inset 0 2px 6px rgba(0,0,0,.25),0 4px 12px rgba(58,74,64,.2)}
-  .btn-cta:disabled{opacity:.35;pointer-events:none}
 
-  /* Orders */
-  .order{cursor:pointer}
-  .order b{font-family:var(--serif)}
-  .order .amt{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--rose-deep)}
-  .badge{font-size:11px;padding:2px 9px;border-radius:10px;background:var(--rose-pale);color:#9A5E67;margin-left:6px;vertical-align:middle}
-  .kpi{font-family:var(--serif);font-size:30px;font-weight:600;line-height:1.3}
-
-  /* Bottom nav */
-  nav{
-    position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(255,255,255,.92);
-    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);height:calc(var(--nav-h) + var(--safe-b));
-    display:flex;border-top:1px solid var(--border);padding:8px 8px calc(8px + var(--safe-b));
-  }
-  nav button{
-    flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-    font-size:12px;color:var(--sub);cursor:pointer;border-radius:16px;letter-spacing:.08em;transition:.2s
-  }
-  nav button svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-  nav button.active{color:var(--rose-deep);font-weight:600;background:linear-gradient(180deg,#FFF8F7,#FCEDEC);box-shadow:inset 0 1px 0 #fff}
+  /* 紀錄 */
+  .order{cursor:pointer;padding:18px 20px;margin-bottom:14px}
+  .order .amt{font-size:18px;font-weight:700}
+  .badge{font-size:11.5px;padding:2px 10px;border-radius:999px;background:var(--tile);color:var(--rose-deep);margin-left:6px;vertical-align:middle;font-weight:600}
+  .kpi{font-size:32px;font-weight:700;line-height:1.3}
 
   .fab{
-    position:fixed;right:20px;bottom:calc(var(--nav-h) + 22px + var(--safe-b));z-index:25;width:60px;height:60px;border-radius:50%;
-    border:none;color:#fff;font-size:28px;font-weight:300;cursor:pointer;transition:.2s;
-    background:linear-gradient(160deg,#EDC4C7,var(--rose) 50%,#C1808A);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 12px 26px rgba(201,137,144,.42);
+    position:fixed;right:20px;bottom:calc(var(--nav-h) + 22px + var(--safe-b));z-index:25;width:62px;height:62px;border-radius:50%;
+    border:none;color:#fff;font-size:30px;cursor:pointer;transition:.2s;background:var(--rose);
+    box-shadow:0 12px 26px rgba(200,145,138,.45);
   }
   .fab:hover{transform:translateY(-3px) rotate(90deg)}
+  @media (min-width:900px){ .fab{bottom:36px;right:40px} }
 
   /* Modal */
   .modal{
-    position:fixed;inset:0;z-index:50;background:rgba(75,59,64,.3);display:none;
+    position:fixed;inset:0;z-index:50;background:rgba(59,54,52,.28);display:none;
     align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
   }
   .modal.show{display:flex;animation:fade .25s}
   .sheet{
-    background:var(--bg);width:100%;max-width:660px;max-height:92vh;overflow:auto;
-    border-radius:28px 28px 0 0;padding:8px 18px calc(24px + var(--safe-b));
-    animation:up .3s cubic-bezier(.2,.8,.2,1);
+    background:var(--bg);width:100%;max-width:680px;max-height:92vh;overflow:auto;
+    border-radius:30px 30px 0 0;padding:8px 18px calc(24px + var(--safe-b));animation:up .3s cubic-bezier(.2,.8,.2,1);
   }
   @keyframes up{from{transform:translateY(50px)}to{transform:none}}
-  .sheet .grab{width:44px;height:5px;border-radius:5px;background:#EAD6D5;margin:6px auto 14px}
+  .sheet .grab{width:44px;height:5px;border-radius:5px;background:#EAD7D3;margin:6px auto 14px}
   .sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-  .sheet-head h2{font-size:21px}
-  .close{border:1px solid var(--border);background:#fff;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:15px;color:var(--sub);box-shadow:var(--inset)}
-  @media(min-width:700px){
-    .modal{align-items:center}
-    .sheet{border-radius:28px;max-height:88vh}
-  }
+  .sheet-head h2{font-size:22px}
+  .close{border:none;background:#fff;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:15px;color:var(--sub);box-shadow:0 4px 12px rgba(160,110,100,.1)}
+  @media (min-width:700px){ .modal{align-items:center} .sheet{border-radius:30px;max-height:88vh} }
 
   .receipt{
-    background:#fff;border-radius:22px;padding:22px;white-space:pre-wrap;word-break:break-word;
-    font-family:var(--sans);font-size:14.5px;line-height:1.8;color:var(--text);
-    box-shadow:var(--shadow);margin:0 0 16px;border:1px solid var(--border);
-    background-image:linear-gradient(180deg,rgba(232,180,184,.12),transparent 90px);
+    background:#fff;border-radius:24px;padding:24px;white-space:pre-wrap;word-break:break-word;
+    font-family:var(--sans);font-size:14.5px;line-height:1.8;color:var(--text);box-shadow:var(--shadow);margin:0 0 16px;
   }
-  .btn.copied{background:linear-gradient(180deg,#9DB5A2,var(--ok))}
+  .btn.copied{background:var(--ok)}
 
   .toast{
-    position:fixed;left:50%;top:22px;transform:translate(-50%,-20px);background:var(--text);color:#fff;
-    padding:11px 20px;border-radius:30px;font-size:14px;z-index:100;white-space:nowrap;max-width:90vw;letter-spacing:.04em;
-    opacity:0;transition:.3s;pointer-events:none;box-shadow:0 10px 26px rgba(75,59,64,.25)
+    position:fixed;left:50%;top:22px;transform:translate(-50%,-20px);background:var(--ink);color:#fff;
+    padding:11px 22px;border-radius:999px;font-size:14px;z-index:100;white-space:nowrap;max-width:90vw;
+    opacity:0;transition:.3s;pointer-events:none;box-shadow:0 10px 26px rgba(0,0,0,.18)
   }
   .toast.show{opacity:.96;transform:translate(-50%,0)}
 
-  .list-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 0;border-bottom:1px solid var(--border)}
+  .list-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #F6ECEA}
   .list-item:last-child{border:none}
   .check{display:flex;align-items:center;gap:10px;font-size:14px;margin-top:14px;cursor:pointer;min-height:40px}
-  .check input{width:20px;height:20px;accent-color:var(--rose-deep)}
-
-  @media(min-width:700px){
-    main{padding:28px 24px}
-    .card{padding:24px}
-  }
+  .check input{width:20px;height:20px;accent-color:var(--rose)}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="brand">SKIN ATELIER · CRM</div>
-  <h1 id="shopTitle">皮膚管理</h1>
-</header>
+<!-- 側欄（iPad / 桌機）＝ 底部導覽（手機） -->
+<aside class="side">
+  <div class="side-brand">
+    <h1 id="sideTitle">皮膚管理</h1>
+    <p>美容與皮膚管理 CRM ・ Skin Care Studio</p>
+  </div>
+  <nav>
+    <button class="active" data-page="customers"><span class="ico">👥</span><span class="lb"><b>顧客</b><small>Clients</small></span></button>
+    <button data-page="checkout"><span class="ico">🧾</span><span class="lb"><b>結帳</b><small>Checkout</small></span></button>
+    <button data-page="orders"><span class="ico">📋</span><span class="lb"><b>紀錄</b><small>Orders</small></span></button>
+    <button data-page="settings"><span class="ico">⚙️</span><span class="lb"><b>設定</b><small>Settings</small></span></button>
+  </nav>
+</aside>
 
 <main>
+  <div class="page-head">
+    <div>
+      <h2 id="shopTitle">皮膚管理</h2>
+      <div class="date" id="todayLabel"></div>
+    </div>
+    <div class="head-avatar">💆‍♀️</div>
+  </div>
+
   <!-- ========== 顧客 ========== -->
   <section class="page active" id="page-customers">
+    <div class="chips" id="custChips"></div>
     <div class="search"><input type="search" id="custSearch" placeholder="搜尋姓名或電話…" autocomplete="off"></div>
-    <div class="section-title"><span id="custCount">顧客 0 位</span></div>
+    <div class="section-title">👥 顧客名單<em>Clients</em><span id="custCount"></span></div>
     <div id="custList"></div>
   </section>
 
   <!-- ========== 結帳 ========== -->
   <section class="page" id="page-checkout">
     <div class="card">
-      <div class="section-title">選擇顧客<em>Client</em></div>
+      <div class="card-title">🧾 快速結帳 <small>Checkout</small></div>
+
+      <div class="section-title">👤 選擇顧客<em>Client</em></div>
       <div class="picker">
         <input type="search" id="coSearch" placeholder="輸入姓名或電話搜尋顧客…" autocomplete="off">
         <div class="picker-list" id="coPickerList"></div>
       </div>
       <div id="coCustomer"></div>
-    </div>
 
-    <div class="card">
-      <div class="section-title">服務項目<em>Treatments</em></div>
+      <div class="section-title">💆‍♀️ 服務項目<em>Treatments</em></div>
       <div class="items" id="coServices"></div>
-    </div>
 
-    <div class="card">
-      <div class="section-title">居家保養品<em>Home Care</em></div>
+      <div class="section-title">🧴 居家保養品<em>Home Care</em></div>
       <div class="items" id="coProducts"></div>
-    </div>
 
-    <div class="card">
-      <div class="section-title">付款方式<em>Payment</em></div>
+      <div class="section-title">💳 付款方式<em>Payment</em></div>
       <div id="coPay"></div>
       <div id="coSubPay"></div>
       <div id="coMsg"></div>
-    </div>
 
-    <div class="card summary" id="coSummary"></div>
+      <div class="section-title">📝 結帳明細<em>Summary</em></div>
+      <div class="summary" id="coSummary"></div>
+
+      <div class="desk-only">
+        <button class="btn block co-confirm" onclick="confirmCheckout()">確認結帳 Checkout</button>
+      </div>
+    </div>
   </section>
 
   <!-- ========== 消費紀錄 ========== -->
   <section class="page" id="page-orders">
-    <div class="card">
-      <div class="row">
-        <div class="grow"><div class="muted">今日營收（實收）</div><div class="kpi" style="color:var(--ochre)" id="todayRevenue">$0</div></div>
-        <div style="text-align:right"><div class="muted">今日筆數</div><div class="kpi" id="todayCount">0</div></div>
-      </div>
+    <div class="stats" style="margin-top:0">
+      <div class="stat"><div class="k">💰 今日營收（實收）</div><div class="v" id="todayRevenue">$0</div></div>
+      <div class="stat"><div class="k">🧾 今日筆數</div><div class="v" id="todayCount">0</div></div>
     </div>
-    <div class="section-title">消費紀錄<em>Orders</em><span>點擊可重開收據</span></div>
+    <div class="section-title">📋 消費紀錄<em>Orders</em><span>點擊可重開收據</span></div>
     <div id="orderList"></div>
   </section>
 
   <!-- ========== 設定 ========== -->
   <section class="page" id="page-settings">
-    <div class="section-title">店家資訊<em>Salon</em></div>
     <div class="card">
+      <div class="card-title">🏠 店家資訊 <small>Salon</small></div>
       <label class="field"><span>店家名稱（顯示於收據）</span><input type="text" id="setShopName"></label>
-      <label class="field" style="margin:0"><span>收據結尾語</span><input type="text" id="setFooter"></label>
-      <button class="btn sm ghost" style="margin-top:12px" onclick="saveShop()">儲存店家資訊</button>
+      <label class="field"><span>收據結尾語</span><input type="text" id="setFooter"></label>
+      <button class="btn sm" onclick="saveShop()">儲存店家資訊</button>
     </div>
 
-    <div class="section-title">品項管理<em>Menu</em></div>
     <div class="card">
+      <div class="card-title">💆‍♀️ 品項管理 <small>Menu</small></div>
       <div class="seg" id="itemSeg">
         <button class="active" data-cat="service">服務項目</button>
         <button data-cat="product">居家保養品</button>
       </div>
       <div id="itemList"></div>
-      <div class="row" style="margin-top:12px">
+      <div class="row" style="margin-top:14px">
+        <input type="text" id="newItemIcon" placeholder="✨" maxlength="4" style="width:64px;text-align:center">
         <input type="text" id="newItemName" placeholder="品項名稱" class="grow">
-        <input type="number" id="newItemPrice" placeholder="價格" style="width:100px" inputmode="numeric">
-        <button class="btn sm" onclick="addItem()">新增</button>
+        <input type="number" id="newItemPrice" placeholder="價格" style="width:96px" inputmode="numeric">
       </div>
+      <button class="btn sm" style="margin-top:12px" onclick="addItem()">＋ 新增品項</button>
     </div>
 
-    <div class="section-title">資料備份<em>Backup</em></div>
     <div class="card">
+      <div class="card-title">💾 資料備份 <small>Backup</small></div>
       <p class="muted" style="margin-top:0">所有資料都存在此瀏覽器中。建議每日營業結束後匯出備份，換手機或清除瀏覽器資料前務必備份。</p>
       <div class="grid2">
-        <button class="btn" onclick="exportJSON()">⬇︎ 匯出 JSON 備份</button>
-        <button class="btn ghost" onclick="document.getElementById('importFile').click()">⬆︎ 匯入 JSON 復原</button>
+        <button class="btn" onclick="exportJSON()">⬇︎ 匯出 JSON</button>
+        <button class="btn ghost" onclick="document.getElementById('importFile').click()">⬆︎ 匯入 JSON</button>
       </div>
       <input type="file" id="importFile" accept=".json,application/json" hidden>
-      <div class="muted" id="lastBackup" style="margin-top:10px"></div>
+      <div class="muted" id="lastBackup" style="margin-top:12px"></div>
     </div>
 
-    <div class="section-title">危險區域<em>Reset</em></div>
     <div class="card">
+      <div class="card-title">⚠️ 危險區域 <small>Reset</small></div>
       <button class="btn danger block" onclick="resetAll()">清除所有資料</button>
     </div>
   </section>
 </main>
 
-<!-- 固定底部結帳列 -->
+<!-- 手機固定底部結帳列 -->
 <div class="paybar">
   <div class="paybar-inner">
     <div><div class="lbl">本次應收</div><div class="amt" id="barTotal">$0</div></div>
-    <button class="btn-cta" id="coConfirm" onclick="confirmCheckout()">確認結帳</button>
+    <button class="btn co-confirm" onclick="confirmCheckout()">確認結帳</button>
   </div>
 </div>
 
 <button class="fab" id="fab" onclick="openCustomerForm()" aria-label="新增顧客">＋</button>
-
-<nav>
-  <button class="active" data-page="customers"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.8a3.3 3.3 0 0 1 0 6.4M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/></svg>顧客</button>
-  <button data-page="checkout"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>結帳</button>
-  <button data-page="orders"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="17" rx="3"/><path d="M8 2.5v3M16 2.5v3M8 11h8M8 15h5"/></svg>紀錄</button>
-  <button data-page="settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>設定</button>
-</nav>
 
 <!-- 通用彈窗 -->
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
@@ -444,9 +481,9 @@
 <div class="modal" id="receiptModal">
   <div class="sheet">
     <div class="grab"></div>
-    <div class="sheet-head"><h2>結帳完成</h2><button class="close" onclick="closeReceipt()">✕</button></div>
+    <div class="sheet-head"><h2>✅ 結帳完成</h2><button class="close" onclick="closeReceipt()">✕</button></div>
     <pre class="receipt" id="receiptText"></pre>
-    <button class="btn block" id="copyBtn" onclick="copyReceipt()">一鍵複製收據文字</button>
+    <button class="btn block" id="copyBtn" onclick="copyReceipt()">📋 一鍵複製收據文字</button>
     <p class="muted" style="text-align:center;margin:10px 0 0">複製後貼到顧客的 LINE 聊天室即可</p>
   </div>
 </div>
@@ -457,6 +494,7 @@
 /* ================= 資料層 ================= */
 const STORE_KEY = 'skincareCRM_v1';
 const SKIN_TYPES = ['乾性','油性','混合','敏感','痘痘肌','中性','暗沉','泛紅'];
+const SKIN_ICON = {乾性:'🏜️',油性:'💧',混合:'🌗',敏感:'🌸',痘痘肌:'🫧',中性:'🌿',暗沉:'🌫️',泛紅:'🌹'};
 const PAY_METHODS = {
   cash:    {label:'現金',      en:'Cash'},
   transfer:{label:'轉帳',      en:'Transfer'},
@@ -472,11 +510,11 @@ function defaultData(){
     shopName:'香頌 Skin Atelier',
     footer:'感謝您的光臨，期待下次見面 🤍',
     items:[
-      {id:uid(),cat:'service',name:'水飛梭保濕',price:1800},
-      {id:uid(),cat:'service',name:'手工清粉刺',price:1200},
-      {id:uid(),cat:'service',name:'酸類煥膚',price:2000},
-      {id:uid(),cat:'product',name:'PDRN 精華液',price:1500},
-      {id:uid(),cat:'product',name:'修復霜',price:800},
+      {id:uid(),cat:'service',name:'水飛梭保濕',price:1800,icon:'💧'},
+      {id:uid(),cat:'service',name:'手工清粉刺',price:1200,icon:'🫧'},
+      {id:uid(),cat:'service',name:'酸類煥膚',price:2000,icon:'🍋'},
+      {id:uid(),cat:'product',name:'PDRN 精華液',price:1500,icon:'🧪'},
+      {id:uid(),cat:'product',name:'修復霜',price:800,icon:'🧴'},
     ],
     customers:[],
     orders:[],
@@ -511,6 +549,7 @@ const isVIP = c => (c.balance||0) >= 10000 || (c.credits||0) >= 10;
 // 膠囊切換鈕：opts = [[value,label,disabled?],...]
 const segHTML = (opts, value, handler) => `<div class="seg">${opts.map(([v,l,dis])=>
   `<button type="button" class="${v===value?'active':''}" ${dis?'disabled':''} onclick="${handler}('${v}')">${l}</button>`).join('')}</div>`;
+const itemIcon = i => i.icon || (i.cat==='service' ? '✨' : '🧴');
 const vipTag = c => isVIP(c) ? '<span class="tag vip">VIP</span>' : '';
 
 function toast(msg){
@@ -549,12 +588,19 @@ function lastVisit(c){
   const r = (c.records||[]).map(x=>x.date).sort().pop();
   return r ? fmtD(r) : '尚無紀錄';
 }
+let custFilter = 'all';
+function setCustFilter(v){ custFilter = v; renderCustomers(); }
 function renderCustomers(){
+  const chips = [['all','全部'],['vip','⭐ VIP'],...SKIN_TYPES.map(s=>[s,`${SKIN_ICON[s]} ${s}`])];
+  $('#custChips').innerHTML = chips.map(([v,l])=>`<button class="${custFilter===v?'active':''}" onclick="setCustFilter('${v}')">${l}</button>`).join('');
   const q = $('#custSearch').value;
-  const list = db.customers.filter(c => matchCust(c,q)).sort((a,b)=> (b.updatedAt||0)-(a.updatedAt||0));
-  $('#custCount').textContent = `顧客 ${db.customers.length} 位` + (q ? `・符合 ${list.length} 位` : '');
+  const list = db.customers
+    .filter(c => matchCust(c,q))
+    .filter(c => custFilter==='all' || (custFilter==='vip' ? isVIP(c) : c.skin?.includes(custFilter)))
+    .sort((a,b)=> (b.updatedAt||0)-(a.updatedAt||0));
+  $('#custCount').textContent = `共 ${db.customers.length} 位` + (list.length!==db.customers.length ? `・顯示 ${list.length} 位` : '');
   if(!list.length){
-    $('#custList').innerHTML = `<div class="empty">${db.customers.length ? '找不到符合的顧客' : '還沒有顧客資料<br>點右下角「＋」新增第一位顧客 🌿'}</div>`;
+    $('#custList').innerHTML = `<div class="empty"><span class="big">🗒️</span>${db.customers.length ? '沒有符合的顧客' : '還沒有顧客資料<br>點右下角「＋」新增第一位顧客'}</div>`;
     return;
   }
   $('#custList').innerHTML = list.map(c => `
@@ -563,7 +609,7 @@ function renderCustomers(){
       <div class="grow">
         <div class="name">${esc(c.name)}${vipTag(c)}</div>
         <div class="muted">${esc(c.phone||'未填電話')}・最近 ${lastVisit(c)}</div>
-        ${c.skin?.length ? `<div class="tags" style="margin-top:6px">${c.skin.map(s=>`<span class="tag">${esc(s)}</span>`).join('')}</div>`:''}
+        ${c.skin?.length ? `<div class="tags" style="margin-top:6px">${c.skin.map(s=>`<span class="tag">${SKIN_ICON[s]||''} ${esc(s)}</span>`).join('')}</div>`:''}
       </div>
       <div class="meta">包套 <b>${c.credits||0}</b> 次<br>儲值 <b>${money(c.balance)}</b></div>
     </div>`).join('');
@@ -577,8 +623,8 @@ function openCustomerForm(id){
     <div class="card">
       <label class="field"><span>姓名 *</span><input type="text" id="fName" value="${esc(c.name)}" placeholder="例：王小美"></label>
       <label class="field"><span>電話</span><input type="tel" id="fPhone" value="${esc(c.phone)}" placeholder="0912-345-678" inputmode="tel"></label>
-      <div class="field"><span class="muted" style="display:block;margin-bottom:6px">膚質標籤（可複選）</span>
-        <div class="chip-select">${SKIN_TYPES.map(s=>`<label><input type="checkbox" name="fSkin" value="${s}" ${c.skin?.includes(s)?'checked':''}><span>${s}</span></label>`).join('')}</div>
+      <div class="field"><span class="field-label">膚質標籤（可複選）</span>
+        <div class="chip-select">${SKIN_TYPES.map(s=>`<label><input type="checkbox" name="fSkin" value="${s}" ${c.skin?.includes(s)?'checked':''}><span><i>${SKIN_ICON[s]}</i>${s}</span></label>`).join('')}</div>
       </div>
       <div class="grid2" style="margin-top:12px">
         <label class="field"><span>包套剩餘次數</span><input type="number" id="fCredits" value="${c.credits||0}" min="0" inputmode="numeric"></label>
@@ -638,7 +684,7 @@ function openDetail(id){
         <div class="stat"><div class="k">儲值金餘額</div><div class="v">${money(c.balance)}</div></div>
       </div>
       <div class="grid2">
-        <button class="btn" onclick="checkoutFor('${id}')">前往結帳</button>
+        <button class="btn" onclick="checkoutFor('${id}')">🧾 前往結帳</button>
         <button class="btn ghost" onclick="openTopup('${id}')">＋ 儲值 / 加購包套</button>
       </div>
     </div>
@@ -711,7 +757,7 @@ function openTopup(id){
 let topMethod = 'cash';
 function setTopMethod(v){
   topMethod = v;
-  $('#tMethodSeg').innerHTML = segHTML([['cash','現金'],['transfer','轉帳'],['linepay','LINE Pay']], v, 'setTopMethod');
+  $('#tMethodSeg').innerHTML = segHTML([['cash','💵 現金'],['transfer','🏦 轉帳'],['linepay','💚 LINE Pay']], v, 'setTopMethod');
 }
 function saveTopup(id){
   const c = getCust(id);
@@ -757,9 +803,9 @@ function renderCheckout(){
   const c = getCust(co.customerId);
   if(!c) co.customerId = '';
   $('#coCustomer').innerHTML = c ? `
-    <div class="row" style="margin-top:12px;background:var(--milk-pale);border-radius:14px;padding:12px">
-      <div class="avatar" style="width:40px;height:40px;font-size:16px">${esc(initial(c.name))}</div>
-      <div class="grow"><b style="font-family:var(--serif)">${esc(c.name)}</b>${vipTag(c)}<div class="muted">包套 ${c.credits||0} 次・儲值 ${money(c.balance)}</div></div>
+    <div class="picked">
+      <div class="avatar" style="width:44px;height:44px;font-size:17px">${esc(initial(c.name))}</div>
+      <div class="grow"><b>${esc(c.name)}</b>${vipTag(c)}<div class="muted">包套 ${c.credits||0} 次・儲值 ${money(c.balance)}</div></div>
       <button class="btn sm light" onclick="co.customerId='';renderCheckout()">更換</button>
     </div>` : `<div class="muted" style="margin-top:10px">未選擇顧客將以「散客」結帳（僅可使用現金 / 轉帳 / LINE Pay）</div>`;
   $('#coSearch').style.display = c ? 'none' : '';
@@ -771,7 +817,7 @@ function renderCheckout(){
     return arr.map(i=>{
       const q = co.cart[i.id]||0;
       return `<div class="item ${q?'on':''}" onclick="toggleItem('${i.id}')">
-        <div class="n">${esc(i.name)}</div><div class="p">${money(i.price)}</div>
+        <div class="ic">${esc(itemIcon(i))}</div><div class="n">${esc(i.name)}</div><div class="p">${money(i.price)}</div>
         <div class="qty" onclick="event.stopPropagation()">
           <button type="button" aria-label="減少" onclick="changeQty('${i.id}',-1)">−</button><b>${q}</b><button type="button" aria-label="增加" onclick="changeQty('${i.id}',1)">＋</button>
         </div>
@@ -784,10 +830,10 @@ function renderCheckout(){
   // 付款方式
   if(!c && (co.method==='package'||co.method==='balance')) co.method = 'cash';
   $('#coPay').innerHTML =
-    `<div class="sub-title" style="margin-top:0">付款</div>` +
-    segHTML([['cash','現金'],['transfer','轉帳'],['linepay','LINE Pay']], co.method, 'setMethod') +
-    `<div class="sub-title">核銷</div>` +
-    segHTML([['package','扣包套 1 次',!c],['balance','扣儲值金',!c]], co.method, 'setMethod');
+    `<div class="sub-title">付款 Payment</div>` +
+    segHTML([['cash','💵 現金'],['transfer','🏦 轉帳'],['linepay','💚 LINE Pay']], co.method, 'setMethod') +
+    `<div class="sub-title">核銷 Redeem</div>` +
+    segHTML([['package','🎫 扣包套 1 次',!c],['balance','💳 扣儲值金',!c]], co.method, 'setMethod');
 
   const {lines, service, product, total} = calc();
   let msg = '', ok = lines.length > 0, sub = '';
@@ -799,8 +845,8 @@ function renderCheckout(){
     else if((c.credits||0) < 1){ ok=false; msg = `<div class="warn">此顧客包套次數不足（剩 ${c.credits||0} 次）</div>`; }
     else msg = `<div class="info">服務項目以包套 1 次核銷${product?`；保養品 ${money(product)} 請另選付款方式`:''}</div>`;
     if(product){
-      sub = `<div class="sub-title">保養品付款</div>` +
-        segHTML([['cash','現金'],['transfer','轉帳'],['linepay','LINE Pay'],['balance','儲值金']], co.subMethod, 'setSubMethod');
+      sub = `<div class="sub-title">保養品付款 Home Care</div>` +
+        segHTML([['cash','💵 現金'],['transfer','🏦 轉帳'],['linepay','💚 LINE Pay'],['balance','💳 儲值金']], co.subMethod, 'setSubMethod');
       if(co.subMethod==='balance'){
         balanceUse = product; paid = 0;
         if((c.balance||0) < product){ ok=false; msg += `<div class="warn">儲值金不足（餘額 ${money(c.balance)}，需 ${money(product)}）</div>`; }
@@ -814,15 +860,23 @@ function renderCheckout(){
   $('#coMsg').innerHTML = lines.length ? msg : '';
 
   $('#coSummary').innerHTML = `
-    <div class="section-title">結帳明細<em>Summary</em></div>
+    <div class="amount-panel">
+      <div class="lbl">本次應收 AMOUNT DUE</div>
+      <div class="num ${paid?'':'zero'}">${money(paid)}</div>
+      <div class="pills">
+        <span class="dark">小計 ${money(total)}</span>
+        ${creditsUse?`<span>🎫 包套 -1 次</span>`:''}
+        ${balanceUse?`<span>💳 儲值 -${money(balanceUse)}</span>`:''}
+      </div>
+    </div>
     ${lines.length ? lines.map(l=>`<div class="line"><span>${esc(l.name)} × ${l.qty}</span><span>${money(l.price*l.qty)}</span></div>`).join('')
       : '<div class="muted">尚未選擇任何品項</div>'}
     <div class="line" style="margin-top:6px;color:var(--sub)"><span>小計</span><span>${money(total)}</span></div>
     ${creditsUse?`<div class="line" style="color:var(--milk-dark)"><span>🎫 扣抵包套</span><span>-1 次（折抵 ${money(service)}）</span></div>`:''}
     ${balanceUse?`<div class="line" style="color:var(--milk-dark)"><span>💳 扣抵儲值金</span><span>-${money(balanceUse)}</span></div>`:''}
-    ${c ? `<label class="check"><input type="checkbox" ${co.addRecord?'checked':''} onchange="co.addRecord=this.checked"> 同步新增本日施作紀錄（服務項目）</label>` : ''}
+    ${c ? `<label class="option-row">📝 同步新增本日施作紀錄（服務項目）<input type="checkbox" ${co.addRecord?'checked':''} onchange="co.addRecord=this.checked"></label>` : ''}
   `;
-  $('#coConfirm').disabled = !ok;
+  document.querySelectorAll('.co-confirm').forEach(b => b.disabled = !ok);
   $('#barTotal').textContent = money(paid);
   co._calc = {lines, service, product, total, paid, creditsUse, balanceUse};
 }
@@ -930,7 +984,7 @@ function showReceipt(orderId){
   const o = db.orders.find(x=>x.id===orderId); if(!o) return;
   closeModal();
   $('#receiptText').textContent = buildReceipt(o);
-  const b = $('#copyBtn'); b.classList.remove('copied'); b.textContent = '一鍵複製收據文字';
+  const b = $('#copyBtn'); b.classList.remove('copied'); b.textContent = '📋 一鍵複製收據文字';
   $('#receiptModal').classList.add('show');
 }
 function closeReceipt(){ $('#receiptModal').classList.remove('show'); if(currentPage==='orders') renderOrders(); }
@@ -949,7 +1003,7 @@ async function copyReceipt(){
   const b = $('#copyBtn');
   if(ok){ b.classList.add('copied'); b.textContent = '✓ 已複製！'; toast('已複製！可直接貼到 LINE'); }
   else { toast('複製失敗，請長按收據文字手動複製'); }
-  setTimeout(()=>{ b.classList.remove('copied'); b.textContent='一鍵複製收據文字'; }, 2500);
+  setTimeout(()=>{ b.classList.remove('copied'); b.textContent='📋 一鍵複製收據文字'; }, 2500);
 }
 
 /* ================= 消費紀錄 ================= */
@@ -958,7 +1012,7 @@ function renderOrders(){
   const todays = db.orders.filter(o=>{ const d=new Date(o.date); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`===t; });
   $('#todayRevenue').textContent = money(todays.reduce((s,o)=>s+(o.paid||0),0));
   $('#todayCount').textContent = todays.length;
-  if(!db.orders.length){ $('#orderList').innerHTML = '<div class="empty">尚無消費紀錄</div>'; return; }
+  if(!db.orders.length){ $('#orderList').innerHTML = '<div class="empty"><span class="big">🗒️</span>尚無消費紀錄</div>'; return; }
   $('#orderList').innerHTML = db.orders.slice(0,200).map(o=>`
     <div class="card order row" onclick="showReceipt('${o.id}')">
       <div class="grow">
@@ -982,7 +1036,7 @@ function renderSettings(){
   const arr = db.items.filter(i=>i.cat===itemCat);
   $('#itemList').innerHTML = arr.length ? arr.map(i=>`
     <div class="list-item">
-      <div class="grow">${esc(i.name)}</div>
+      <div style="font-size:22px">${esc(itemIcon(i))}</div><div class="grow">${esc(i.name)}</div>
       <input type="number" value="${i.price}" style="width:96px;padding:8px 10px;margin-right:8px" inputmode="numeric" onchange="updatePrice('${i.id}',this.value)">
       <button class="btn sm danger" onclick="deleteItem('${i.id}')">刪除</button>
     </div>`).join('') : '<div class="muted">尚無品項</div>';
@@ -998,8 +1052,9 @@ function addItem(){
   const name = $('#newItemName').value.trim();
   const price = parseFloat($('#newItemPrice').value);
   if(!name || !(price>=0)){ toast('請輸入品項名稱與價格'); return; }
-  db.items.push({id:uid(), cat:itemCat, name, price});
-  $('#newItemName').value=''; $('#newItemPrice').value='';
+  const icon = $('#newItemIcon').value.trim();
+  db.items.push({id:uid(), cat:itemCat, name, price, ...(icon ? {icon} : {})});
+  $('#newItemName').value=''; $('#newItemPrice').value=''; $('#newItemIcon').value='';
   save(); renderSettings(); toast('已新增品項');
 }
 function updatePrice(id, v){
@@ -1048,7 +1103,11 @@ function resetAll(){
 }
 
 /* ================= 初始化 ================= */
-function updateTitle(){ $('#shopTitle').textContent = db.shopName; document.title = db.shopName + '・CRM'; }
+function updateTitle(){
+  $('#shopTitle').textContent = $('#sideTitle').textContent = db.shopName;
+  document.title = db.shopName + '・CRM';
+  $('#todayLabel').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+}
 updateTitle();
 renderCustomers();
 </script>
