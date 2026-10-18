@@ -71,7 +71,8 @@
     flex:1;border:none;background:none;border-radius:16px;cursor:pointer;color:var(--sub);position:relative;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;transition:color .2s,background .2s;
   }
-  .side nav .ico{font-size:21px;line-height:1.15}
+  .side nav .ico{display:flex;height:24px;align-items:center}
+  .side nav .ico svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
   .side nav b{font-size:12px;font-weight:600}
   .side nav small{display:none}
   .side nav button.active{color:var(--rose-deep);background:var(--rose-pale)}
@@ -145,7 +146,6 @@
   .grow{flex:1;min-width:0}
   .muted{color:var(--sub);font-size:13.5px}
   .empty{text-align:center;color:var(--sub);padding:48px 10px;font-size:15px}
-  .empty .big{display:block;font-size:40px;margin-bottom:8px}
 
   /* 按鈕 */
   .btn{
@@ -186,15 +186,14 @@
   .tags{display:flex;flex-wrap:wrap;gap:6px}
   .tag{font-size:12.5px;padding:2px 11px;border-radius:999px;background:var(--rose-pale);color:var(--rose-deep);font-weight:600;border:1px solid #F3E1DD}
   .tag.vip{background:var(--ink);color:#F3E6D8;border:none;font-weight:700;letter-spacing:.14em;font-size:11px;padding:1px 10px;margin-left:8px;vertical-align:middle}
-  .chip-select{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+  .chip-select{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:10px}
   .chip-select label{cursor:pointer}
   .chip-select input{display:none}
   .chip-select span{
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:78px;
-    border-radius:18px;background:#fff;border:1.5px solid var(--border);font-size:14.5px;font-weight:600;transition:.2s
+    display:flex;align-items:center;justify-content:center;min-height:48px;
+    border-radius:999px;background:#fff;border:1.5px solid var(--border);font-size:14.5px;font-weight:600;transition:.2s
   }
-  .chip-select span i{font-style:normal;font-size:24px}
-  .chip-select input:checked+span{background:var(--rose-pale);border-color:var(--rose)}
+  .chip-select input:checked+span{background:var(--rose);border-color:var(--rose);color:#fff}
 
   /* 頭像（依客群自動配色：黑＝VIP） */
   .avatar{
@@ -235,13 +234,13 @@
 
   .amount-panel{
     border-radius:24px;padding:28px 20px 24px;text-align:center;margin:0 0 18px;
-    background:linear-gradient(115deg,#F7E9E6 0%,#F4EFEF 55%,#E7EEF3 100%);
+    background:#FBF7F5;border:1.5px solid var(--border);
   }
   .amount-panel .lbl{font-size:12.5px;font-weight:700;color:var(--sub);letter-spacing:.24em}
   .amount-panel .num{font-size:52px;font-weight:700;line-height:1.25;color:var(--text);letter-spacing:.02em}
   .amount-panel .num.zero{color:#DDBDB7}
   .amount-panel .pills{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:12px}
-  .amount-panel .pills span{background:#fff;border-radius:999px;padding:5px 16px;font-size:13.5px;font-weight:600}
+  .amount-panel .pills span{background:#fff;border:1px solid var(--border-strong);border-radius:999px;padding:4px 16px;font-size:13.5px;font-weight:600}
   .amount-panel .pills span.dark{background:var(--ink);color:#fff}
 
   /* Timeline */
@@ -252,27 +251,31 @@
   .tl-item .t{white-space:pre-wrap;word-break:break-word}
   .tl-item .x{float:right;background:none;border:none;color:var(--sub);cursor:pointer;font-size:12.5px;padding:6px 4px}
 
-  /* ===== 服務 / 產品磚塊 ===== */
-  .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
-  @media (min-width:900px){ .items{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px} }
+  /* ===== 服務 / 產品：沙龍菜單式列表 ===== */
+  .items{display:grid;grid-template-columns:1fr;gap:10px;align-items:start}
+  @media (min-width:900px){ .items{grid-template-columns:1fr 1fr;gap:12px} }
   .item{
-    background:#fff;border:1.5px solid var(--border);border-radius:22px;padding:18px 12px 16px;cursor:pointer;
-    text-align:center;transition:transform .2s,background .2s,border-color .2s,box-shadow .2s;user-select:none;
+    background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:17px 20px;cursor:pointer;
+    transition:border-color .2s,background .2s,box-shadow .2s;user-select:none;
   }
-  .item:hover{transform:translateY(-2px);border-color:var(--rose-line)}
-  .item.on{background:var(--rose-pale);border-color:var(--rose);box-shadow:0 8px 22px rgba(200,145,138,.16)}
-  .item .ic{font-size:30px;line-height:1.25}
-  .item .n{font-weight:700;font-size:15.5px;margin-top:6px}
-  .item .p{color:var(--sub);font-weight:600;font-size:14.5px}
+  .item:hover{border-color:var(--rose-line)}
+  .item.on{border-color:var(--rose);background:#FDF8F7;box-shadow:0 8px 22px rgba(200,145,138,.12)}
+  .item-main{display:flex;align-items:center;gap:14px}
+  .mark{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border-strong);flex-shrink:0;position:relative;transition:.2s}
+  .item.on .mark{border-color:var(--rose);background:var(--rose)}
+  .item.on .mark::after{content:"";position:absolute;left:5.5px;top:2.5px;width:5px;height:9px;border:solid #fff;border-width:0 1.8px 1.8px 0;transform:rotate(45deg)}
+  .item .n{font-weight:700;font-size:16px;letter-spacing:.05em}
+  .item .dots{flex:1;min-width:16px;border-bottom:1px dotted var(--border-strong);transform:translateY(5px)}
+  .item .p{font-weight:600;font-size:16px;letter-spacing:.04em;white-space:nowrap}
   .item.on .p{color:var(--rose-deep)}
-  .qty{
-    display:none;align-items:center;justify-content:space-between;margin:12px auto 0;max-width:150px;
-    background:#fff;border:1.5px solid var(--rose-line);border-radius:999px;padding:2px
-  }
-  .item.on .qty{display:flex}
-  .qty button{width:40px;height:36px;border:none;border-radius:999px;background:transparent;cursor:pointer;font-size:19px;color:var(--rose-deep)}
+  .qty-row{display:none;align-items:center;gap:14px;margin:14px 0 0 34px;padding-top:13px;border-top:1px solid var(--border)}
+  .item.on .qty-row{display:flex}
+  .qty-row .lb{font-size:13px;color:var(--sub);letter-spacing:.14em}
+  .qty-row .st{margin-left:auto;font-size:14.5px;color:var(--rose-deep);font-weight:600}
+  .qty{display:flex;align-items:center;border:1.5px solid var(--rose-line);border-radius:999px;background:#fff;padding:2px}
+  .qty button{width:40px;height:34px;border:none;border-radius:999px;background:transparent;cursor:pointer;font-size:18px;color:var(--rose-deep);font-family:system-ui,sans-serif;font-weight:300}
   .qty button:active{background:var(--rose-pale)}
-  .qty b{min-width:24px;text-align:center;font-size:16px}
+  .qty b{min-width:26px;text-align:center;font-size:16px}
 
   /* ===== 膠囊選項 ===== */
   .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:10px;margin-bottom:10px}
@@ -383,10 +386,10 @@
     <p>皮膚管理工作台 · CRM</p>
   </div>
   <nav>
-    <button class="active" data-page="customers"><span class="ico">👥</span><span class="lb"><b>顧客管理</b> <small>Clients</small></span></button>
-    <button data-page="checkout"><span class="ico">🧾</span><span class="lb"><b>快速結帳</b> <small>Checkout</small></span></button>
-    <button data-page="orders"><span class="ico">📋</span><span class="lb"><b>消費紀錄</b> <small>Orders</small></span></button>
-    <button data-page="settings"><span class="ico">⚙️</span><span class="lb"><b>店家設定</b> <small>Settings</small></span></button>
+    <button class="active" data-page="customers"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.8a3.3 3.3 0 0 1 0 6.4M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/></svg></span><span class="lb"><b>顧客管理</b> <small>Clients</small></span></button>
+    <button data-page="checkout"><span class="ico"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span><span class="lb"><b>快速結帳</b> <small>Checkout</small></span></button>
+    <button data-page="orders"><span class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="17" rx="3"/><path d="M8 2.5v3M16 2.5v3M8 11h8M8 15h5"/></svg></span><span class="lb"><b>消費紀錄</b> <small>Orders</small></span></button>
+    <button data-page="settings"><span class="ico"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span><span class="lb"><b>店家設定</b> <small>Settings</small></span></button>
   </nav>
   <div class="side-foot">離線可用 · 資料存於本機</div>
 </aside>
@@ -421,7 +424,7 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>服務項目</h3><p>點選加入，已選項目可調整數量</p></div>
+      <div class="card-head"><h3>服務項目</h3><p>點選加入本次結帳，數量減至 0 即移除</p></div>
       <div class="items" id="coServices"></div>
       <div class="section-title">居家保養品 · HOME CARE</div>
       <div class="items" id="coProducts"></div>
@@ -465,14 +468,13 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>品項管理</h3><p>品項圖示、名稱與價格都可自訂</p></div>
+      <div class="card-head"><h3>品項管理</h3><p>品項名稱與價格都可自訂</p></div>
       <div class="chips" id="itemSeg" style="margin-bottom:6px">
         <button class="active" data-cat="service">服務項目</button>
         <button data-cat="product">居家保養品</button>
       </div>
       <div id="itemList"></div>
       <div class="row" style="margin-top:14px">
-        <input type="text" id="newItemIcon" placeholder="✨" maxlength="4" style="width:64px;text-align:center">
         <input type="text" id="newItemName" placeholder="品項名稱" class="grow">
         <input type="number" id="newItemPrice" placeholder="價格" style="width:96px" inputmode="numeric">
       </div>
@@ -527,7 +529,6 @@
 /* ================= 資料層 ================= */
 const STORE_KEY = 'skincareCRM_v1';
 const SKIN_TYPES = ['乾性','油性','混合','敏感','痘痘肌','中性','暗沉','泛紅'];
-const SKIN_ICON = {乾性:'🏜️',油性:'💧',混合:'🌗',敏感:'🌸',痘痘肌:'🫧',中性:'🌿',暗沉:'🌫️',泛紅:'🌹'};
 const PAY_METHODS = {
   cash:    {label:'現金',      en:'Cash'},
   transfer:{label:'轉帳',      en:'Transfer'},
@@ -541,13 +542,13 @@ function defaultData(){
   return {
     version:1,
     shopName:'香頌 Skin Atelier',
-    footer:'感謝您的光臨，期待下次見面 🤍',
+    footer:'感謝您的光臨，期待下次與您相見。',
     items:[
-      {id:uid(),cat:'service',name:'水飛梭保濕',price:1800,icon:'💧'},
-      {id:uid(),cat:'service',name:'手工清粉刺',price:1200,icon:'🫧'},
-      {id:uid(),cat:'service',name:'酸類煥膚',price:2000,icon:'🍋'},
-      {id:uid(),cat:'product',name:'PDRN 精華液',price:1500,icon:'🧪'},
-      {id:uid(),cat:'product',name:'修復霜',price:800,icon:'🧴'},
+      {id:uid(),cat:'service',name:'水飛梭保濕',price:1800},
+      {id:uid(),cat:'service',name:'手工清粉刺',price:1200},
+      {id:uid(),cat:'service',name:'酸類煥膚',price:2000},
+      {id:uid(),cat:'product',name:'PDRN 精華液',price:1500},
+      {id:uid(),cat:'product',name:'修復霜',price:800},
     ],
     customers:[],
     orders:[],
@@ -582,7 +583,6 @@ const isVIP = c => (c.balance||0) >= 10000 || (c.credits||0) >= 10;
 // 膠囊切換鈕：opts = [[value,label,disabled?],...]
 const segHTML = (opts, value, handler) => `<div class="seg">${opts.map(([v,l,dis])=>
   `<button type="button" class="${v===value?'active':''}" ${dis?'disabled':''} onclick="${handler}('${v}')">${l}</button>`).join('')}</div>`;
-const itemIcon = i => i.icon || (i.cat==='service' ? '✨' : '🧴');
 // 頭像配色：VIP＝墨黑，其餘依姓名固定分配 霧玫瑰 / 銀灰 / 霧藍 / 鼠尾草
 const AVATAR_COLORS = ['#C8918A','#A39E99','#7FA0B3','#9AAA98'];
 const avatarBg = c => isVIP(c) ? 'var(--ink)' : AVATAR_COLORS[[...(c.name||'')].reduce((h,ch)=>h+ch.codePointAt(0),0) % AVATAR_COLORS.length];
@@ -636,7 +636,7 @@ function lastVisit(c){
 let custFilter = 'all';
 function setCustFilter(v){ custFilter = v; renderCustomers(); }
 function renderCustomers(){
-  const chips = [['all','全部'],['vip','⭐ VIP'],...SKIN_TYPES.map(s=>[s,`${SKIN_ICON[s]} ${s}`])];
+  const chips = [['all','全部'],['vip','VIP'],...SKIN_TYPES.map(s=>[s,s])];
   $('#custChips').innerHTML = chips.map(([v,l])=>`<button class="${custFilter===v?'active':''}" onclick="setCustFilter('${v}')">${l}</button>`).join('');
   const q = $('#custSearch').value;
   const list = db.customers
@@ -645,10 +645,10 @@ function renderCustomers(){
     .sort((a,b)=> (b.updatedAt||0)-(a.updatedAt||0));
   $('#custCount').textContent = `共 ${db.customers.length} 位` + (list.length!==db.customers.length ? `・顯示 ${list.length} 位` : '');
   if(!list.length){
-    $('#custList').innerHTML = `<div class="empty"><span class="big">🗒️</span>${db.customers.length ? '沒有符合的顧客' : '還沒有顧客資料<br>點右下角「＋」新增第一位顧客'}</div>`;
+    $('#custList').innerHTML = `<div class="empty">${db.customers.length ? '沒有符合的顧客' : '還沒有顧客資料<br>點右下角「＋」新增第一位顧客'}</div>`;
     return;
   }
-  const tagsHTML = c => c.skin?.length ? `<div class="tags">${c.skin.map(s=>`<span class="tag">${SKIN_ICON[s]||''} ${esc(s)}</span>`).join('')}</div>` : '<span class="muted">—</span>';
+  const tagsHTML = c => c.skin?.length ? `<div class="tags">${c.skin.map(s=>`<span class="tag">${esc(s)}</span>`).join('')}</div>` : '<span class="muted">—</span>';
   $('#custList').innerHTML = list.map(c => `
     <div class="trow cust-grid" onclick="openDetail('${c.id}')">
       <div class="who">
@@ -675,7 +675,7 @@ function openCustomerForm(id){
       <label class="field"><span>姓名 *</span><input type="text" id="fName" value="${esc(c.name)}" placeholder="例：王小美"></label>
       <label class="field"><span>電話</span><input type="tel" id="fPhone" value="${esc(c.phone)}" placeholder="0912-345-678" inputmode="tel"></label>
       <div class="field"><span class="field-label">膚質標籤（可複選）</span>
-        <div class="chip-select">${SKIN_TYPES.map(s=>`<label><input type="checkbox" name="fSkin" value="${s}" ${c.skin?.includes(s)?'checked':''}><span><i>${SKIN_ICON[s]}</i>${s}</span></label>`).join('')}</div>
+        <div class="chip-select">${SKIN_TYPES.map(s=>`<label><input type="checkbox" name="fSkin" value="${s}" ${c.skin?.includes(s)?'checked':''}><span>${s}</span></label>`).join('')}</div>
       </div>
       <div class="grid2" style="margin-top:12px">
         <label class="field"><span>包套剩餘次數</span><input type="number" id="fCredits" value="${c.credits||0}" min="0" inputmode="numeric"></label>
@@ -724,12 +724,12 @@ function openDetail(id){
         ${avatarHTML(c,58)}
         <div class="grow">
           <div style="font-family:var(--serif);font-size:21px;font-weight:600;letter-spacing:.04em">${esc(c.name)}${vipTag(c)}</div>
-          <div class="muted">${c.phone?`<a href="tel:${esc(c.phone)}" style="color:inherit">📞 ${esc(c.phone)}</a>`:'未填電話'}</div>
+          <div class="muted">${c.phone?`<a href="tel:${esc(c.phone)}" style="color:inherit">${esc(c.phone)}</a>`:'未填電話'}</div>
         </div>
         <button class="btn sm light" onclick="openCustomerForm('${id}')">編輯</button>
       </div>
       ${c.skin?.length?`<div class="tags" style="margin-top:12px">${c.skin.map(s=>`<span class="tag">${esc(s)}</span>`).join('')}</div>`:''}
-      ${c.note?`<div class="info" style="white-space:pre-wrap">📝 ${esc(c.note)}</div>`:''}
+      ${c.note?`<div class="info" style="white-space:pre-wrap">備註　${esc(c.note)}</div>`:''}
       <div class="stats">
         <div class="stat"><div class="k">包套剩餘</div><div class="v">${c.credits||0}<small>次</small></div></div>
         <div class="stat"><div class="k">儲值金餘額</div><div class="v">${money(c.balance)}</div></div>
@@ -808,7 +808,7 @@ function openTopup(id){
 let topMethod = 'cash';
 function setTopMethod(v){
   topMethod = v;
-  $('#tMethodSeg').innerHTML = segHTML([['cash','💵 現金'],['transfer','🏦 轉帳'],['linepay','💚 LINE Pay']], v, 'setTopMethod');
+  $('#tMethodSeg').innerHTML = segHTML([['cash','現金'],['transfer','轉帳'],['linepay','LINE Pay']], v, 'setTopMethod');
 }
 function saveTopup(id){
   const c = getCust(id);
@@ -868,9 +868,11 @@ function renderCheckout(){
     return arr.map(i=>{
       const q = co.cart[i.id]||0;
       return `<div class="item ${q?'on':''}" onclick="toggleItem('${i.id}')">
-        <div class="ic">${esc(itemIcon(i))}</div><div class="n">${esc(i.name)}</div><div class="p">${money(i.price)}</div>
-        <div class="qty" onclick="event.stopPropagation()">
-          <button type="button" aria-label="減少" onclick="changeQty('${i.id}',-1)">−</button><b>${q}</b><button type="button" aria-label="增加" onclick="changeQty('${i.id}',1)">＋</button>
+        <div class="item-main"><span class="mark"></span><span class="n">${esc(i.name)}</span><span class="dots"></span><span class="p">${money(i.price)}</span></div>
+        <div class="qty-row" onclick="event.stopPropagation()">
+          <span class="lb">數量</span>
+          <div class="qty"><button type="button" aria-label="減少" onclick="changeQty('${i.id}',-1)">−</button><b>${q}</b><button type="button" aria-label="增加" onclick="changeQty('${i.id}',1)">+</button></div>
+          <span class="st">${money(i.price*q)}</span>
         </div>
       </div>`;
     }).join('');
@@ -882,9 +884,9 @@ function renderCheckout(){
   if(!c && (co.method==='package'||co.method==='balance')) co.method = 'cash';
   $('#coPay').innerHTML =
     `<div class="sub-title">付款 Payment</div>` +
-    segHTML([['cash','💵 現金'],['transfer','🏦 轉帳'],['linepay','💚 LINE Pay']], co.method, 'setMethod') +
+    segHTML([['cash','現金'],['transfer','轉帳'],['linepay','LINE Pay']], co.method, 'setMethod') +
     `<div class="sub-title">核銷 Redeem</div>` +
-    segHTML([['package','🎫 扣包套 1 次',!c],['balance','💳 扣儲值金',!c]], co.method, 'setMethod');
+    segHTML([['package','扣包套 1 次',!c],['balance','扣儲值金',!c]], co.method, 'setMethod');
 
   const {lines, service, product, total} = calc();
   let msg = '', ok = lines.length > 0, sub = '';
@@ -897,7 +899,7 @@ function renderCheckout(){
     else msg = `<div class="info">服務項目以包套 1 次核銷${product?`；保養品 ${money(product)} 請另選付款方式`:''}</div>`;
     if(product){
       sub = `<div class="sub-title">保養品付款 Home Care</div>` +
-        segHTML([['cash','💵 現金'],['transfer','🏦 轉帳'],['linepay','💚 LINE Pay'],['balance','💳 儲值金']], co.subMethod, 'setSubMethod');
+        segHTML([['cash','現金'],['transfer','轉帳'],['linepay','LINE Pay'],['balance','儲值金']], co.subMethod, 'setSubMethod');
       if(co.subMethod==='balance'){
         balanceUse = product; paid = 0;
         if((c.balance||0) < product){ ok=false; msg += `<div class="warn">儲值金不足（餘額 ${money(c.balance)}，需 ${money(product)}）</div>`; }
@@ -916,15 +918,15 @@ function renderCheckout(){
       <div class="num ${paid?'':'zero'}">${money(paid)}</div>
       <div class="pills">
         <span class="dark">小計 ${money(total)}</span>
-        ${creditsUse?`<span>🎫 包套 -1 次</span>`:''}
-        ${balanceUse?`<span>💳 儲值 -${money(balanceUse)}</span>`:''}
+        ${creditsUse?`<span>包套 −1 次</span>`:''}
+        ${balanceUse?`<span>儲值金 −${money(balanceUse)}</span>`:''}
       </div>
     </div>
     ${lines.length ? lines.map(l=>`<div class="line"><span>${esc(l.name)} × ${l.qty}</span><span>${money(l.price*l.qty)}</span></div>`).join('')
       : '<div class="muted">尚未選擇任何品項</div>'}
     <div class="line" style="margin-top:6px;color:var(--sub)"><span>小計</span><span>${money(total)}</span></div>
-    ${creditsUse?`<div class="line" style="color:var(--milk-dark)"><span>🎫 扣抵包套</span><span>-1 次（折抵 ${money(service)}）</span></div>`:''}
-    ${balanceUse?`<div class="line" style="color:var(--milk-dark)"><span>💳 扣抵儲值金</span><span>-${money(balanceUse)}</span></div>`:''}
+    ${creditsUse?`<div class="line" style="color:var(--milk-dark)"><span>扣抵包套</span><span>-1 次（折抵 ${money(service)}）</span></div>`:''}
+    ${balanceUse?`<div class="line" style="color:var(--milk-dark)"><span>扣抵儲值金</span><span>-${money(balanceUse)}</span></div>`:''}
     ${c ? `<label class="option-row">
       <div><b>同步新增施作紀錄</b><div class="muted">結帳後自動將服務項目寫入顧客的皮膚管理紀錄</div></div>
       <span class="switch"><input type="checkbox" ${co.addRecord?'checked':''} onchange="co.addRecord=this.checked"><i></i></span>
@@ -1016,13 +1018,13 @@ function buildReceipt(o){
     out.push(`實收金額：${money(o.paid)}`);
   } else {
     out.push(`消費小計：${money(o.total)}`);
-    if(o.creditsUsed) out.push(`🎫 扣抵包套：${o.creditsUsed} 次`);
-    if(o.balanceUsed) out.push(`💳 扣抵儲值金：${money(o.balanceUsed)}`);
+    if(o.creditsUsed) out.push(`扣抵包套：${o.creditsUsed} 次`);
+    if(o.balanceUsed) out.push(`扣抵儲值金：${money(o.balanceUsed)}`);
     if(o.paid){
       const pm = o.method==='package' ? o.subMethod : o.method;
-      out.push(`💰 本次付款：${money(o.paid)}（${PAY_METHODS[pm].label}）`);
+      out.push(`本次付款：${money(o.paid)}（${PAY_METHODS[pm].label}）`);
     } else {
-      out.push(`💰 本次付款：$0`);
+      out.push(`本次付款：$0`);
     }
   }
   if(o.customerId){
@@ -1066,7 +1068,7 @@ function renderOrders(){
   const todays = db.orders.filter(o=>{ const d=new Date(o.date); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`===t; });
   $('#todayRevenue').textContent = money(todays.reduce((s,o)=>s+(o.paid||0),0));
   $('#todayCount').textContent = todays.length;
-  if(!db.orders.length){ $('#orderList').innerHTML = '<div class="empty"><span class="big">🗒️</span>尚無消費紀錄</div>'; return; }
+  if(!db.orders.length){ $('#orderList').innerHTML = '<div class="empty">尚無消費紀錄</div>'; return; }
   $('#orderList').innerHTML = db.orders.slice(0,200).map(o=>`
     <div class="trow order-grid" onclick="showReceipt('${o.id}')">
       <div class="d-col muted">${fmtDT(o.date)}</div>
@@ -1090,7 +1092,7 @@ function renderSettings(){
   const arr = db.items.filter(i=>i.cat===itemCat);
   $('#itemList').innerHTML = arr.length ? arr.map(i=>`
     <div class="list-item">
-      <div style="font-size:22px">${esc(itemIcon(i))}</div><div class="grow">${esc(i.name)}</div>
+      <div class="grow" style="font-weight:600">${esc(i.name)}</div>
       <input type="number" value="${i.price}" style="width:96px;padding:8px 10px;margin-right:8px" inputmode="numeric" onchange="updatePrice('${i.id}',this.value)">
       <button class="btn sm danger" onclick="deleteItem('${i.id}')">刪除</button>
     </div>`).join('') : '<div class="muted">尚無品項</div>';
@@ -1106,9 +1108,8 @@ function addItem(){
   const name = $('#newItemName').value.trim();
   const price = parseFloat($('#newItemPrice').value);
   if(!name || !(price>=0)){ toast('請輸入品項名稱與價格'); return; }
-  const icon = $('#newItemIcon').value.trim();
-  db.items.push({id:uid(), cat:itemCat, name, price, ...(icon ? {icon} : {})});
-  $('#newItemName').value=''; $('#newItemPrice').value=''; $('#newItemIcon').value='';
+  db.items.push({id:uid(), cat:itemCat, name, price});
+  $('#newItemName').value=''; $('#newItemPrice').value='';
   save(); renderSettings(); toast('已新增品項');
 }
 function updatePrice(id, v){
