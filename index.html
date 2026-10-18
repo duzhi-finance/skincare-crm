@@ -4,7 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
+<!-- 安裝到主畫面（PWA）：iPad / iPhone / Android 皆可 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="美容 CRM">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <title>皮膚管理 CRM</title>
 <!-- 字體：有網路時載入 Google Fonts，離線自動退回系統字體 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -418,6 +425,8 @@
   .pick-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1.5px solid var(--border);border-radius:16px;margin-bottom:8px;transition:.2s}
   .pick-row.on{border-color:var(--rose);background:var(--rose-pale)}
   .card.editing{border-color:var(--rose-line)}
+  .steps{margin:0;padding-left:22px;line-height:2}
+  .steps li::marker{color:var(--rose-deep);font-weight:700}
 
   /* ===== 服務大類切換列 ===== */
   .cat-chips{margin-bottom:6px;position:sticky;top:0}
@@ -841,6 +850,11 @@
       <label class="field" style="margin-top:14px"><span>叮嚀標題</span><input type="text" id="newCareTitle" placeholder="例：雷射術後須知"></label>
       <label class="field"><span>叮嚀內容</span><textarea id="newCareText" placeholder="・每行一點，會照原樣出現在收據中"></textarea></label>
       <button class="btn dashed" onclick="addCare()">＋ 新增保養叮嚀</button>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>安裝到主畫面</h3><p>像 App 一樣從主畫面開啟、全螢幕使用，沒有網路也能開單</p></div>
+      <div id="installBox"></div>
     </div>
 
     <div class="card">
@@ -3049,6 +3063,7 @@ function renderSettings(){
       <div class="grow"><div style="font-weight:700">${esc(t.title)}</div><div class="muted" style="white-space:pre-wrap">${esc(t.text)}</div></div>
       <button class="btn sm danger" onclick="deleteCare('${t.id}')">刪除</button>
     </div>`).join('') : '<div class="muted">尚無保養叮嚀</div>';
+  renderInstall();
   $('#lastBackup').textContent = db.lastBackup ? `上次匯出備份：${fmtDT(db.lastBackup)}` : '尚未匯出過備份';
 }
 function saveShop(){
@@ -3231,6 +3246,52 @@ function resetAll(){
   db = migrate(defaultData()); save(); updateTitle(); resetCheckout();
   PhotoDB.clear().catch(()=>{});
   renderSettings(); toast('已清除所有資料');
+}
+
+/* ================= 安裝到主畫面（PWA） ================= */
+const APP_URL = 'https://duzhi-finance.github.io/skincare-crm/';
+let installEvt = null;
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; renderInstall(); });
+window.addEventListener('appinstalled', () => { installEvt = null; renderInstall(); toast('已安裝到主畫面'); });
+function renderInstall(){
+  const el = $('#installBox'); if(!el) return;
+  el.innerHTML = isStandalone()
+    ? `<div class="info" style="margin-top:0">目前以 App 模式使用中。資料存在這台裝置的 App 內，請定期匯出備份</div>`
+    : `<button class="btn block" onclick="installApp()">安裝到主畫面</button>
+       <p class="muted" style="margin:10px 0 0">App 網址：<a href="${APP_URL}" style="color:inherit">${APP_URL}</a></p>`;
+}
+async function installApp(){
+  if(installEvt){ installEvt.prompt(); await installEvt.userChoice; installEvt = null; renderInstall(); return; }
+  const onSite = location.href.startsWith(APP_URL);
+  openModal(`
+    <div class="sheet-head"><h2>安裝到主畫面</h2><button class="close" onclick="closeModal()">✕</button></div>
+    ${onSite ? '' : `<div class="card">
+      <div class="card-head"><h3>第 1 步・用瀏覽器開啟 App 網址</h3><p>請在 iPad / iPhone 用 Safari、Android 用 Chrome 開啟：</p></div>
+      <div class="row"><input type="text" value="${APP_URL}" readonly onclick="this.select()"><button class="btn sm" onclick="copyText('${APP_URL}').then(ok=>toast(ok?'已複製網址':'複製失敗'))">複製</button></div>
+    </div>`}
+    <div class="card">
+      <div class="card-head"><h3>${onSite ? '' : '第 2 步・'}iPad / iPhone（Safari）</h3></div>
+      <ol class="steps">
+        <li>點網址列旁的「分享」按鈕（方框加向上箭頭）</li>
+        <li>往下滑，選「加入主畫面」</li>
+        <li>確認名稱「美容 CRM」，按「新增」</li>
+      </ol>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>${onSite ? '' : '第 2 步・'}Android（Chrome）</h3></div>
+      <ol class="steps">
+        <li>點右上角「⋮」選單</li>
+        <li>選「安裝應用程式」或「加到主畫面」</li>
+      </ol>
+    </div>
+    <p class="muted">提醒：主畫面 App 的資料和瀏覽器分頁是分開的。若之前在瀏覽器已有資料，請先「匯出 JSON 備份」，再到 App 裡「匯入 JSON 復原」。</p>
+  `);
+}
+// 註冊離線快取（只在正式網址等 http/https 環境）
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 }
 
 /* ================= 初始化 ================= */
