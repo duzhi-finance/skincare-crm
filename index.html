@@ -419,6 +419,22 @@
   .pick-row.on{border-color:var(--rose);background:var(--rose-pale)}
   .card.editing{border-color:var(--rose-line)}
 
+  /* ===== 產業範本 / 標籤 ===== */
+  .tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}
+  @media (min-width:700px){ .tpl-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px} }
+  .tpl{
+    display:flex;flex-direction:column;gap:2px;text-align:left;cursor:pointer;border-radius:20px;padding:14px 14px 12px;
+    border:1.5px solid var(--border);background:#fff;transition:.2s;min-height:128px
+  }
+  .tpl:hover{border-color:var(--rose-line);transform:translateY(-1px)}
+  .tpl em{font-style:normal;font-size:10.5px;letter-spacing:.24em;color:var(--rose);font-weight:700}
+  .tpl b{font-size:17px}
+  .tpl span{font-size:13px;color:var(--text);opacity:.8}
+  .tpl small{font-size:12px;color:var(--sub);margin-top:auto;padding-top:6px;line-height:1.5}
+  .tpl.on{border-color:var(--rose);background:var(--rose-pale);box-shadow:0 8px 20px rgba(200,145,138,.15)}
+  .hint{font-style:normal;font-weight:400;color:var(--sub);font-size:12.5px;margin-left:8px}
+  textarea.tag-area{min-height:84px}
+
   /* ===== 預約 ===== */
   .appt{display:flex;align-items:center;gap:16px;padding:16px 4px;border-bottom:1px solid var(--border)}
   .appt:last-child{border-bottom:none}
@@ -564,7 +580,7 @@
     <div class="chips" id="custChips"></div>
     <div class="search"><input type="search" id="custSearch" placeholder="搜尋姓名或電話…" autocomplete="off"></div>
     <div class="card list-card">
-      <div class="thead cust-grid"><span>顧客</span><span>膚質</span><span class="num right">包套</span><span class="num right">儲值金</span></div>
+      <div class="thead cust-grid"><span>顧客</span><span id="typesHead">膚質</span><span class="num right">包套</span><span class="num right">儲值金</span></div>
       <div id="custList"></div>
     </div>
     <div class="section-title" style="justify-content:center"><span id="custCount" style="margin:0"></span></div>
@@ -639,9 +655,12 @@
       </div>
       <div class="chips" style="margin:16px 0 0">
         <button onclick="openShopSettings('shop')">店家名稱</button>
+        <button onclick="openShopSettings('template')">產業範本</button>
         <button onclick="openShopSettings('service')">服務項目</button>
         <button onclick="openShopSettings('product')">居家保養品</button>
         <button onclick="openShopSettings('bundle')">快捷套餐</button>
+        <button onclick="openShopSettings('tags')">標籤清單</button>
+        <button onclick="openSetup()">重新開店設定</button>
       </div>
     </div>
 
@@ -713,13 +732,6 @@
 <script>
 /* ================= 資料層 ================= */
 const STORE_KEY = 'skincareCRM_v1';
-const SKIN_TYPES = ['乾性','油性','混合','敏感','痘痘肌','中性','暗沉','泛紅'];
-// 本次膚況速記
-const SKIN_NOTES = ['T字偏乾','T字出油','兩頰泛紅','加強保濕','粉刺較多','毛孔粗大','痘痘發炎','膚色暗沉','屏障受損','狀況穩定'];
-// 顧客特殊注意事項
-// 顧客喜好
-const PREFS = ['喜歡安靜','喜歡聊天','怕冷需蓋毯','偏好無香','偏好晚間時段','需提醒防曬'];
-const CAUTIONS = ['酒精過敏','怕痛力道要輕','敷臉不蓋眼睛','對香精敏感','孕期中','近期使用 A 酸','易過敏體質','配戴隱形眼鏡'];
 const PAY_METHODS = {
   cash:    {label:'現金'},
   transfer:{label:'轉帳'},
@@ -729,36 +741,108 @@ const PAY_METHODS = {
 };
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
-const DEFAULT_CARE = [
-  {title:'酸類保養須知', text:'・3–5 天內避免去角質、A 酸、果酸等刺激性保養\n・加強保濕，白天務必擦防曬（SPF30 以上）\n・輕微脫皮屬正常代謝，請勿用手摳除'},
-  {title:'保濕修復須知', text:'・24 小時內以溫和清潔為主，避免三溫暖與劇烈運動\n・早晚使用修復霜，加強屏障修護\n・多補充水分，規律作息有助膚況穩定'},
-  {title:'清粉刺後須知', text:'・24 小時內暫停上妝，讓毛孔自然收斂\n・避免用手觸碰或擠壓\n・如有微紅屬正常現象，冷敷即可舒緩'},
-];
-const DEFAULT_CYCLE = [['水飛梭',14],['清粉刺',21],['酸類',28]];   // 依名稱推定回訪天數
-const DEFAULT_BUNDLES = [
-  ['經典水飛梭淨膚套餐', ['水飛梭保濕','手工清粉刺']],
-  ['深度修復極光專案',   ['酸類煥膚','PDRN 精華液','修復霜']],
-];
+/* ================= 產業範本 =================
+   服務：[名稱, 價格, 回訪天數]　商品：[名稱, 價格]　套餐：[名稱, [品項名稱…]]
+   tags：typesLabel＝顧客分類名稱、types＝分類標籤、notes＝速記、cautions＝過敏注意、prefs＝喜好 */
+const TEMPLATES = {
+  skin:{label:'皮膚管理', en:'SKIN CARE', desc:'臉部保養、清粉刺、煥膚療程',
+    services:[['水飛梭保濕',1800,14],['手工清粉刺',1200,21],['酸類煥膚',2000,28]],
+    products:[['PDRN 精華液',1500],['修復霜',800]],
+    bundles:[['經典水飛梭淨膚套餐',['水飛梭保濕','手工清粉刺']],['深度修復極光專案',['酸類煥膚','PDRN 精華液','修復霜']]],
+    care:[
+      {title:'酸類保養須知', text:'・3–5 天內避免去角質、A 酸、果酸等刺激性保養\n・加強保濕，白天務必擦防曬（SPF30 以上）\n・輕微脫皮屬正常代謝，請勿用手摳除'},
+      {title:'保濕修復須知', text:'・24 小時內以溫和清潔為主，避免三溫暖與劇烈運動\n・早晚使用修復霜，加強屏障修護\n・多補充水分，規律作息有助膚況穩定'},
+      {title:'清粉刺後須知', text:'・24 小時內暫停上妝，讓毛孔自然收斂\n・避免用手觸碰或擠壓\n・如有微紅屬正常現象，冷敷即可舒緩'},
+    ],
+    tags:{typesLabel:'膚質',
+      types:['乾性','油性','混合','敏感','痘痘肌','中性','暗沉','泛紅'],
+      notes:['T字偏乾','T字出油','兩頰泛紅','加強保濕','粉刺較多','毛孔粗大','痘痘發炎','膚色暗沉','屏障受損','狀況穩定'],
+      cautions:['酒精過敏','怕痛力道要輕','敷臉不蓋眼睛','對香精敏感','孕期中','近期使用 A 酸','易過敏體質','配戴隱形眼鏡'],
+      prefs:['喜歡安靜','喜歡聊天','怕冷需蓋毯','偏好無香','偏好晚間時段','需提醒防曬']}},
+  lash:{label:'美睫', en:'LASH', desc:'嫁接、補接、角蛋白翹睫',
+    services:[['自然款嫁接',1200,21],['濃密款嫁接',1600,21],['睫毛補接',800,14],['角蛋白翹睫',1500,42],['卸除睫毛',300,0]],
+    products:[['睫毛滋養液',680],['睫毛清潔慕斯',450]],
+    bundles:[['嫁接＋滋養組',['自然款嫁接','睫毛滋養液']],['翹睫保養組',['角蛋白翹睫','睫毛清潔慕斯']]],
+    care:[
+      {title:'嫁接後須知', text:'・4–6 小時內避免碰水與蒸氣\n・避免使用油性卸妝品，睡覺盡量仰睡\n・每日用睫毛刷輕梳，維持整齊'},
+      {title:'翹睫後須知', text:'・24 小時內避免碰水、睫毛膏與熱燙\n・避免揉眼，48 小時後可正常清潔'},
+    ],
+    tags:{typesLabel:'眼型',
+      types:['單眼皮','內雙','雙眼皮','下垂眼','眼距較寬','睫毛稀疏','睫毛偏短','睫毛偏硬'],
+      notes:['自然款','濃密款','C 捲','D 捲','10–12mm','眼皮敏感','易流淚','保留率佳','下次補接'],
+      cautions:['膠水過敏','眼睛敏感易紅','配戴隱形眼鏡','近期眼部手術','孕期中'],
+      prefs:['喜歡自然款','喜歡濃密款','想小睡片刻','喜歡安靜','偏好晚間時段']}},
+  nail:{label:'美甲', en:'NAIL', desc:'凝膠、造型、手足保養',
+    services:[['單色凝膠',900,21],['造型凝膠',1500,21],['足部凝膠',1200,28],['手部保養',600,14],['卸甲',300,0]],
+    products:[['指緣油',350],['護手霜',420]],
+    bundles:[['手足凝膠組',['單色凝膠','足部凝膠']],['保養＋指緣油',['手部保養','指緣油']]],
+    care:[{title:'凝膠美甲後須知', text:'・避免用指甲摳、撬或當工具使用\n・做家事建議戴手套\n・每日擦指緣油，保持甲面與指緣滋潤'}],
+    tags:{typesLabel:'甲況',
+      types:['甲面薄','甲面厚','易斷裂','指緣乾燥','甲面不平','有咬指甲習慣'],
+      notes:['裸色系','法式','跳色','延甲','有斷甲','指緣乾','甲面修補','保留率佳'],
+      cautions:['凝膠過敏','甲溝炎病史','皮膚易過敏','孕期中'],
+      prefs:['喜歡裸色系','喜歡亮色','偏好短甲','喜歡聊天','喜歡安靜']}},
+  hair:{label:'美髮', en:'HAIR', desc:'剪髮、染燙、護髮與頭皮',
+    services:[['洗剪',600,35],['染髮',2500,60],['燙髮',3500,90],['結構護髮',1200,30],['頭皮護理',1000,30]],
+    products:[['洗髮精',680],['護髮油',880]],
+    bundles:[['染＋護套餐',['染髮','結構護髮']],['頭皮淨化組',['頭皮護理','洗髮精']]],
+    care:[
+      {title:'染髮後須知', text:'・48 小時內避免洗頭，讓色素穩定\n・使用護色洗髮精，降低掉色\n・減少高溫吹整與日曬'},
+      {title:'燙髮後須知', text:'・48 小時內避免洗頭與綁髮\n・使用捲髮專用產品維持捲度'},
+    ],
+    tags:{typesLabel:'髮質',
+      types:['細軟','粗硬','自然捲','受損','易出油','頭皮敏感','白髮'],
+      notes:['色號紀錄','層次剪','空氣瀏海','髮尾乾燥','頭皮出油','分岔多','漂髮紀錄'],
+      cautions:['染劑過敏','頭皮敏感','孕期中','近期漂髮'],
+      prefs:['喜歡安靜','喜歡聊天','洗頭力道輕','偏好晚間時段']}},
+  spa:{label:'按摩舒壓', en:'SPA', desc:'精油按摩、肩頸、足底',
+    services:[['全身精油 60 分',1800,14],['全身精油 90 分',2600,14],['肩頸放鬆 30 分',1000,7],['足底按摩 40 分',900,14]],
+    products:[['舒緩按摩油',980],['熱敷眼罩',350]],
+    bundles:[['全身＋足底套餐',['全身精油 90 分','足底按摩 40 分']]],
+    care:[{title:'按摩後須知', text:'・多喝溫開水，幫助代謝\n・2 小時內避免冰飲與沐浴\n・如有痠痛屬正常，熱敷可舒緩'}],
+    tags:{typesLabel:'身體狀況',
+      types:['肩頸僵硬','腰背痠痛','睡眠不佳','手腳冰冷','水腫','久坐族'],
+      notes:['肩頸緊','腰部緊','下肢水腫','力道偏重','力道偏輕','過程中睡著'],
+      cautions:['高血壓','孕期中','近期受傷','靜脈曲張','怕痛力道要輕','皮膚易過敏'],
+      prefs:['力道偏重','力道偏輕','喜歡安靜','怕冷需蓋毯','偏好無香']}},
+  blank:{label:'空白開始', en:'BLANK', desc:'不帶任何品項，全部自行建立',
+    services:[], products:[], bundles:[], care:[],
+    tags:{typesLabel:'顧客類型', types:[], notes:[], cautions:['過敏體質','孕期中'], prefs:['喜歡安靜','喜歡聊天']}},
+};
+// 套用範本：取代品項、套餐、保養叮嚀與標籤（不影響顧客與消費紀錄）
+function applyTemplate(d, key){
+  const t = TEMPLATES[key] || TEMPLATES.skin;
+  d.items = [
+    ...t.services.map(([name,price,cycle])=>({id:uid(), cat:'service', name, price, cycle})),
+    ...t.products.map(([name,price])=>({id:uid(), cat:'product', name, price})),
+  ];
+  d.bundles = bundlesByName(d.items, t.bundles);
+  d.careTips = t.care.map(c=>({id:uid(), ...c}));
+  d.tags = JSON.parse(JSON.stringify(t.tags));
+  d.template = key;
+  return d;
+}
+function bundlesByName(items, list){
+  return list.map(([name,names])=>({
+    id:uid(), name,
+    items:names.map(n=>items.find(i=>i.name===n)).filter(Boolean).map(i=>({itemId:i.id,qty:1})),
+  })).filter(b=>b.items.length);
+}
+const DEFAULT_CYCLE = [['水飛梭',14],['清粉刺',21],['酸類',28]];   // 舊資料依名稱推定回訪天數
 
 function defaultData(){
-  return {
-    version:2,
-    shopName:'香頌 Skin Atelier',
+  return applyTemplate({
+    version:3,
+    shopName:'我的美容工作室',
     footer:'感謝您的光臨，期待下次與您相見。',
     birthdayOff:10,
-    items:[
-      {id:uid(),cat:'service',name:'水飛梭保濕',price:1800,cycle:14},
-      {id:uid(),cat:'service',name:'手工清粉刺',price:1200,cycle:21},
-      {id:uid(),cat:'service',name:'酸類煥膚',price:2000,cycle:28},
-      {id:uid(),cat:'product',name:'PDRN 精華液',price:1500},
-      {id:uid(),cat:'product',name:'修復霜',price:800},
-    ],
     customers:[],
     orders:[],
     lastBackup:null,
-  };
+    setupDone:false,
+  }, 'skin');
 }
-// 補齊舊版資料缺少的欄位（回訪週期、叮嚀、套餐）
+// 補齊舊版資料缺少的欄位（回訪週期、叮嚀、套餐、標籤…）
 function migrate(d){
   d.items.forEach(i=>{
     if(i.cat==='service' && i.cycle===undefined){
@@ -766,23 +850,30 @@ function migrate(d){
       i.cycle = hit ? hit[1] : 21;
     }
   });
-  if(!Array.isArray(d.careTips)) d.careTips = DEFAULT_CARE.map(t=>({id:uid(),...t}));
-  if(!Array.isArray(d.bundles)){
-    d.bundles = DEFAULT_BUNDLES.map(([name,names])=>({
-      id:uid(), name,
-      items:names.map(n=>d.items.find(i=>i.name===n)).filter(Boolean).map(i=>({itemId:i.id,qty:1})),
-    })).filter(b=>b.items.length);
-  }
+  if(!Array.isArray(d.careTips)) d.careTips = TEMPLATES.skin.care.map(t=>({id:uid(),...t}));
+  if(!Array.isArray(d.bundles)) d.bundles = bundlesByName(d.items, TEMPLATES.skin.bundles);
+  if(!d.tags) d.tags = JSON.parse(JSON.stringify(TEMPLATES.skin.tags));
+  ['types','notes','cautions','prefs'].forEach(k=>{ if(!Array.isArray(d.tags[k])) d.tags[k] = []; });
+  if(!d.tags.typesLabel) d.tags.typesLabel = '膚質';
   if(d.birthdayOff===undefined) d.birthdayOff = 10;
   if(d.pointsEvery===undefined) d.pointsEvery = 100;   // 每消費 $100 得 1 點
   if(d.pointValue===undefined) d.pointValue = 1;       // 1 點折抵 $1
   if(!Array.isArray(d.appointments)) d.appointments = [];
   return d;
 }
+// 讀入已存在的資料（本機或備份檔）：舊資料視為已完成開店設定
+function hydrate(raw){
+  const d = {...raw};
+  if(d.setupDone===undefined) d.setupDone = true;
+  if(!d.shopName) d.shopName = '我的美容工作室';
+  if(d.footer===undefined) d.footer = '感謝您的光臨，期待下次與您相見。';
+  ['customers','orders'].forEach(k=>{ if(!Array.isArray(d[k])) d[k] = []; });
+  return migrate(d);
+}
 function load(){
   try{
     const d = JSON.parse(localStorage.getItem(STORE_KEY));
-    if(d && Array.isArray(d.customers)) return migrate(Object.assign(defaultData(), d));
+    if(d && Array.isArray(d.customers)) return hydrate(d);
   }catch(e){}
   return migrate(defaultData());
 }
@@ -857,7 +948,7 @@ $('#receiptModal').addEventListener('click', e => { if(e.target.id==='receiptMod
 // 速記標籤：點一下加入輸入框，再點一下移除
 function quickTagsHTML(targetId){
   const cur = targetId==='coSkinNote' ? co.skinNote : '';
-  return `<div class="quick">${SKIN_NOTES.map(t=>`<button type="button" class="${cur.includes(t)?'on':''}" data-t="${t}" onclick="quickTag(this,'${targetId}')">${t}</button>`).join('')}</div>`;
+  return `<div class="quick">${db.tags.notes.map(t=>`<button type="button" class="${cur.includes(t)?'on':''}" data-t="${t}" onclick="quickTag(this,'${targetId}')">${t}</button>`).join('')}</div>`;
 }
 function quickTag(btn, targetId){
   const el = $('#'+targetId), t = btn.dataset.t;
@@ -915,7 +1006,8 @@ const CUST_FILTERS = {
   pkg:  c => pkgAlerts(c).length > 0,
 };
 function renderCustomers(){
-  const chips = [['all','全部'],['vip','VIP'],['bday','本月壽星'],['pkg','包套提醒'],...SKIN_TYPES.map(s=>[s,s])];
+  const chips = [['all','全部'],['vip','VIP'],['bday','本月壽星'],['pkg','包套提醒'],...db.tags.types.map(s=>[s,s])];
+  $('#typesHead').textContent = db.tags.typesLabel;
   $('#custChips').innerHTML = chips.map(([v,l])=>`<button class="${custFilter===v?'active':''}" onclick="setCustFilter('${v}')">${l}</button>`).join('');
   const q = $('#custSearch').value;
   const f = CUST_FILTERS[custFilter] || (c => c.skin?.includes(custFilter));
@@ -948,7 +1040,7 @@ $('#custSearch').addEventListener('input', renderCustomers);
 function openCustomerForm(id){
   const c = id ? getCust(id) : {name:'',phone:'',skin:[],credits:0,balance:0,note:'',cautions:[]};
   const cs = c.cautions || [];
-  const otherCaution = cs.filter(x=>!CAUTIONS.includes(x)).join('、');
+  const otherCaution = cs.filter(x=>!db.tags.cautions.includes(x)).join('、');
   openModal(`
     <div class="sheet-head"><h2>${id?'編輯顧客':'新增顧客'}</h2><button class="close" onclick="${id?`openDetail('${id}')`:'closeModal()'}">✕</button></div>
     <div class="card">
@@ -958,18 +1050,18 @@ function openCustomerForm(id){
         <label class="field"><span>電話</span><input type="tel" id="fPhone" value="${esc(c.phone)}" placeholder="0912-345-678" inputmode="tel"></label>
         <label class="field"><span>生日</span><input type="date" id="fBirthday" value="${esc(c.birthday||'')}"></label>
       </div>
-      <div class="field"><span class="field-label">膚質標籤（可複選）</span>
-        <div class="chip-select">${SKIN_TYPES.map(s=>`<label><input type="checkbox" name="fSkin" value="${s}" ${c.skin?.includes(s)?'checked':''}><span>${s}</span></label>`).join('')}</div>
+      <div class="field"><span class="field-label">${esc(db.tags.typesLabel)}標籤（可複選）</span>
+        <div class="chip-select">${db.tags.types.map(s=>`<label><input type="checkbox" name="fSkin" value="${s}" ${c.skin?.includes(s)?'checked':''}><span>${s}</span></label>`).join('')}</div>
       </div>
     </div>
 
     <div class="card">
       <div class="card-head"><h3>過敏與喜好標籤</h3><p>會以柔和標籤顯示於顧客卡片、預約與結帳畫面</p></div>
       <div class="field-label">過敏 / 特殊注意</div>
-      <div class="chip-select">${CAUTIONS.map(s=>`<label><input type="checkbox" name="fCaution" value="${s}" ${cs.includes(s)?'checked':''}><span>${s}</span></label>`).join('')}</div>
+      <div class="chip-select">${db.tags.cautions.map(s=>`<label><input type="checkbox" name="fCaution" value="${s}" ${cs.includes(s)?'checked':''}><span>${s}</span></label>`).join('')}</div>
       <label class="field" style="margin:14px 0 0"><span>其他注意事項（以「、」分隔）</span><input type="text" id="fCautionOther" value="${esc(otherCaution)}" placeholder="例：右臉頰有舊疤、對乳膠過敏"></label>
       <div class="field-label" style="margin-top:16px">服務喜好</div>
-      <div class="chip-select">${PREFS.map(s=>`<label><input type="checkbox" name="fPref" value="${s}" ${(c.prefs||[]).includes(s)?'checked':''}><span>${s}</span></label>`).join('')}</div>
+      <div class="chip-select">${db.tags.prefs.map(s=>`<label><input type="checkbox" name="fPref" value="${s}" ${(c.prefs||[]).includes(s)?'checked':''}><span>${s}</span></label>`).join('')}</div>
     </div>
 
     <div class="card">
@@ -1793,6 +1885,106 @@ function showReceiptByTx(tx){
   if(o) showReceipt(o.id); else toast('找不到對應的收據');
 }
 
+/* ================= 開店設定精靈（首次使用） ================= */
+let obTpl = 'skin';
+const tplPreview = t => [...t.services.map(s=>s[0]), ...t.products.map(p=>p[0])].slice(0,4).join('、') || '自行新增品項';
+function tplCards(selected, handler){
+  return `<div class="tpl-grid">${Object.entries(TEMPLATES).map(([k,t])=>`
+    <button type="button" class="tpl ${k===selected?'on':''}" onclick="${handler}('${k}')">
+      <em>${t.en}</em><b>${t.label}</b><span>${t.desc}</span><small>${esc(tplPreview(t))}</small>
+    </button>`).join('')}</div>`;
+}
+function openSetup(){
+  openModal('<div id="setupBox"></div>');
+  renderSetup();
+}
+function renderSetup(){
+  const el = $('#setupBox'); if(!el) return;
+  const name = $('#obName')?.value ?? (db.setupDone ? db.shopName : '');
+  el.innerHTML = `
+    <div class="sheet-head"><h2>歡迎使用・開店設定</h2><button class="close" onclick="closeModal()">✕</button></div>
+    <p class="muted" style="margin:-6px 0 18px">選擇最接近的店型，系統會帶入建議的服務、商品、套餐與標籤。之後都能在「店務設定」自由修改。</p>
+    <div class="card">
+      <div class="card-head"><h3>店家名稱</h3><p>顯示於頂部與收據抬頭</p></div>
+      <input type="text" id="obName" value="${esc(name)}" placeholder="例：玫瑰光美學工作室">
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>選擇店型</h3><p>每家的服務都不一樣，先選一個起點就好</p></div>
+      ${tplCards(obTpl, 'pickSetupTpl')}
+    </div>
+    <button class="btn block" onclick="finishSetup()">開始使用</button>
+  `;
+}
+function pickSetupTpl(k){ obTpl = k; renderSetup(); }
+function finishSetup(){
+  const name = $('#obName').value.trim();
+  if(!name){ toast('請輸入店家名稱'); $('#obName').focus(); return; }
+  applyTemplate(db, obTpl);
+  db.shopName = name; db.setupDone = true;
+  resetCheckout(); save(); closeModal(); updateTitle(); go('customers');
+  toast(`已套用「${TEMPLATES[obTpl].label}」範本，可在店務設定調整品項`);
+}
+
+/* ===== 店務設定：產業範本 / 標籤清單 / 批次匯入 ===== */
+function templateTabHTML(){
+  return `<div class="card">
+    <div class="card-head"><h3>產業範本</h3><p>套用後會取代目前的品項、套餐、保養叮嚀與標籤清單；顧客、預約與消費紀錄不受影響</p></div>
+    ${tplCards(db.template, 'useTemplate')}
+  </div>`;
+}
+function useTemplate(k){
+  const t = TEMPLATES[k];
+  if(!confirm(`套用「${t.label}」範本？\n目前的品項、套餐、保養叮嚀與標籤清單會被取代（顧客與消費紀錄不受影響）。`)) return;
+  applyTemplate(db, k); resetCheckout(); save();
+  renderShopSettings(); toast(`已套用「${t.label}」範本`);
+}
+const TAG_FIELDS = [
+  ['types',   '顧客分類標籤', '建檔時可複選，也用於顧客列表篩選'],
+  ['notes',   '施作速記標籤', '新增紀錄與結帳時一鍵帶入'],
+  ['cautions','過敏 / 特殊注意', '以柔和標籤提醒美容師'],
+  ['prefs',   '服務喜好', '例如喜歡安靜、力道偏輕'],
+];
+function tagsTabHTML(){
+  return `<div class="card">
+    <div class="card-head"><h3>標籤清單</h3><p>依店型自訂；以「、」或換行分隔，修改後自動儲存</p></div>
+    <label class="field"><span>顧客分類名稱</span><input type="text" value="${esc(db.tags.typesLabel)}" placeholder="例：膚質、眼型、髮質" onchange="setTypesLabel(this.value)"></label>
+    ${TAG_FIELDS.map(([k,label,hint])=>`
+      <label class="field"><span>${k==='types' ? esc(db.tags.typesLabel)+'標籤' : label}<em class="hint">${hint}</em></span>
+        <textarea class="tag-area" onchange="setTagList('${k}',this.value)">${esc(db.tags[k].join('、'))}</textarea>
+      </label>`).join('')}
+  </div>`;
+}
+function setTypesLabel(v){ db.tags.typesLabel = v.trim() || '顧客類型'; save(); renderShopSettings(); toast('已更新分類名稱'); }
+function setTagList(k, v){
+  db.tags[k] = [...new Set(v.split(/[\n、,，]/).map(s=>s.trim()).filter(Boolean))];
+  save(); renderShopSettings(); toast('已更新標籤清單');
+}
+function bulkCardHTML(cat){
+  const svc = cat==='service';
+  return `<div class="card">
+    <div class="card-head"><h3>批次匯入價目表</h3><p>每行一個品項：名稱 價格${svc?' 回訪天數（選填）':''}；名稱相同會更新價格</p></div>
+    <textarea id="ssBulk" placeholder="${svc ? '例：\n杏仁酸煥膚 2200 30\n小氣泡清潔 1500\n美白導入,1800,21' : '例：\n玻尿酸精華 1280\n防曬乳 650'}"></textarea>
+    <button class="btn ghost block" style="margin-top:12px" onclick="bulkAdd('${cat}')">匯入</button>
+  </div>`;
+}
+function bulkAdd(cat){
+  let added = 0, updated = 0, skipped = 0;
+  $('#ssBulk').value.split('\n').map(l=>l.trim()).filter(Boolean).forEach(line=>{
+    // 以空白 / 逗號切開，從尾端取數字：價格（服務可再接回訪天數），其餘為名稱；支援 $1,800 千分位
+    const toks = line.replace(/(\d),(\d{3})(?!\d)/g,'$1$2').replace(/天$/,'').split(/[\s,，\t]+/).map(t=>t.replace(/^\$/,'')).filter(Boolean);
+    const nums = [];
+    while(toks.length > 1 && nums.length < (cat==='service' ? 2 : 1) && /^\d+$/.test(toks[toks.length-1])) nums.unshift(Number(toks.pop()));
+    if(!nums.length || !toks.length){ skipped++; return; }
+    const name = toks.join(' '), price = nums[0], cycle = nums.length > 1 ? nums[1] : null;
+    const hit = db.items.find(i=>i.cat===cat && i.name===name);
+    if(hit){ hit.price = price; if(cat==='service' && cycle!==null) hit.cycle = cycle; updated++; }
+    else { db.items.push({id:uid(), cat, name, price, ...(cat==='service' ? {cycle: cycle ?? 21} : {})}); added++; }
+  });
+  if(!added && !updated){ toast('沒有可匯入的內容，請確認格式：名稱 價格'); return; }
+  save(); renderShopSettings();
+  toast(`已新增 ${added} 項、更新 ${updated} 項${skipped?`，略過 ${skipped} 行`:''}`);
+}
+
 /* ================= 消費紀錄 ================= */
 function renderOrders(){
   const t = todayStr();
@@ -1916,7 +2108,7 @@ function deleteCare(id){
 /* ================= 店務設定彈窗：店名 / 服務 / 保養品 / 套餐 ================= */
 let shopTab = 'shop';
 let bDraft = {id:null, name:'', items:{}};
-const SHOP_TABS = [['shop','店家資訊'],['service','服務項目'],['product','居家保養品'],['bundle','快捷套餐']];
+const SHOP_TABS = [['shop','店家資訊'],['template','產業範本'],['service','服務項目'],['product','居家保養品'],['bundle','快捷套餐'],['tags','標籤清單']];
 function openShopSettings(tab){
   if(tab) shopTab = tab;
   openModal('<div id="shopSet"></div>');
@@ -1930,9 +2122,11 @@ function renderShopSettings(){
   el.innerHTML = `
     <div class="sheet-head"><h2>店務設定</h2><button class="close" onclick="closeShopSettings()">✕</button></div>
     <div class="chips">${SHOP_TABS.map(([v,l])=>`<button class="${shopTab===v?'active':''}" onclick="setShopTab('${v}')">${l}</button>`).join('')}</div>
-    ${shopTab==='shop' ? shopInfoHTML() : shopTab==='bundle' ? bundleEditorHTML() : itemEditorHTML(shopTab)}
+    ${shopTab==='shop' ? shopInfoHTML() : shopTab==='bundle' ? bundleEditorHTML() : shopTab==='template' ? templateTabHTML() : shopTab==='tags' ? tagsTabHTML() : itemEditorHTML(shopTab)}
   `;
   $('#sheet').scrollTop = sc;
+  const ch = el.querySelector('.chips'), act = ch?.querySelector('.active');
+  if(act) ch.scrollLeft = act.offsetLeft - ch.offsetLeft - 16;   // 讓目前頁籤保持在畫面內
 }
 function closeShopSettings(){
   closeModal();
@@ -1947,7 +2141,7 @@ function shopInfoHTML(){
     <div class="rc-preview">收據抬頭預覽　<b>✦ ${esc(db.shopName)} ✦</b></div>
   </div>
   <div class="card">
-    <div class="card-head"><h3>目前品項</h3><p>切換上方頁籤即可新增、修改或刪除</p></div>
+    <div class="card-head"><h3>目前品項</h3><p>目前範本：${esc(TEMPLATES[db.template]?.label || '自訂')}・切換上方頁籤即可新增、修改或刪除</p></div>
     <div class="summary">
       <div class="line"><span>服務項目</span><span>${db.items.filter(i=>i.cat==='service').length} 項</span></div>
       <div class="line"><span>居家保養品</span><span>${db.items.filter(i=>i.cat==='product').length} 項</span></div>
@@ -1980,7 +2174,8 @@ function itemEditorHTML(cat){
       ${isSvc ? `<label class="field"><span>建議回訪（天）</span><input type="number" id="ssCycle" value="21" inputmode="numeric"></label>` : '<div></div>'}
     </div>
     <button class="btn block" onclick="addItemFrom('${cat}')">＋ 新增</button>
-  </div>`;
+  </div>
+  ${bulkCardHTML(cat)}`;
 }
 function addItemFrom(cat){
   const name = $('#ssName').value.trim();
@@ -2078,7 +2273,7 @@ $('#importFile').addEventListener('change', e=>{
       const d = JSON.parse(reader.result);
       if(!d || !Array.isArray(d.customers) || !Array.isArray(d.items)) throw new Error('格式不符');
       if(!confirm(`備份檔包含 ${d.customers.length} 位顧客、${(d.orders||[]).length} 筆消費紀錄。\n匯入將「覆蓋」目前所有資料，確定繼續？`)) return;
-      db = migrate(Object.assign(defaultData(), d));
+      db = hydrate(d);
       save(); updateTitle(); resetCheckout();
       renderSettings(); toast('資料已復原 ✓');
     }catch(err){ alert('匯入失敗：檔案不是有效的備份 JSON。\n' + err.message); }
@@ -2101,6 +2296,7 @@ function updateTitle(){
 }
 updateTitle();
 go('customers');
+if(!db.setupDone) openSetup();
 </script>
 </body>
 </html>
