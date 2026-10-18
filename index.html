@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#EDF5EF">
+<meta name="theme-color" content="#FBF4F3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>皮膚管理 CRM</title>
 <!-- 字體：有網路時載入 Google Fonts，離線自動退回系統字體 -->
@@ -11,57 +11,62 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* ===== Jade & Champagne ===== */
+  /* ===== Blush & Champagne ===== */
   :root{
-    --bg:#EDF5EF;            /* 薄荷霧綠 */
+    --bg:#FBF4F3;            /* 粉白 */
     --card:#FFFFFF;
-    --border:#D6E7DC;
-    --text:#1E3A2C;          /* 深森林綠 */
-    --sub:#688276;
-    --gold:#2F9467;          /* 翡翠綠主色 */
-    --ochre:#1F7550;         /* 深翡翠綠（金額強調） */
-    --champ:#C2A06A;         /* 香檳金（VIP / 品牌字） */
-    --sage:#4FA97C;
-    --sage-pale:#E2F2E8;
-    --gray:#EAF2EC;
-    --danger:#B5705F;
-    --ok:#2F9467;
+    --border:#F1E4E2;
+    --text:#4B3B40;          /* 可可玫瑰灰 */
+    --sub:#9C878C;
+    --rose:#D9A3A8;          /* 霧玫瑰粉 */
+    --rose-deep:#B8737D;     /* 深玫瑰（金額強調） */
+    --rose-pale:#FCEDEC;
+    --champ:#C5A880;         /* 香檳金（選取框 / VIP） */
+    --cta:#3A4A40;           /* 確認結帳按鈕（可改成 #8E5A63 深玫瑰） */
+    --gray:#F7F0EF;
+    --danger:#B5605F;
+    --ok:#8BA88F;
     --radius:24px;
-    --shadow:0 12px 32px rgba(30,70,50,.05);
-    --shadow-hover:0 16px 38px rgba(30,70,50,.09);
-    --inset:inset 0 1px 2px rgba(30,70,50,.06), inset 0 -1px 0 rgba(255,255,255,.8);
+    --gap:22px;              /* 卡片間距 */
+    --shadow:0 12px 32px rgba(120,70,80,.06);
+    --shadow-hover:0 16px 38px rgba(120,70,80,.10);
+    --inset:inset 0 1px 2px rgba(120,70,80,.06), inset 0 -1px 0 rgba(255,255,255,.85);
     --serif:"Noto Serif TC","Songti TC","PMingLiU",serif;
     --sans:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
     --safe-b:env(safe-area-inset-bottom,0px);
+    --nav-h:74px;
     /* 舊變數別名（JS 內聯樣式使用） */
     --line:var(--border);
-    --milk:var(--gold);
-    --milk-dark:var(--ochre);
-    --milk-soft:#BFE0CC;
-    --milk-pale:#EAF6EF;
+    --gold:var(--champ);
+    --ochre:var(--rose-deep);
+    --milk:var(--rose);
+    --milk-dark:var(--rose-deep);
+    --milk-soft:#F3D9D9;
+    --milk-pale:var(--rose-pale);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
   body{
     font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;
-    padding-bottom:calc(92px + var(--safe-b));-webkit-font-smoothing:antialiased;
-    background-image:radial-gradient(1200px 500px at 100% -10%,rgba(47,148,103,.10),transparent 60%),
-                     radial-gradient(900px 500px at -10% 110%,rgba(47,148,103,.12),transparent 60%);
+    padding-bottom:calc(var(--nav-h) + 24px + var(--safe-b));-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(1100px 520px at 105% -10%,rgba(232,180,184,.22),transparent 60%),
+                     radial-gradient(900px 520px at -10% 110%,rgba(197,168,128,.12),transparent 60%);
     background-attachment:fixed;
   }
+  body.on-checkout{padding-bottom:calc(var(--nav-h) + 120px + var(--safe-b))}
   button,input,select,textarea{font:inherit;color:inherit}
   h1,h2,h3{margin:0;font-family:var(--serif);font-weight:600;letter-spacing:.04em}
 
   /* ===== Header ===== */
   header{
-    position:sticky;top:0;z-index:20;background:rgba(237,245,239,.88);
+    position:sticky;top:0;z-index:20;background:rgba(251,244,243,.86);
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
     padding:16px 20px 12px;border-bottom:1px solid var(--border);
   }
   header .brand{font-family:var(--serif);font-size:11px;color:var(--champ);letter-spacing:.32em}
   header h1{font-size:22px;margin-top:2px}
 
-  main{max-width:860px;margin:0 auto;padding:18px 16px}
+  main{max-width:860px;margin:0 auto;padding:20px 16px}
   .page{display:none;animation:fade .3s ease}
   .page.active{display:block}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -69,13 +74,18 @@
   /* ===== Common ===== */
   .card{
     background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-    box-shadow:var(--shadow);padding:18px;margin-bottom:14px;transition:transform .25s ease,box-shadow .25s ease;
+    box-shadow:var(--shadow);padding:20px;margin-bottom:var(--gap);transition:transform .25s ease,box-shadow .25s ease;
   }
+  /* 典雅小字號襯線標題 */
   .section-title{
-    font-family:var(--serif);font-size:14px;color:var(--text);margin:22px 6px 10px;letter-spacing:.12em;
-    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--serif);font-size:13px;font-weight:600;color:var(--text);margin:28px 6px 12px;letter-spacing:.22em;
+    display:flex;align-items:baseline;gap:10px;
   }
-  .section-title span{font-family:var(--sans);font-size:12px;color:var(--sub);letter-spacing:.04em}
+  .card>.section-title:first-child{margin-top:0;margin-left:0}
+  .section-title em{font-style:italic;font-weight:500;font-size:11px;color:var(--champ);letter-spacing:.14em}
+  .section-title span{margin-left:auto;font-family:var(--sans);font-size:12px;font-weight:400;color:var(--sub);letter-spacing:.04em;order:10}
+  .section-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);align-self:center;order:9}
+  .sub-title{font-family:var(--serif);font-size:12px;color:var(--sub);letter-spacing:.2em;margin:18px 0 10px}
   .row{display:flex;gap:12px;align-items:center}
   .grow{flex:1;min-width:0}
   .muted{color:var(--sub);font-size:13px}
@@ -83,41 +93,39 @@
 
   .btn{
     border:none;border-radius:16px;padding:13px 18px;min-height:48px;cursor:pointer;
-    background:linear-gradient(180deg,#4DB585 0%,var(--gold) 45%,#227A53 100%);color:#fff;
+    background:linear-gradient(180deg,#E7B9BD 0%,var(--rose) 45%,#C98990 100%);color:#fff;
     font-weight:500;letter-spacing:.08em;white-space:nowrap;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -2px 4px rgba(10,60,35,.15),0 6px 16px rgba(31,117,80,.28);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 4px rgba(140,70,80,.14),0 6px 16px rgba(201,137,144,.28);
     transition:transform .2s ease,box-shadow .2s ease,filter .2s;
   }
-  .btn:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -2px 4px rgba(10,60,35,.15),0 10px 22px rgba(31,117,80,.34)}
+  .btn:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 4px rgba(140,70,80,.14),0 10px 22px rgba(201,137,144,.34)}
   .btn:active{transform:translateY(0) scale(.98)}
-  .btn.ghost{background:#F1F9F4;color:var(--ochre);border:1px solid #BFE0CC;box-shadow:inset 0 1px 0 #fff,0 4px 12px rgba(30,70,50,.04)}
+  .btn.ghost{background:#FFF8F7;color:var(--rose-deep);border:1px solid #F3D9D9;box-shadow:inset 0 1px 0 #fff,0 4px 12px rgba(120,70,80,.04)}
   .btn.light{background:var(--gray);color:var(--text);border:1px solid var(--border);box-shadow:var(--inset)}
-  .btn.danger{background:#F8EEEA;color:var(--danger);border:1px solid #EFDCD5;box-shadow:inset 0 1px 0 #fff}
+  .btn.danger{background:#FBEDEB;color:var(--danger);border:1px solid #F2D6D3;box-shadow:inset 0 1px 0 #fff}
   .btn.block{width:100%;padding:16px;font-size:16px;min-height:56px;border-radius:20px}
   .btn.sm{padding:9px 14px;min-height:40px;font-size:13px;border-radius:13px;letter-spacing:.04em}
-  .btn:disabled{opacity:.4;pointer-events:none;filter:grayscale(.4)}
+  .btn:disabled{opacity:.4;pointer-events:none;filter:grayscale(.3)}
 
-  input[type=text],input[type=tel],input[type=number],input[type=date],input[type=search],select,textarea{
-    width:100%;border:1px solid var(--border);background:#F8FCF9;border-radius:14px;min-height:50px;
+  input[type=text],input[type=tel],input[type=number],input[type=date],input[type=search],textarea{
+    width:100%;border:1px solid var(--border);background:#FFFBFA;border-radius:14px;min-height:50px;
     padding:12px 15px;outline:none;transition:.2s;font-size:16px; /* 16px 防 iOS 放大 */
     box-shadow:var(--inset);-webkit-appearance:none;appearance:none;
   }
-  select{background-image:linear-gradient(45deg,transparent 50%,var(--sub) 50%),linear-gradient(135deg,var(--sub) 50%,transparent 50%);
-    background-position:calc(100% - 20px) 50%,calc(100% - 15px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:36px}
-  input:focus,select:focus,textarea:focus{border-color:var(--gold);background-color:#fff;box-shadow:var(--inset),0 0 0 4px rgba(47,148,103,.16)}
+  input:focus,textarea:focus{border-color:var(--rose);background-color:#fff;box-shadow:var(--inset),0 0 0 4px rgba(217,163,168,.18)}
   textarea{min-height:100px;resize:vertical}
   label.field{display:block;margin-bottom:14px}
-  label.field>span{display:block;font-size:12.5px;color:var(--sub);margin-bottom:7px;letter-spacing:.06em}
+  label.field>span,.field-label{display:block;font-size:12.5px;color:var(--sub);margin-bottom:7px;letter-spacing:.06em}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
   .search{position:relative}
   .search input{padding-left:46px;border-radius:20px;min-height:56px;background:#fff;box-shadow:var(--shadow),var(--inset)}
-  .search::before{content:"";position:absolute;left:18px;top:50%;width:13px;height:13px;border:1.6px solid var(--sage);border-radius:50%;transform:translateY(-62%)}
-  .search::after{content:"";position:absolute;left:30px;top:50%;width:6px;height:1.6px;background:var(--sage);transform:translateY(5px) rotate(45deg)}
+  .search::before{content:"";position:absolute;left:18px;top:50%;width:13px;height:13px;border:1.6px solid var(--rose);border-radius:50%;transform:translateY(-62%)}
+  .search::after{content:"";position:absolute;left:30px;top:50%;width:6px;height:1.6px;background:var(--rose);transform:translateY(5px) rotate(45deg)}
 
   /* Tags */
   .tags{display:flex;flex-wrap:wrap;gap:6px}
-  .tag{font-size:12px;padding:3px 11px;border-radius:20px;background:var(--sage-pale);color:#23704C;border:1px solid #C7E4D2;letter-spacing:.04em}
+  .tag{font-size:12px;padding:3px 11px;border-radius:20px;background:var(--rose-pale);color:#9A5E67;border:1px solid #F4DCDC;letter-spacing:.04em}
   .tag.vip{
     font-family:var(--serif);font-weight:600;letter-spacing:.14em;color:#fff;border:none;padding:2px 10px;font-size:11px;
     background:linear-gradient(135deg,#E2CB9F,var(--champ) 50%,#A9824F);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
@@ -127,115 +135,149 @@
   .chip-select label{cursor:pointer}
   .chip-select input{display:none}
   .chip-select span{
-    display:inline-flex;align-items:center;min-height:42px;padding:8px 16px;border-radius:22px;background:#F8FCF9;
+    display:inline-flex;align-items:center;min-height:42px;padding:8px 16px;border-radius:22px;background:#FFFBFA;
     border:1px solid var(--border);font-size:14px;transition:.2s;box-shadow:var(--inset)
   }
-  .chip-select input:checked+span{background:var(--sage-pale);color:var(--text);border-color:var(--sage);box-shadow:inset 0 0 0 1px var(--sage)}
+  .chip-select input:checked+span{background:var(--rose-pale);color:var(--rose-deep);border-color:var(--rose);box-shadow:inset 0 0 0 1px var(--rose)}
 
   /* Customer list */
   .cust{display:flex;align-items:center;gap:14px;cursor:pointer}
   .cust:hover,.order:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover)}
   .avatar{
     width:50px;height:50px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;
-    background:linear-gradient(140deg,#D5EEDF,#6FBF97);color:#fff;font-family:var(--serif);font-weight:600;font-size:20px;
-    box-shadow:inset 0 1px 2px rgba(255,255,255,.6),0 0 0 3px #fff,0 0 0 4px #BFE0CC;
+    background:linear-gradient(140deg,#F8E1E1,#DDA7AC);color:#fff;font-family:var(--serif);font-weight:600;font-size:20px;
+    box-shadow:inset 0 1px 2px rgba(255,255,255,.6),0 0 0 3px #fff,0 0 0 4px #EEDDC6;
   }
   .cust .name{font-family:var(--serif);font-weight:600;font-size:17px;letter-spacing:.04em}
   .cust .meta{text-align:right;font-size:12px;color:var(--sub);flex-shrink:0;line-height:1.8}
-  .cust .meta b{color:var(--ochre);font-family:var(--serif);font-size:15px}
+  .cust .meta b{color:var(--rose-deep);font-family:var(--serif);font-size:15px}
 
   /* Stats */
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
-  .stat{background:linear-gradient(180deg,#F1F9F4,#E6F3EB);border:1px solid #CFE7D8;border-radius:18px;padding:14px 16px;box-shadow:inset 0 1px 0 #fff}
+  .stat{background:linear-gradient(180deg,#FFF8F7,#FCEFEE);border:1px solid #F5E0DF;border-radius:18px;padding:14px 16px;box-shadow:inset 0 1px 0 #fff}
   .stat .k{font-size:12px;color:var(--sub);letter-spacing:.08em}
-  .stat .v{font-family:var(--serif);font-size:28px;font-weight:600;color:var(--ochre);line-height:1.3}
+  .stat .v{font-family:var(--serif);font-size:28px;font-weight:600;color:var(--rose-deep);line-height:1.3}
   .stat .v small{font-size:13px;font-weight:400;margin-left:3px}
 
   /* Timeline */
-  .tl{border-left:1px solid #BFE0CC;margin-left:6px;padding-left:18px}
+  .tl{border-left:1px solid #EEDDC6;margin-left:6px;padding-left:18px}
   .tl-item{position:relative;padding:4px 0 16px}
-  .tl-item::before{content:"";position:absolute;left:-23px;top:10px;width:9px;height:9px;border-radius:50%;background:#fff;border:1.5px solid var(--gold)}
-  .tl-item .d{font-family:var(--serif);font-size:13px;color:var(--ochre);letter-spacing:.06em}
+  .tl-item::before{content:"";position:absolute;left:-23px;top:10px;width:9px;height:9px;border-radius:50%;background:#fff;border:1.5px solid var(--champ)}
+  .tl-item .d{font-family:var(--serif);font-size:13px;color:var(--rose-deep);letter-spacing:.06em}
   .tl-item .t{white-space:pre-wrap;word-break:break-word}
   .tl-item .x{float:right;background:none;border:none;color:var(--sub);cursor:pointer;font-size:12px;padding:6px 4px}
 
-  /* Checkout items */
-  .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  /* ===== 服務 / 產品卡片 ===== */
+  .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
   .item{
-    background:#F8FCF9;border:1px solid var(--border);border-radius:20px;padding:14px;cursor:pointer;min-height:84px;
-    position:relative;transition:transform .2s,box-shadow .2s,border-color .2s;user-select:none;box-shadow:var(--inset);
+    background:#FFFCFB;border:1px solid var(--border);border-radius:20px;padding:16px;cursor:pointer;
+    position:relative;transition:transform .2s,box-shadow .2s,border-color .2s,background .2s;user-select:none;
+    box-shadow:var(--inset);
   }
   .item:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover)}
-  .item.on{border-color:var(--gold);background:linear-gradient(180deg,#F3FAF6,#E3F3EA);box-shadow:inset 0 0 0 1px var(--gold),0 8px 20px rgba(31,117,80,.12)}
-  .item.on::after{content:"✓";position:absolute;top:10px;right:12px;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;font-size:11px;display:grid;place-items:center}
-  .item .n{font-weight:500;font-size:14px;padding-right:18px}
-  .item .p{font-family:var(--serif);color:var(--ochre);font-weight:600;font-size:17px;margin-top:4px}
-  .item .qty{display:none;align-items:center;gap:10px;margin-top:10px}
-  .item.on .qty{display:flex}
-  .qty button{width:36px;height:36px;border-radius:50%;border:1px solid #BFE0CC;background:#fff;cursor:pointer;font-size:17px;color:var(--ochre);box-shadow:0 3px 8px rgba(30,70,50,.06)}
-  .qty b{min-width:20px;text-align:center;font-family:var(--serif)}
-
-  .pay{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-  .pay label input{display:none}
-  .pay label span{
-    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px;
-    min-height:68px;border-radius:18px;background:#F8FCF9;border:1px solid var(--border);font-size:13.5px;cursor:pointer;padding:8px;
-    transition:.2s;box-shadow:var(--inset)
+  .item.on{
+    border:1.5px solid var(--champ);padding:15.5px;background:linear-gradient(180deg,#FFFFFF,#FFF7F2);
+    box-shadow:0 8px 22px rgba(197,168,128,.22),inset 0 1px 0 #fff;
   }
-  .pay label span em{font-family:var(--serif);font-style:italic;font-size:11px;color:var(--gold);letter-spacing:.1em}
-  .pay label:hover span{transform:translateY(-1px)}
-  .pay label input:checked+span{border-color:var(--gold);background:linear-gradient(180deg,#F3FAF6,#E3F3EA);color:var(--text);font-weight:600;box-shadow:inset 0 0 0 1px var(--gold)}
-  .pay label input:disabled+span{opacity:.35}
+  .item.on::after{content:"";position:absolute;top:14px;right:14px;width:8px;height:8px;border-radius:50%;background:var(--champ);box-shadow:0 0 0 3px rgba(197,168,128,.2)}
+  .item .n{font-weight:500;font-size:14.5px;padding-right:16px}
+  .item .p{font-family:var(--serif);color:var(--rose-deep);font-weight:600;font-size:17px;margin-top:4px}
+  /* 膠囊數量鈕 */
+  .qty{
+    display:none;align-items:center;justify-content:space-between;margin-top:12px;
+    border:1px solid #EEDDC6;border-radius:999px;background:#fff;padding:3px;box-shadow:var(--inset);
+  }
+  .item.on .qty{display:flex}
+  .qty button{
+    width:40px;height:36px;border-radius:999px;border:none;background:transparent;cursor:pointer;
+    font-size:18px;line-height:1;color:var(--rose-deep);transition:background .15s
+  }
+  .qty button:active{background:var(--rose-pale)}
+  .qty b{font-family:var(--serif);font-size:15px;min-width:24px;text-align:center}
+
+  /* ===== 膠囊切換鈕 Segmented ===== */
+  .seg{
+    display:flex;gap:4px;background:#F8EEED;border:1px solid var(--border);border-radius:999px;padding:4px;
+    box-shadow:var(--inset);margin-bottom:12px;
+  }
+  .seg button{
+    flex:1;min-width:0;border:none;background:none;min-height:46px;border-radius:999px;cursor:pointer;
+    font-size:14px;color:var(--sub);letter-spacing:.04em;padding:0 6px;transition:all .2s ease;white-space:nowrap
+  }
+  .seg button.active{
+    background:linear-gradient(180deg,#E9BEC2,var(--rose) 60%,#CC9097);color:#fff;font-weight:600;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 4px 12px rgba(201,137,144,.3)
+  }
+  .seg button:disabled{opacity:.35;cursor:not-allowed}
 
   .summary .line{display:flex;justify-content:space-between;padding:5px 0;font-size:14px}
-  .summary .total{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--ochre);border-top:1px solid var(--border);margin-top:8px;padding-top:12px}
-  .summary .total span:first-child{font-size:16px;color:var(--text);align-self:center;letter-spacing:.1em}
-  .warn{background:#F8EEEA;color:var(--danger);border:1px solid #EFDCD5;border-radius:14px;padding:11px 14px;font-size:13px;margin-top:12px}
-  .info{background:var(--sage-pale);color:#1F6B48;border:1px solid #C7E4D2;border-radius:14px;padding:11px 14px;font-size:13px;margin-top:12px}
+  .warn{background:#FBEDEB;color:var(--danger);border:1px solid #F2D6D3;border-radius:14px;padding:11px 14px;font-size:13px;margin-top:4px}
+  .info{background:#FFF8F2;color:#8C6A47;border:1px solid #F1E3CF;border-radius:14px;padding:11px 14px;font-size:13px;margin-top:4px}
 
   .picker{position:relative}
   .picker-list{
     position:absolute;left:0;right:0;top:calc(100% + 8px);background:#fff;border:1px solid var(--border);border-radius:18px;
-    box-shadow:0 18px 40px rgba(30,70,50,.12);max-height:280px;overflow:auto;z-index:15;display:none
+    box-shadow:0 18px 40px rgba(120,70,80,.12);max-height:280px;overflow:auto;z-index:15;display:none
   }
   .picker-list.show{display:block}
   .picker-list div{padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer}
   .picker-list div b{font-family:var(--serif)}
   .picker-list div:last-child{border:none}
-  .picker-list div:hover,.picker-list div:active{background:var(--sage-pale)}
+  .picker-list div:hover,.picker-list div:active{background:var(--rose-pale)}
+
+  /* ===== 固定底部結帳列 ===== */
+  .paybar{
+    position:fixed;left:0;right:0;bottom:calc(var(--nav-h) + var(--safe-b));z-index:28;display:none;
+    padding:12px 16px;background:rgba(255,250,249,.78);
+    backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);
+    border-top:1px solid rgba(241,228,226,.9);box-shadow:0 -10px 30px rgba(120,70,80,.06);
+  }
+  body.on-checkout .paybar{display:block}
+  .paybar-inner{max-width:828px;margin:0 auto;display:flex;align-items:center;gap:14px}
+  .paybar .lbl{font-family:var(--serif);font-size:12px;color:var(--sub);letter-spacing:.2em}
+  .paybar .amt{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--text);line-height:1.2}
+  .btn-cta{
+    flex:1;max-width:280px;margin-left:auto;min-height:58px;border:none;border-radius:999px;cursor:pointer;
+    font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:.24em;color:#F8EFE6;
+    background:linear-gradient(180deg,#4A5C51 0%,var(--cta) 50%,#2E3B33 100%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -2px 6px rgba(0,0,0,.18),0 10px 24px rgba(58,74,64,.28);
+    transition:transform .2s ease,box-shadow .2s ease,opacity .2s;
+  }
+  .btn-cta:hover{transform:translateY(-2px)}
+  .btn-cta:active{transform:scale(.97);box-shadow:inset 0 2px 6px rgba(0,0,0,.25),0 4px 12px rgba(58,74,64,.2)}
+  .btn-cta:disabled{opacity:.35;pointer-events:none}
 
   /* Orders */
   .order{cursor:pointer}
   .order b{font-family:var(--serif)}
-  .order .amt{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--ochre)}
-  .badge{font-size:11px;padding:2px 9px;border-radius:10px;background:var(--sage-pale);color:#23704C;margin-left:6px;vertical-align:middle}
+  .order .amt{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--rose-deep)}
+  .badge{font-size:11px;padding:2px 9px;border-radius:10px;background:var(--rose-pale);color:#9A5E67;margin-left:6px;vertical-align:middle}
   .kpi{font-family:var(--serif);font-size:30px;font-weight:600;line-height:1.3}
 
   /* Bottom nav */
   nav{
-    position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(255,255,255,.9);
-    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(255,255,255,.92);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);height:calc(var(--nav-h) + var(--safe-b));
     display:flex;border-top:1px solid var(--border);padding:8px 8px calc(8px + var(--safe-b));
-    box-shadow:0 -8px 30px rgba(30,70,50,.04);
   }
   nav button{
-    flex:1;border:none;background:none;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
     font-size:12px;color:var(--sub);cursor:pointer;border-radius:16px;letter-spacing:.08em;transition:.2s
   }
   nav button svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-  nav button.active{color:var(--ochre);font-weight:600;background:linear-gradient(180deg,#F1F9F4,#E3F2E9);box-shadow:inset 0 1px 0 #fff}
+  nav button.active{color:var(--rose-deep);font-weight:600;background:linear-gradient(180deg,#FFF8F7,#FCEDEC);box-shadow:inset 0 1px 0 #fff}
 
   .fab{
-    position:fixed;right:20px;bottom:calc(96px + var(--safe-b));z-index:25;width:60px;height:60px;border-radius:50%;
+    position:fixed;right:20px;bottom:calc(var(--nav-h) + 22px + var(--safe-b));z-index:25;width:60px;height:60px;border-radius:50%;
     border:none;color:#fff;font-size:28px;font-weight:300;cursor:pointer;transition:.2s;
-    background:linear-gradient(160deg,#52B98A,var(--gold) 50%,var(--ochre));
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 12px 26px rgba(31,117,80,.42);
+    background:linear-gradient(160deg,#EDC4C7,var(--rose) 50%,#C1808A);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 12px 26px rgba(201,137,144,.42);
   }
   .fab:hover{transform:translateY(-3px) rotate(90deg)}
 
   /* Modal */
   .modal{
-    position:fixed;inset:0;z-index:50;background:rgba(30,70,50,.32);display:none;
+    position:fixed;inset:0;z-index:50;background:rgba(75,59,64,.3);display:none;
     align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
   }
   .modal.show{display:flex;animation:fade .25s}
@@ -245,7 +287,7 @@
     animation:up .3s cubic-bezier(.2,.8,.2,1);
   }
   @keyframes up{from{transform:translateY(50px)}to{transform:none}}
-  .sheet .grab{width:44px;height:5px;border-radius:5px;background:#C4DCCD;margin:6px auto 14px}
+  .sheet .grab{width:44px;height:5px;border-radius:5px;background:#EAD6D5;margin:6px auto 14px}
   .sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
   .sheet-head h2{font-size:21px}
   .close{border:1px solid var(--border);background:#fff;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:15px;color:var(--sub);box-shadow:var(--inset)}
@@ -258,28 +300,25 @@
     background:#fff;border-radius:22px;padding:22px;white-space:pre-wrap;word-break:break-word;
     font-family:var(--sans);font-size:14.5px;line-height:1.8;color:var(--text);
     box-shadow:var(--shadow);margin:0 0 16px;border:1px solid var(--border);
-    background-image:linear-gradient(180deg,rgba(47,148,103,.07),transparent 90px);
+    background-image:linear-gradient(180deg,rgba(232,180,184,.12),transparent 90px);
   }
-  .btn.copied{background:linear-gradient(180deg,#3A8F6A,#17603F)}
+  .btn.copied{background:linear-gradient(180deg,#9DB5A2,var(--ok))}
 
   .toast{
     position:fixed;left:50%;top:22px;transform:translate(-50%,-20px);background:var(--text);color:#fff;
     padding:11px 20px;border-radius:30px;font-size:14px;z-index:100;white-space:nowrap;max-width:90vw;letter-spacing:.04em;
-    opacity:0;transition:.3s;pointer-events:none;box-shadow:0 10px 26px rgba(30,70,50,.25)
+    opacity:0;transition:.3s;pointer-events:none;box-shadow:0 10px 26px rgba(75,59,64,.25)
   }
   .toast.show{opacity:.96;transform:translate(-50%,0)}
 
   .list-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 0;border-bottom:1px solid var(--border)}
   .list-item:last-child{border:none}
-  .seg{display:flex;background:var(--gray);border:1px solid var(--border);border-radius:16px;padding:4px;margin-bottom:14px;box-shadow:var(--inset)}
-  .seg button{flex:1;border:none;background:none;min-height:42px;border-radius:12px;cursor:pointer;font-size:14px;color:var(--sub);letter-spacing:.06em}
-  .seg button.active{background:#fff;color:var(--ochre);font-weight:600;box-shadow:0 3px 10px rgba(30,70,50,.07)}
   .check{display:flex;align-items:center;gap:10px;font-size:14px;margin-top:14px;cursor:pointer;min-height:40px}
-  .check input{width:20px;height:20px;accent-color:var(--gold)}
+  .check input{width:20px;height:20px;accent-color:var(--rose-deep)}
 
   @media(min-width:700px){
-    main{padding:24px}
-    .card{padding:22px}
+    main{padding:28px 24px}
+    .card{padding:24px}
   }
 </style>
 </head>
@@ -301,7 +340,7 @@
   <!-- ========== 結帳 ========== -->
   <section class="page" id="page-checkout">
     <div class="card">
-      <div class="section-title" style="margin-top:0">① 選擇顧客</div>
+      <div class="section-title">選擇顧客<em>Client</em></div>
       <div class="picker">
         <input type="search" id="coSearch" placeholder="輸入姓名或電話搜尋顧客…" autocomplete="off">
         <div class="picker-list" id="coPickerList"></div>
@@ -310,22 +349,23 @@
     </div>
 
     <div class="card">
-      <div class="section-title" style="margin-top:0">② 服務項目</div>
+      <div class="section-title">服務項目<em>Treatments</em></div>
       <div class="items" id="coServices"></div>
-      <div class="section-title">居家保養品</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">居家保養品<em>Home Care</em></div>
       <div class="items" id="coProducts"></div>
     </div>
 
     <div class="card">
-      <div class="section-title" style="margin-top:0">③ 付款 / 核銷方式</div>
-      <div class="pay" id="coPay"></div>
+      <div class="section-title">付款方式<em>Payment</em></div>
+      <div id="coPay"></div>
       <div id="coSubPay"></div>
       <div id="coMsg"></div>
     </div>
 
     <div class="card summary" id="coSummary"></div>
-    <button class="btn block" id="coConfirm" onclick="confirmCheckout()">確認結帳</button>
-    <div style="height:10px"></div>
   </section>
 
   <!-- ========== 消費紀錄 ========== -->
@@ -336,20 +376,20 @@
         <div style="text-align:right"><div class="muted">今日筆數</div><div class="kpi" id="todayCount">0</div></div>
       </div>
     </div>
-    <div class="section-title">消費紀錄（點擊可重開收據）</div>
+    <div class="section-title">消費紀錄<em>Orders</em><span>點擊可重開收據</span></div>
     <div id="orderList"></div>
   </section>
 
   <!-- ========== 設定 ========== -->
   <section class="page" id="page-settings">
-    <div class="section-title">店家資訊</div>
+    <div class="section-title">店家資訊<em>Salon</em></div>
     <div class="card">
       <label class="field"><span>店家名稱（顯示於收據）</span><input type="text" id="setShopName"></label>
       <label class="field" style="margin:0"><span>收據結尾語</span><input type="text" id="setFooter"></label>
       <button class="btn sm ghost" style="margin-top:12px" onclick="saveShop()">儲存店家資訊</button>
     </div>
 
-    <div class="section-title">品項管理</div>
+    <div class="section-title">品項管理<em>Menu</em></div>
     <div class="card">
       <div class="seg" id="itemSeg">
         <button class="active" data-cat="service">服務項目</button>
@@ -363,7 +403,7 @@
       </div>
     </div>
 
-    <div class="section-title">資料備份</div>
+    <div class="section-title">資料備份<em>Backup</em></div>
     <div class="card">
       <p class="muted" style="margin-top:0">所有資料都存在此瀏覽器中。建議每日營業結束後匯出備份，換手機或清除瀏覽器資料前務必備份。</p>
       <div class="grid2">
@@ -374,12 +414,20 @@
       <div class="muted" id="lastBackup" style="margin-top:10px"></div>
     </div>
 
-    <div class="section-title">危險區域</div>
+    <div class="section-title">危險區域<em>Reset</em></div>
     <div class="card">
       <button class="btn danger block" onclick="resetAll()">清除所有資料</button>
     </div>
   </section>
 </main>
+
+<!-- 固定底部結帳列 -->
+<div class="paybar">
+  <div class="paybar-inner">
+    <div><div class="lbl">本次應收</div><div class="amt" id="barTotal">$0</div></div>
+    <button class="btn-cta" id="coConfirm" onclick="confirmCheckout()">確認結帳</button>
+  </div>
+</div>
 
 <button class="fab" id="fab" onclick="openCustomerForm()" aria-label="新增顧客">＋</button>
 
@@ -460,6 +508,9 @@ const getCust = id => db.customers.find(c => c.id === id);
 const initial = name => (name||'?').trim().charAt(0);
 // VIP：儲值金 ≥ $10,000 或 包套 ≥ 10 次
 const isVIP = c => (c.balance||0) >= 10000 || (c.credits||0) >= 10;
+// 膠囊切換鈕：opts = [[value,label,disabled?],...]
+const segHTML = (opts, value, handler) => `<div class="seg">${opts.map(([v,l,dis])=>
+  `<button type="button" class="${v===value?'active':''}" ${dis?'disabled':''} onclick="${handler}('${v}')">${l}</button>`).join('')}</div>`;
 const vipTag = c => isVIP(c) ? '<span class="tag vip">VIP</span>' : '';
 
 function toast(msg){
@@ -478,6 +529,7 @@ function go(page){
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-'+page));
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('active', b.dataset.page === page));
   $('#fab').style.display = page === 'customers' ? '' : 'none';
+  document.body.classList.toggle('on-checkout', page === 'checkout');
   if(page==='customers') renderCustomers();
   if(page==='checkout') renderCheckout();
   if(page==='orders') renderOrders();
@@ -591,14 +643,14 @@ function openDetail(id){
       </div>
     </div>
 
-    <div class="section-title">新增本日施作紀錄</div>
+    <div class="section-title">新增本日施作紀錄<em>Today</em></div>
     <div class="card">
       <label class="field"><span>施作日期</span><input type="date" id="rDate" value="${todayStr()}"></label>
       <label class="field"><span>美容項目 / 備註說明</span><textarea id="rNote" placeholder="例：水飛梭保濕＋清粉刺，T 字部位出油明顯，建議加強保濕…"></textarea></label>
       <button class="btn ghost block" onclick="addRecord('${id}')">儲存施作紀錄</button>
     </div>
 
-    <div class="section-title">歷史皮膚管理紀錄 <span>${records.length} 筆</span></div>
+    <div class="section-title">皮膚管理紀錄<em>History</em><span>${records.length} 筆</span></div>
     <div class="card">
       ${records.length ? `<div class="tl">${records.map(r=>`
         <div class="tl-item">
@@ -608,7 +660,7 @@ function openDetail(id){
         </div>`).join('')}</div>` : '<div class="empty" style="padding:16px">尚無施作紀錄</div>'}
     </div>
 
-    <div class="section-title">最近消費 <span>${orders.length ? '最近 10 筆' : ''}</span></div>
+    <div class="section-title">最近消費<em>Purchases</em><span>${orders.length ? '最近 10 筆' : ''}</span></div>
     <div class="card">
       ${orders.length ? orders.map(o=>`
         <div class="list-item" style="cursor:pointer" onclick="showReceipt('${o.id}')">
@@ -649,12 +701,17 @@ function openTopup(id){
         <label class="field"><span>增加儲值金</span><input type="number" id="tBalance" value="0" min="0" inputmode="numeric"></label>
       </div>
       <label class="field"><span>實收金額（記入營收，可為 0）</span><input type="number" id="tPaid" value="0" min="0" inputmode="numeric"></label>
-      <label class="field" style="margin:0"><span>付款方式</span>
-        <select id="tMethod"><option value="cash">現金</option><option value="transfer">轉帳</option><option value="linepay">LINE Pay</option></select>
-      </label>
+      <div class="field-label">付款方式</div>
+      <div id="tMethodSeg"></div>
     </div>
     <button class="btn block" onclick="saveTopup('${id}')">確認加值</button>
   `);
+  setTopMethod('cash');
+}
+let topMethod = 'cash';
+function setTopMethod(v){
+  topMethod = v;
+  $('#tMethodSeg').innerHTML = segHTML([['cash','現金'],['transfer','轉帳'],['linepay','LINE Pay']], v, 'setTopMethod');
 }
 function saveTopup(id){
   const c = getCust(id);
@@ -670,7 +727,7 @@ function saveTopup(id){
   if(addB) lines.push({name:`儲值金 ${money(addB)}`, price:0, qty:1, cat:'topup'});
   const order = {
     id:uid(), type:'topup', date:new Date().toISOString(), customerId:id, customerName:c.name,
-    lines, total:paid, method:$('#tMethod').value, paid,
+    lines, total:paid, method:topMethod, paid,
     creditsUsed:-addC, balanceUsed:-addB, creditsAfter:c.credits, balanceAfter:c.balance,
   };
   db.orders.unshift(order);
@@ -716,7 +773,7 @@ function renderCheckout(){
       return `<div class="item ${q?'on':''}" onclick="toggleItem('${i.id}')">
         <div class="n">${esc(i.name)}</div><div class="p">${money(i.price)}</div>
         <div class="qty" onclick="event.stopPropagation()">
-          <button onclick="changeQty('${i.id}',-1)">−</button><b>${q}</b><button onclick="changeQty('${i.id}',1)">＋</button>
+          <button type="button" aria-label="減少" onclick="changeQty('${i.id}',-1)">−</button><b>${q}</b><button type="button" aria-label="增加" onclick="changeQty('${i.id}',1)">＋</button>
         </div>
       </div>`;
     }).join('');
@@ -726,9 +783,11 @@ function renderCheckout(){
 
   // 付款方式
   if(!c && (co.method==='package'||co.method==='balance')) co.method = 'cash';
-  $('#coPay').innerHTML = Object.entries(PAY_METHODS).map(([k,m])=>`
-    <label><input type="radio" name="coPay" value="${k}" ${co.method===k?'checked':''} ${!c&&(k==='package'||k==='balance')?'disabled':''} onchange="co.method=this.value;renderCheckout()">
-    <span><em>${m.en}</em>${m.label}</span></label>`).join('');
+  $('#coPay').innerHTML =
+    `<div class="sub-title" style="margin-top:0">付款</div>` +
+    segHTML([['cash','現金'],['transfer','轉帳'],['linepay','LINE Pay']], co.method, 'setMethod') +
+    `<div class="sub-title">核銷</div>` +
+    segHTML([['package','扣包套 1 次',!c],['balance','扣儲值金',!c]], co.method, 'setMethod');
 
   const {lines, service, product, total} = calc();
   let msg = '', ok = lines.length > 0, sub = '';
@@ -740,10 +799,8 @@ function renderCheckout(){
     else if((c.credits||0) < 1){ ok=false; msg = `<div class="warn">此顧客包套次數不足（剩 ${c.credits||0} 次）</div>`; }
     else msg = `<div class="info">服務項目以包套 1 次核銷${product?`；保養品 ${money(product)} 請另選付款方式`:''}</div>`;
     if(product){
-      sub = `<label class="field" style="margin:12px 0 0"><span>保養品付款方式</span>
-        <select onchange="co.subMethod=this.value;renderCheckout()">
-          ${['cash','transfer','linepay','balance'].map(k=>`<option value="${k}" ${co.subMethod===k?'selected':''}>${PAY_METHODS[k].label}</option>`).join('')}
-        </select></label>`;
+      sub = `<div class="sub-title">保養品付款</div>` +
+        segHTML([['cash','現金'],['transfer','轉帳'],['linepay','LINE Pay'],['balance','儲值金']], co.subMethod, 'setSubMethod');
       if(co.subMethod==='balance'){
         balanceUse = product; paid = 0;
         if((c.balance||0) < product){ ok=false; msg += `<div class="warn">儲值金不足（餘額 ${money(c.balance)}，需 ${money(product)}）</div>`; }
@@ -757,19 +814,22 @@ function renderCheckout(){
   $('#coMsg').innerHTML = lines.length ? msg : '';
 
   $('#coSummary').innerHTML = `
-    <div class="section-title" style="margin-top:0">結帳明細</div>
+    <div class="section-title">結帳明細<em>Summary</em></div>
     ${lines.length ? lines.map(l=>`<div class="line"><span>${esc(l.name)} × ${l.qty}</span><span>${money(l.price*l.qty)}</span></div>`).join('')
       : '<div class="muted">尚未選擇任何品項</div>'}
     <div class="line" style="margin-top:6px;color:var(--sub)"><span>小計</span><span>${money(total)}</span></div>
     ${creditsUse?`<div class="line" style="color:var(--milk-dark)"><span>🎫 扣抵包套</span><span>-1 次（折抵 ${money(service)}）</span></div>`:''}
     ${balanceUse?`<div class="line" style="color:var(--milk-dark)"><span>💳 扣抵儲值金</span><span>-${money(balanceUse)}</span></div>`:''}
-    <div class="line total"><span>本次應收</span><span>${money(paid)}</span></div>
     ${c ? `<label class="check"><input type="checkbox" ${co.addRecord?'checked':''} onchange="co.addRecord=this.checked"> 同步新增本日施作紀錄（服務項目）</label>` : ''}
   `;
   $('#coConfirm').disabled = !ok;
+  $('#barTotal').textContent = money(paid);
   co._calc = {lines, service, product, total, paid, creditsUse, balanceUse};
 }
-function toggleItem(id){ co.cart[id] = co.cart[id] ? 0 : 1; renderCheckout(); }
+// 已選取的卡片再點不會取消（避免誤觸），以「−」減到 0 才移除
+function toggleItem(id){ if(!co.cart[id]){ co.cart[id] = 1; renderCheckout(); } }
+function setMethod(v){ co.method = v; renderCheckout(); }
+function setSubMethod(v){ co.subMethod = v; renderCheckout(); }
 function changeQty(id, d){ co.cart[id] = Math.max(0,(co.cart[id]||0)+d); renderCheckout(); }
 
 /* 結帳頁顧客搜尋 */
