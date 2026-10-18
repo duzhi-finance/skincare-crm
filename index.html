@@ -310,6 +310,7 @@
   .soft::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.75}
   .soft.taupe{background-color:rgba(163,152,147,.14);border-color:rgba(163,152,147,.32);color:#766A65}
   .soft.ochre{background-color:rgba(176,137,104,.13);border-color:rgba(176,137,104,.30);color:#86664A}
+  .soft.pref{background-color:rgba(127,160,179,.12);border-color:rgba(127,160,179,.30);color:#5E7888}
   .soft.rose{background-color:rgba(200,145,138,.13);border-color:rgba(200,145,138,.32);color:#A2675F}
   .caution-box{margin-top:14px;padding:12px 16px 14px;border-radius:18px;background:rgba(163,152,147,.06);border:1px solid rgba(163,152,147,.22)}
   .caution-box .lbl{font-size:11.5px;font-weight:700;letter-spacing:.2em;color:#8F837E}
@@ -417,6 +418,30 @@
   .pick-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1.5px solid var(--border);border-radius:16px;margin-bottom:8px;transition:.2s}
   .pick-row.on{border-color:var(--rose);background:var(--rose-pale)}
   .card.editing{border-color:var(--rose-line)}
+
+  /* ===== 預約 ===== */
+  .appt{display:flex;align-items:center;gap:16px;padding:16px 4px;border-bottom:1px solid var(--border)}
+  .appt:last-child{border-bottom:none}
+  .appt-time{width:76px;flex-shrink:0;text-align:center;border-right:1px solid var(--border);padding-right:12px}
+  .appt-time b{display:block;font-size:21px;line-height:1.3}
+  .appt-time span{font-size:12px;color:var(--sub)}
+  .appt .nm{font-weight:700;font-size:16.5px}
+  .appt-acts{display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+  .appt.done,.appt.cancelled{opacity:.72}
+  @media (max-width:700px){
+    .appt{flex-wrap:wrap}
+    .appt-acts{flex-direction:row;flex-wrap:wrap;width:100%}
+    .appt-acts .btn{flex:1 1 auto}
+  }
+  .link-btn{border:none;background:none;color:var(--sub);font-size:12.5px;text-decoration:underline;cursor:pointer;padding:0 4px}
+  select{
+    width:100%;border:1.5px solid var(--border);background:#fff;border-radius:16px;min-height:52px;padding:12px 40px 12px 16px;
+    font-size:16px;font-family:var(--sans);outline:none;-webkit-appearance:none;appearance:none;
+    background-image:linear-gradient(45deg,transparent 50%,var(--sub) 50%),linear-gradient(135deg,var(--sub) 50%,transparent 50%);
+    background-position:calc(100% - 22px) 50%,calc(100% - 17px) 50%;background-size:5px 5px;background-repeat:no-repeat;
+  }
+  select:focus{border-color:var(--rose-line);box-shadow:0 0 0 4px rgba(200,145,138,.12)}
+  .rc-bal{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
   .mini{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:var(--sub);font-weight:600}
   .mini input{width:64px;min-height:40px;padding:6px 10px;border-radius:12px;text-align:center}
   .option-row.first{border-top:none;margin-top:0;padding-top:0}
@@ -515,6 +540,7 @@
   </div>
   <nav>
     <button class="active" data-page="customers"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.8a3.3 3.3 0 0 1 0 6.4M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/></svg></span><span class="lb"><b>顧客管理</b> <small>Clients</small></span></button>
+    <button data-page="appointments"><span class="ico"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/><circle cx="12" cy="15" r="1.6"/></svg></span><span class="lb"><b>預約管理</b> <small>Bookings</small></span></button>
     <button data-page="checkout"><span class="ico"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span><span class="lb"><b>快速結帳</b> <small>Checkout</small></span></button>
     <button data-page="orders"><span class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="17" rx="3"/><path d="M8 2.5v3M16 2.5v3M8 11h8M8 15h5"/></svg></span><span class="lb"><b>消費紀錄</b> <small>Orders</small></span></button>
     <button data-page="settings"><span class="ico"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span><span class="lb"><b>店家設定</b> <small>Settings</small></span></button>
@@ -542,6 +568,12 @@
       <div id="custList"></div>
     </div>
     <div class="section-title" style="justify-content:center"><span id="custCount" style="margin:0"></span></div>
+  </section>
+
+  <!-- ========== 預約 ========== -->
+  <section class="page" id="page-appointments">
+    <div class="chips" id="apptChips"></div>
+    <div class="card list-card"><div id="apptList"></div></div>
   </section>
 
   <!-- ========== 結帳 ========== -->
@@ -614,9 +646,13 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>收據與優惠</h3><p>結尾語會顯示在收據最下方</p></div>
+      <div class="card-head"><h3>收據、優惠與點數</h3><p>結尾語會顯示在收據最下方；點數依實際消費（現金＋儲值金）累積</p></div>
       <label class="field"><span>收據結尾語</span><input type="text" id="setFooter"></label>
       <label class="field"><span>壽星優惠折扣（%）</span><input type="number" id="setBdayOff" min="0" max="100" inputmode="numeric" placeholder="例：10 ＝ 9 折、15 ＝ 8.5 折"></label>
+      <div class="grid2">
+        <label class="field"><span>每消費多少元得 1 點（0 ＝ 不發點）</span><input type="number" id="setPtsEvery" min="0" inputmode="numeric"></label>
+        <label class="field"><span>1 點可折抵多少元（0 ＝ 不可折抵）</span><input type="number" id="setPtsValue" min="0" inputmode="numeric"></label>
+      </div>
       <button class="btn sm" onclick="saveShop()">儲存</button>
     </div>
 
@@ -655,7 +691,7 @@
   </div>
 </div>
 
-<button class="fab" id="fab" onclick="openCustomerForm()" aria-label="新增顧客">＋</button>
+<button class="fab" id="fab" onclick="fabAction()" aria-label="新增">＋</button>
 
 <!-- 通用彈窗 -->
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
@@ -667,6 +703,7 @@
     <div id="receiptCard"></div>
     <button class="btn block" id="copyBtn" onclick="copyReceipt()">一鍵複製 LINE 文字收據</button>
     <p class="muted" style="text-align:center;margin:10px 0 14px">複製後貼到顧客的 LINE 聊天室即可</p>
+    <button class="btn ghost block" id="rebookBtn" style="margin-bottom:14px">＋ 依回訪建議建立下次預約</button>
     <details id="receiptDetails" class="rc-text"><summary>查看 LINE 文字收據</summary><pre class="receipt" id="receiptText"></pre></details>
   </div>
 </div>
@@ -680,6 +717,8 @@ const SKIN_TYPES = ['乾性','油性','混合','敏感','痘痘肌','中性','�
 // 本次膚況速記
 const SKIN_NOTES = ['T字偏乾','T字出油','兩頰泛紅','加強保濕','粉刺較多','毛孔粗大','痘痘發炎','膚色暗沉','屏障受損','狀況穩定'];
 // 顧客特殊注意事項
+// 顧客喜好
+const PREFS = ['喜歡安靜','喜歡聊天','怕冷需蓋毯','偏好無香','偏好晚間時段','需提醒防曬'];
 const CAUTIONS = ['酒精過敏','怕痛力道要輕','敷臉不蓋眼睛','對香精敏感','孕期中','近期使用 A 酸','易過敏體質','配戴隱形眼鏡'];
 const PAY_METHODS = {
   cash:    {label:'現金'},
@@ -735,6 +774,9 @@ function migrate(d){
     })).filter(b=>b.items.length);
   }
   if(d.birthdayOff===undefined) d.birthdayOff = 10;
+  if(d.pointsEvery===undefined) d.pointsEvery = 100;   // 每消費 $100 得 1 點
+  if(d.pointValue===undefined) d.pointValue = 1;       // 1 點折抵 $1
+  if(!Array.isArray(d.appointments)) d.appointments = [];
   return d;
 }
 function load(){
@@ -798,6 +840,7 @@ function badgesHTML(c, maxCaution = 99){
     ...pkgAlerts(c).map(t=>soft(t,'ochre')),
     ...cs.slice(0,maxCaution).map(t=>soft(t,'taupe')),
     ...(cs.length > maxCaution ? [soft(`另 ${cs.length-maxCaution} 項注意`,'taupe')] : []),
+    ...(c.prefs||[]).slice(0, maxCaution < 99 ? 1 : 99).map(t=>soft(t,'pref')),
   ];
   return arr.length ? `<div class="badges">${arr.join('')}</div>` : '';
 }
@@ -828,6 +871,7 @@ function quickTag(btn, targetId){
 /* ================= 分頁切換 ================= */
 let currentPage = 'customers';
 const PAGE_META = {
+  appointments:['預約管理','查看今日與未來預約，點「帶入結帳」即可把顧客與預約項目直接帶進結帳單，結帳後自動標記完成，減少漏單。'],
   customers:['顧客管理','搜尋、建檔與查看每位顧客的膚況、注意事項、剩餘包套與儲值金，點擊顧客即可查看完整皮膚管理紀錄。'],
   checkout:['快速結帳','選擇顧客與品項，包套、儲值金與現金可複合付款，系統自動計算實收並產生附交易單號的電子收據。'],
   orders:['消費紀錄','所有結帳與加值紀錄都在這裡，點擊任一筆即可重新開啟收據。'],
@@ -839,15 +883,17 @@ function go(page){
   $('#pageDesc').textContent = PAGE_META[page][1];
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-'+page));
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('active', b.dataset.page === page));
-  $('#fab').style.display = page === 'customers' ? '' : 'none';
+  $('#fab').style.display = page === 'customers' || page === 'appointments' ? '' : 'none';
   document.body.classList.toggle('on-checkout', page === 'checkout');
   if(page==='customers') renderCustomers();
+  if(page==='appointments') renderAppointments();
   if(page==='checkout') renderCheckout();
   if(page==='orders') renderOrders();
   if(page==='settings') renderSettings();
   window.scrollTo({top:0});
 }
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => go(b.dataset.page)));
+function fabAction(){ currentPage==='appointments' ? openApptForm() : openCustomerForm(); }
 
 /* ================= 顧客管理 ================= */
 function matchCust(c, q){
@@ -918,9 +964,12 @@ function openCustomerForm(id){
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>特殊注意事項</h3><p>會以柔和標籤顯示於顧客卡片與結帳畫面</p></div>
+      <div class="card-head"><h3>過敏與喜好標籤</h3><p>會以柔和標籤顯示於顧客卡片、預約與結帳畫面</p></div>
+      <div class="field-label">過敏 / 特殊注意</div>
       <div class="chip-select">${CAUTIONS.map(s=>`<label><input type="checkbox" name="fCaution" value="${s}" ${cs.includes(s)?'checked':''}><span>${s}</span></label>`).join('')}</div>
-      <label class="field" style="margin:14px 0 0"><span>其他注意事項（以「、」分隔）</span><input type="text" id="fCautionOther" value="${esc(otherCaution)}" placeholder="例：右臉頰有舊疤、不喜歡聊天"></label>
+      <label class="field" style="margin:14px 0 0"><span>其他注意事項（以「、」分隔）</span><input type="text" id="fCautionOther" value="${esc(otherCaution)}" placeholder="例：右臉頰有舊疤、對乳膠過敏"></label>
+      <div class="field-label" style="margin-top:16px">服務喜好</div>
+      <div class="chip-select">${PREFS.map(s=>`<label><input type="checkbox" name="fPref" value="${s}" ${(c.prefs||[]).includes(s)?'checked':''}><span>${s}</span></label>`).join('')}</div>
     </div>
 
     <div class="card">
@@ -930,7 +979,10 @@ function openCustomerForm(id){
         <label class="field"><span>包套剩餘次數</span><input type="number" id="fCredits" value="${c.credits||0}" min="0" inputmode="numeric"></label>
         <label class="field"><span>包套到期日</span><input type="date" id="fPkgExp" value="${esc(c.packageExpiry||'')}"></label>
       </div>
-      <label class="field"><span>儲值金餘額</span><input type="number" id="fBalance" value="${c.balance||0}" min="0" inputmode="numeric"></label>
+      <div class="grid2">
+        <label class="field"><span>儲值金餘額</span><input type="number" id="fBalance" value="${c.balance||0}" min="0" inputmode="numeric"></label>
+        <label class="field"><span>會員點數</span><input type="number" id="fPoints" value="${c.points||0}" min="0" inputmode="numeric"></label>
+      </div>
       <label class="field" style="margin:0"><span>備註（偏好、生活習慣等）</span><textarea id="fNote" placeholder="選填">${esc(c.note)}</textarea></label>
     </div>
     <button class="btn block" onclick="saveCustomer('${id||''}')">${id?'儲存變更':'新增顧客'}</button>
@@ -947,6 +999,8 @@ function saveCustomer(id){
     birthday: $('#fBirthday').value,
     skin: [...document.querySelectorAll('input[name=fSkin]:checked')].map(i=>i.value),
     cautions: [...new Set([...document.querySelectorAll('input[name=fCaution]:checked')].map(i=>i.value).concat(other))],
+    prefs: [...document.querySelectorAll('input[name=fPref]:checked')].map(i=>i.value),
+    points: Math.max(0, parseInt($('#fPoints').value)||0),
     packageName: $('#fPkgName').value.trim(),
     packageExpiry: $('#fPkgExp').value,
     credits: Math.max(0, parseInt($('#fCredits').value)||0),
@@ -987,6 +1041,7 @@ function openDetail(id){
       </div>
       ${isBdayMonth(c) ? `<div class="badges" style="margin-top:12px">${soft('本月壽星・結帳可套用壽星優惠','rose')}</div>` : ''}
       ${cs.length ? `<div class="caution-box"><div class="lbl">特殊注意 · CAUTIONS</div><div class="badges">${cs.map(t=>soft(t,'taupe')).join('')}</div></div>` : ''}
+      ${c.prefs?.length ? `<div class="badges" style="margin-top:10px">${c.prefs.map(t=>soft(t,'pref')).join('')}</div>` : ''}
       ${c.skin?.length?`<div class="tags" style="margin-top:14px">${c.skin.map(s=>`<span class="tag">${esc(s)}</span>`).join('')}</div>`:''}
       ${c.note?`<div class="info" style="white-space:pre-wrap;margin-top:14px">備註　${esc(c.note)}</div>`:''}
       <div class="stats">
@@ -994,12 +1049,15 @@ function openDetail(id){
           ${c.packageExpiry?`<div class="muted">到期 ${fmtD(c.packageExpiry)}</div>`:''}
           ${alerts.length?`<div class="badges" style="margin-top:6px">${alerts.map(t=>soft(t,'ochre')).join('')}</div>`:''}
         </div>
-        <div class="stat"><div class="k">儲值金餘額</div><div class="v">${money(c.balance)}</div></div>
+        <div class="stat"><div class="k">儲值金餘額</div><div class="v">${money(c.balance)}</div><div class="muted">會員點數 ${c.points||0} 點</div></div>
       </div>
       <div class="grid2">
         <button class="btn" onclick="checkoutFor('${id}')">前往結帳</button>
         <button class="btn ghost" onclick="openTopup('${id}')">＋ 儲值 / 加購包套</button>
       </div>
+      <button class="btn light block" style="margin-top:12px;min-height:52px;font-size:15.5px" onclick="openApptForm('',{customerId:'${id}'})">＋ 新增預約</button>
+      ${(()=>{ const up = db.appointments.filter(a=>a.customerId===id && a.status==='booked').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+        return up.length ? `<div class="badges" style="margin-top:12px">${up.map(a=>soft(`已預約 ${apptWhen(a)}`,'rose')).join('')}</div>` : ''; })()}
     </div>
 
     <div class="section-title">新增本日施作紀錄 · TODAY</div>
@@ -1058,9 +1116,11 @@ function openTopup(id){
     <div class="card">
       <div class="muted">${esc(c.name)}・目前包套 ${c.credits||0} 次・儲值 ${money(c.balance)}</div>
       <div class="grid2" style="margin-top:12px">
-        <label class="field"><span>增加包套次數</span><input type="number" id="tCredits" value="0" min="0" inputmode="numeric"></label>
-        <label class="field"><span>增加儲值金</span><input type="number" id="tBalance" value="0" min="0" inputmode="numeric"></label>
+        <label class="field"><span>購買堂數</span><input type="number" id="tCredits" value="0" min="0" inputmode="numeric"></label>
+        <label class="field"><span>贈送堂數</span><input type="number" id="tBonus" value="0" min="0" inputmode="numeric"></label>
       </div>
+      <div class="quick">${[[5,0],[10,1],[10,2],[20,3]].map(([b,g])=>`<button type="button" onclick="$('#tCredits').value=${b};$('#tBonus').value=${g}">買 ${b} 送 ${g}</button>`).join('')}</div>
+      <label class="field"><span>增加儲值金</span><input type="number" id="tBalance" value="0" min="0" inputmode="numeric"></label>
       <div class="grid2">
         <label class="field"><span>包套名稱</span><input type="text" id="tPkgName" value="${esc(c.packageName||'')}" placeholder="例：水飛梭保濕包套"></label>
         <label class="field"><span>包套到期日</span><input type="date" id="tPkgExp" value="${esc(c.packageExpiry||'')}"></label>
@@ -1080,7 +1140,9 @@ function setTopMethod(v){
 }
 function saveTopup(id){
   const c = getCust(id);
-  const addC = Math.max(0, parseInt($('#tCredits').value)||0);
+  const buyC = Math.max(0, parseInt($('#tCredits').value)||0);
+  const bonusC = Math.max(0, parseInt($('#tBonus').value)||0);
+  const addC = buyC + bonusC;
   const addB = Math.max(0, parseFloat($('#tBalance').value)||0);
   const paid = Math.max(0, parseFloat($('#tPaid').value)||0);
   if(!addC && !addB){ toast('請輸入要增加的次數或金額'); return; }
@@ -1090,7 +1152,7 @@ function saveTopup(id){
   c.packageExpiry = $('#tPkgExp').value;
   c.updatedAt = Date.now();
   const lines = [];
-  if(addC) lines.push({name:`加購${c.packageName?`【${c.packageName}】`:'包套 '}${addC} 次`, price:0, qty:1, cat:'topup'});
+  if(addC) lines.push({name:`加購${c.packageName?`【${c.packageName}】`:'包套 '}${buyC} 次${bonusC?`＋贈送 ${bonusC} 次`:''}`, price:0, qty:1, cat:'topup'});
   if(addB) lines.push({name:`儲值金 ${money(addB)}`, price:0, qty:1, cat:'topup'});
   const order = {
     id:uid(), txNo:nextTxNo(), type:'topup', date:new Date().toISOString(), customerId:id, customerName:c.name,
@@ -1104,8 +1166,8 @@ function saveTopup(id){
 
 /* ================= 結帳（POS 複合付款） ================= */
 const PAY_REMAIN = [['cash','現金'],['transfer','轉帳'],['linepay','LINE Pay']];
-const co = { customerId:'', cart:{}, usePkg:false, useBal:false, balAmt:0, payMethod:'cash', cashIn:'', addRecord:true, bday:false, care:[], skinNote:'' };
-function resetCheckout(){ Object.assign(co, {customerId:'', cart:{}, usePkg:false, useBal:false, balAmt:0, payMethod:'cash', cashIn:'', bday:false, care:[], skinNote:''}); }
+const co = { customerId:'', cart:{}, usePkg:false, useBal:false, balAmt:0, usePts:false, ptsAmt:0, payMethod:'cash', cashIn:'', addRecord:true, bday:false, care:[], skinNote:'', apptId:'' };
+function resetCheckout(){ Object.assign(co, {customerId:'', cart:{}, usePkg:false, useBal:false, balAmt:0, usePts:false, ptsAmt:0, payMethod:'cash', cashIn:'', bday:false, care:[], skinNote:'', apptId:''}); }
 
 function checkoutFor(id){ closeModal(); resetCheckout(); co.customerId = id; go('checkout'); }
 
@@ -1130,7 +1192,7 @@ const bundleItems = b => b.items.map(x=>({...x, item:db.items.find(i=>i.id===x.i
 const bundlePrice = b => bundleItems(b).reduce((s,x)=>s+x.item.price*x.qty,0);
 const bundleOn = b => { const xs = bundleItems(b); return xs.length && xs.every(x=>(co.cart[x.itemId]||0) >= x.qty); };
 
-/* POS 計算：小計 − 包套折抵 − 壽星優惠 − 儲值金扣抵 ＝ 實收
+/* POS 計算：小計 − 包套折抵 − 壽星優惠 − 點數折抵 − 儲值金扣抵 ＝ 實收
    每一層都以「剩餘應付」為上限，因此不會出現負數或重複折抵 */
 function posCalc(c){
   const {lines, service, product, total} = calc();
@@ -1141,7 +1203,18 @@ function posCalc(c){
   const afterPkg = total - pkgCover;
   const off = c && isBdayMonth(c) && co.bday ? (Number(db.birthdayOff)||0) : 0;
   const discount = Math.round(afterPkg * off / 100);
-  const due = afterPkg - discount;
+  const afterDisc = afterPkg - discount;
+  const pv = Math.max(0, Number(db.pointValue)||0);
+  const ptsMax = c && pv > 0 ? Math.max(0, Math.min(c.points||0, Math.floor(afterDisc / pv))) : 0;
+  if(!c || !(c.points > 0) || !pv) co.usePts = false;
+  let ptsUse = 0;
+  if(co.usePts){
+    const want = Math.max(0, Math.floor(Number(co.ptsAmt)||0));
+    if(want > ptsMax){ msgs.push(`點數最多可使用 ${ptsMax} 點，已自動調整`); co.ptsAmt = ptsMax; }
+    ptsUse = Math.min(want, ptsMax);
+  }
+  const pointsCover = ptsUse * pv;
+  const due = afterDisc - pointsCover;
   const balMax = c ? Math.max(0, Math.min(c.balance||0, due)) : 0;
   if(!c || !(c.balance > 0)) co.useBal = false;
   let balanceUse = 0;
@@ -1151,8 +1224,10 @@ function posCalc(c){
     balanceUse = Math.min(want, balMax);
   }
   const paid = due - balanceUse;
-  const balanced = pkgCover + discount + balanceUse + paid === total;
-  return {lines, service, product, total, pkgCover, creditsUse: co.usePkg ? 1 : 0, off, discount, due, balMax, balanceUse, paid,
+  const balanced = pkgCover + discount + pointsCover + balanceUse + paid === total;
+  const every = Number(db.pointsEvery)||0;
+  const ptsEarn = c && every > 0 ? Math.floor((paid + balanceUse) / every) : 0;   // 以實際消費（現金＋儲值金）累積點數
+  return {lines, service, product, total, pkgCover, creditsUse: co.usePkg ? 1 : 0, off, discount, ptsMax, ptsUse, pointsCover, ptsEarn, due, balMax, balanceUse, paid,
           canPkg, msgs, ok: lines.length > 0 && balanced};
 }
 // 現金收款與找零（只在付現時檢查）
@@ -1174,9 +1249,10 @@ function renderCheckout(){
   $('#coCustomer').innerHTML = c ? `
     <div class="picked">
       ${avatarHTML(c,44)}
-      <div class="grow"><b>${esc(c.name)}</b>${vipTag(c)}<div class="muted">包套 ${c.credits||0} 次・儲值 ${money(c.balance)}</div></div>
-      <button class="btn sm light" onclick="co.customerId='';renderCheckout()">更換</button>
+      <div class="grow"><b>${esc(c.name)}</b>${vipTag(c)}<div class="muted">包套 ${c.credits||0} 次・儲值 ${money(c.balance)}・點數 ${c.points||0}</div></div>
+      <button class="btn sm light" onclick="co.customerId='';co.apptId='';renderCheckout()">更換</button>
     </div>
+    ${apptBanner()}
     ${badgesHTML(c)}` : '';
   $('#coSearch').style.display = c ? 'none' : '';
 
@@ -1215,6 +1291,15 @@ function renderCheckout(){
       <div><b>扣包套 1 次</b><div class="muted">${c.packageName?esc(c.packageName)+'・':''}剩 ${c.credits||0} 次・${k.service?`折抵本次服務 ${money(k.service)}`:'需選擇服務項目'}</div></div>
       <span class="switch"><input type="checkbox" ${co.usePkg?'checked':''} ${k.canPkg?'':'disabled'} onchange="co.usePkg=this.checked;renderCheckout()"><i></i></span>
     </label>
+    ${(Number(db.pointValue)||0) > 0 ? `<label class="option-row ${(c.points||0)>0?'':'is-off'}">
+      <div><b>點數折抵</b><div class="muted">可用 ${c.points||0} 點・1 點折 ${money(db.pointValue)}${co.usePts?`・本次最多 ${k.ptsMax} 點`:''}</div></div>
+      <span class="switch"><input type="checkbox" ${co.usePts?'checked':''} ${(c.points||0)>0?'':'disabled'} onchange="togglePts(this.checked)"><i></i></span>
+    </label>
+    ${co.usePts ? `<div class="amt-row">
+      <span class="cur">使用點數</span>
+      <input type="number" id="coPtsAmt" value="${k.ptsUse}" min="0" inputmode="numeric" onchange="co.ptsAmt=this.value;renderCheckout()">
+      <button type="button" class="btn sm ghost" onclick="co.ptsAmt=${k.ptsMax};renderCheckout()">全部</button>
+    </div>` : ''}` : ''}
     <label class="option-row ${(c.balance||0)>0?'':'is-off'}">
       <div><b>扣儲值金</b><div class="muted">餘額 ${money(c.balance)}${co.useBal?`・本次最多可扣 ${money(k.balMax)}`:''}</div></div>
       <span class="switch"><input type="checkbox" ${co.useBal?'checked':''} ${(c.balance||0)>0?'':'disabled'} onchange="toggleBal(this.checked)"><i></i></span>
@@ -1259,7 +1344,7 @@ function renderCheckout(){
   // 結帳明細
   const rebook = rebookFor(k.lines);
   const notices = c ? pkgNotices(c, (c.credits||0) - k.creditsUse, k.creditsUse) : [];
-  const deducted = k.pkgCover + k.discount + k.balanceUse;
+  const deducted = k.pkgCover + k.discount + k.pointsCover + k.balanceUse;
   $('#coSummary').innerHTML = `
     <div class="amount-panel">
       <div class="lbl">本次實收 · AMOUNT DUE</div>
@@ -1268,6 +1353,7 @@ function renderCheckout(){
         <span class="dark">小計 ${money(k.total)}</span>
         ${k.creditsUse?`<span>包套 −1 次</span>`:''}
         ${k.discount?`<span>壽星 −${money(k.discount)}</span>`:''}
+        ${k.ptsUse?`<span>點數 −${money(k.pointsCover)}</span>`:''}
         ${k.balanceUse?`<span>儲值金 −${money(k.balanceUse)}</span>`:''}
       </div>
     </div>
@@ -1276,9 +1362,11 @@ function renderCheckout(){
     <div class="line" style="margin-top:6px;color:var(--sub)"><span>小計</span><span>${money(k.total)}</span></div>
     ${k.creditsUse?`<div class="line deduct"><span>扣抵包套 1 次</span><span>−${money(k.pkgCover)}</span></div>`:''}
     ${k.discount?`<div class="line deduct"><span>壽星優惠（${zhe(k.off)}）</span><span>−${money(k.discount)}</span></div>`:''}
+    ${k.ptsUse?`<div class="line deduct"><span>點數折抵（${k.ptsUse} 點）</span><span>−${money(k.pointsCover)}</span></div>`:''}
     ${k.balanceUse?`<div class="line deduct"><span>扣抵儲值金</span><span>−${money(k.balanceUse)}</span></div>`:''}
     <div class="line total-line"><span>實收${k.paid?`（${PAY_METHODS[co.payMethod].label}）`:''}</span><span>${money(k.paid)}</span></div>
     ${k.lines.length ? `<div class="recon">核對　折抵 ${money(deducted)} ＋ 實收 ${money(k.paid)} ＝ 小計 ${money(k.total)}</div>` : ''}
+    ${c && k.ptsEarn ? `<div class="recon">本次消費可獲得 ${k.ptsEarn} 點</div>` : ''}
     ${rebook ? `<div class="rebook">
       <div><div class="lbl">建議下次回訪 · REBOOK</div><b>${fmtDW(rebook.date)}</b></div>
       <div class="muted" style="text-align:right">約 ${rebook.days} 天後<br>依${esc(rebook.name)}保養週期</div>
@@ -1306,6 +1394,11 @@ function quickCash(p){
   return [...new Set([p, Math.ceil(p/100)*100, Math.ceil(p/500)*500, Math.ceil(p/1000)*1000])].slice(0,4);
 }
 function setCash(v){ co.cashIn = String(v); const el=$('#coCashIn'); if(el) el.value = v; updateCashUI(); }
+function togglePts(on){
+  co.usePts = on;
+  if(on){ co.usePts = false; const k = posCalc(getCust(co.customerId)); co.usePts = true; co.ptsAmt = k.ptsMax; }
+  renderCheckout();
+}
 function toggleBal(on){
   co.useBal = on;
   if(on){ co.useBal = false; const k = posCalc(getCust(co.customerId)); co.useBal = true; co.balAmt = k.balMax; }
@@ -1360,7 +1453,7 @@ coSearch.addEventListener('input', renderPicker);
 coSearch.addEventListener('blur', ()=>setTimeout(()=>coList.classList.remove('show'),150));
 coList.addEventListener('mousedown', e=>e.preventDefault()); // 保持輸入框焦點，避免 blur 先關閉清單
 coList.addEventListener('click', e=>{ const d=e.target.closest('div[data-id]'); if(d) pickCustomer(d.dataset.id); });
-function pickCustomer(id){ co.customerId=id; co.bday=false; co.usePkg=false; co.useBal=false; coSearch.value=''; coList.classList.remove('show'); renderCheckout(); }
+function pickCustomer(id){ co.customerId=id; co.bday=false; co.usePkg=false; co.useBal=false; co.usePts=false; co.apptId=''; coSearch.value=''; coList.classList.remove('show'); renderCheckout(); }
 
 function confirmCheckout(){
   renderCheckout();
@@ -1371,6 +1464,7 @@ function confirmCheckout(){
   if(c){
     c.credits = (c.credits||0) - k.creditsUse;
     c.balance = (c.balance||0) - k.balanceUse;
+    c.points = (c.points||0) - k.ptsUse + k.ptsEarn;
     c.updatedAt = Date.now();
     if(co.addRecord && k.service){
       const names = k.lines.filter(l=>l.cat==='service').map(l=>l.qty>1?`${l.name}×${l.qty}`:l.name).join('、');
@@ -1384,6 +1478,7 @@ function confirmCheckout(){
     lines:k.lines.map(({name,price,qty,cat})=>({name,price,qty,cat})), total:k.total,
     creditsUsed:k.creditsUse, pkgCover:k.pkgCover, packageName:c?.packageName||'',
     discount:k.discount, discountOff:k.discount ? k.off : 0,
+    pointsUsed:k.ptsUse, pointsCover:k.pointsCover, pointsEarned:c ? k.ptsEarn : 0, pointsAfter:c ? c.points : null,
     balanceUsed:k.balanceUse,
     paid:k.paid, payMethod:k.paid ? co.payMethod : null,
     cashIn:cs.cashIn, change:cs.cashIn===null ? null : cs.change,
@@ -1392,6 +1487,9 @@ function confirmCheckout(){
     rebook:k.rebook,
     notices: c ? pkgNotices(c, c.credits, k.creditsUse).map(n=>n.text) : [],
   };
+  // 預約連動：標記完成並記下交易單號
+  const appt = db.appointments.find(a=>a.id===co.apptId);
+  if(appt){ appt.status = 'done'; appt.txNo = order.txNo; order.apptId = appt.id; }
   db.orders.unshift(order);
   save();
   resetCheckout();
@@ -1407,6 +1505,7 @@ function methodText(o){
   if('payMethod' in o){
     const parts = [];
     if(o.creditsUsed) parts.push('包套');
+    if(o.pointsUsed) parts.push('點數');
     if(o.balanceUsed) parts.push('儲值金');
     if(o.paid) parts.push(PAY_METHODS[o.payMethod]?.label || o.payMethod);
     return parts.join(' + ') || '全額折抵';
@@ -1440,6 +1539,7 @@ function buildReceipt(o){
     out.push(`消費小計：${money(o.total)}`);
     if(o.creditsUsed) out.push(`扣抵包套：${o.creditsUsed} 次${o.pkgCover?`（折抵 ${money(o.pkgCover)}）`:''}`);
     if(o.discount) out.push(`🎂 壽星優惠（${zhe(o.discountOff)}）：−${money(o.discount)}`);
+    if(o.pointsUsed) out.push(`點數折抵：−${money(o.pointsCover)}（使用 ${o.pointsUsed} 點）`);
     if(o.balanceUsed) out.push(`扣抵儲值金：−${money(o.balanceUsed)}`);
     const pm = orderPayMethod(o);
     out.push(o.paid ? `實收金額：${money(o.paid)}（${PAY_METHODS[pm]?.label||''}）` : '實收金額：$0');
@@ -1449,6 +1549,7 @@ function buildReceipt(o){
     out.push(L);
     out.push(`剩餘包套次數：${o.creditsAfter} 次`);
     out.push(`儲值金餘額：${money(o.balanceAfter)}`);
+    if(o.pointsAfter!=null) out.push(`會員點數：${o.pointsAfter} 點${o.pointsEarned?`（本次 +${o.pointsEarned} 點）`:''}`);
   }
   if(o.careTips?.length){
     out.push(L);
@@ -1495,12 +1596,14 @@ function receiptCard(o){
       ${row('小計', money(o.total), 'muted')}
       ${o.creditsUsed ? row(`扣抵包套 ${o.creditsUsed} 次`, o.pkgCover ? '−'+money(o.pkgCover) : '—', 'deduct') : ''}
       ${o.discount ? row(`壽星優惠（${zhe(o.discountOff)}）`, '−'+money(o.discount), 'deduct') : ''}
+      ${o.pointsUsed ? row(`點數折抵（${o.pointsUsed} 點）`, '−'+money(o.pointsCover), 'deduct') : ''}
       ${o.balanceUsed ? row('扣抵儲值金', '−'+money(o.balanceUsed), 'deduct') : ''}` : ''}
     <div class="rc-total"><span>實收金額</span><b>${money(o.paid)}</b>${o.paid && pm ? `<em>${esc(PAY_METHODS[pm]?.label||'')}</em>` : ''}</div>
     ${o.cashIn!=null ? row('現金收款', money(o.cashIn), 'muted') + row('找零', money(o.change), 'muted') : ''}
     ${o.customerId ? `<div class="rc-bal">
       <div><span>剩餘包套</span><b>${o.creditsAfter} 次</b></div>
       <div><span>儲值金餘額</span><b>${money(o.balanceAfter)}</b></div>
+      ${o.pointsAfter!=null ? `<div><span>會員點數${o.pointsEarned?` +${o.pointsEarned}`:''}</span><b>${o.pointsAfter} 點</b></div>` : ''}
     </div>` : ''}
     ${(o.rebook || o.notices?.length || o.careTips?.length) ? `<div class="rc-notes">
       ${o.rebook ? `<div><span class="soft rose">建議回訪</span> ${fmtDW(o.rebook.date)} 前後</div>` : ''}
@@ -1517,6 +1620,11 @@ function showReceipt(orderId){
   $('#receiptText').textContent = buildReceipt(o);
   $('#receiptDetails').open = false;
   const b = $('#copyBtn'); b.classList.remove('copied'); b.textContent = '一鍵複製 LINE 文字收據';
+  // 有回訪建議時，可直接建立下次預約
+  const rb = $('#rebookBtn');
+  rb.style.display = o.rebook && o.customerId && getCust(o.customerId) ? '' : 'none';
+  rb.onclick = () => openApptForm('', {customerId:o.customerId, date:o.rebook.date,
+    itemIds:o.lines.filter(l=>l.cat==='service').map(l=>db.items.find(i=>i.name===l.name)?.id).filter(Boolean)});
   $('#receiptModal').classList.add('show');
   $('#receiptModal .sheet').scrollTop = 0;
 }
@@ -1538,6 +1646,151 @@ async function copyReceipt(){
   if(ok){ b.classList.add('copied'); b.textContent = '✓ 已複製！'; toast('已複製！可直接貼到 LINE'); }
   else { toast('複製失敗，請展開文字收據長按手動複製'); $('#receiptDetails').open = true; }
   setTimeout(()=>{ b.classList.remove('copied'); b.textContent='一鍵複製 LINE 文字收據'; }, 2500);
+}
+
+/* ================= 預約管理（帶入結帳 / LINE 提醒） ================= */
+let apptFilter = 'today';
+const APPT_FILTERS = [['today','今日'],['tomorrow','明日'],['upcoming','未來預約'],['done','已完成'],['cancelled','已取消']];
+const apptItems = a => (a.itemIds||[]).map(id=>db.items.find(i=>i.id===id)).filter(Boolean);
+const apptWhen = a => `${fmtD(a.date).slice(5)}（${WEEK[new Date(a.date+'T00:00').getDay()]}）${a.time||''}`;
+function apptList(f){
+  const t = todayStr(), tm = addDays(1);
+  return db.appointments.filter(a=>{
+    if(f==='done' || f==='cancelled') return a.status===f;
+    if(a.status!=='booked') return false;
+    if(f==='today') return a.date <= t;          // 含逾期尚未結帳的預約
+    if(f==='tomorrow') return a.date === tm;
+    return a.date >= t;
+  }).sort((a,b)=>{
+    const x = (a.date+(a.time||'')).localeCompare(b.date+(b.time||''));
+    return f==='done' || f==='cancelled' ? -x : x;
+  });
+}
+function renderAppointments(){
+  $('#apptChips').innerHTML = APPT_FILTERS.map(([v,l])=>{
+    const n = apptList(v).length;
+    return `<button class="${apptFilter===v?'active':''}" onclick="apptFilter='${v}';renderAppointments()">${l}${n && v!=='done' && v!=='cancelled' ? `・${n}` : ''}</button>`;
+  }).join('');
+  const list = apptList(apptFilter);
+  $('#apptList').innerHTML = list.length ? list.map(a=>{
+    const c = getCust(a.customerId);
+    const items = apptItems(a);
+    const overdue = a.status==='booked' && a.date < todayStr();
+    return `<div class="appt ${a.status}">
+      <div class="appt-time"><b>${esc(a.time||'--:--')}</b><span>${fmtD(a.date).slice(5)}（${WEEK[new Date(a.date+'T00:00').getDay()]}）</span></div>
+      <div class="grow" style="min-width:0">
+        <div class="nm">${c?esc(c.name):'（顧客已刪除）'}${c?vipTag(c):''}</div>
+        <div class="muted">${esc(items.map(i=>i.name).join('、')||'未指定項目')}${a.note?`・${esc(a.note)}`:''}</div>
+        <div class="badges">
+          ${overdue?soft('逾期未結帳','ochre'):''}
+          ${a.status==='done'?soft(`已結帳 ${a.txNo||''}`,'rose'):''}
+          ${a.status==='cancelled'?soft('已取消','taupe'):''}
+          ${c && a.status==='booked' ? (c.cautions||[]).slice(0,2).map(t=>soft(t,'taupe')).join('') : ''}
+        </div>
+      </div>
+      <div class="appt-acts">
+        ${a.status==='booked' && c ? `
+          <button class="btn sm" onclick="apptToCheckout('${a.id}')">帶入結帳</button>
+          <button class="btn sm ghost" onclick="copyApptText('${a.id}')">複製 LINE 提醒</button>
+          <button class="btn sm light" onclick="openApptForm('${a.id}')">編輯</button>` : ''}
+        ${a.status==='done' && a.txNo ? `<button class="btn sm ghost" onclick="showReceiptByTx('${a.txNo}')">查看收據</button>` : ''}
+      </div>
+    </div>`;
+  }).join('') : `<div class="empty">${apptFilter==='today'?'今天沒有預約':'沒有符合的預約'}<br><span class="muted">點右下角「＋」新增預約</span></div>`;
+}
+
+let apptDraft = null;
+function openApptForm(id, preset = {}){
+  const a = id ? db.appointments.find(x=>x.id===id)
+               : {customerId:preset.customerId||'', date:preset.date||todayStr(), time:preset.time||'', itemIds:preset.itemIds||[], note:''};
+  if(!a) return;
+  apptDraft = {...a, itemIds:[...(a.itemIds||[])], _id:id||''};
+  closeReceipt();
+  openModal('<div id="apptForm"></div>');
+  renderApptForm();
+}
+function renderApptForm(){
+  const d = apptDraft, el = $('#apptForm'); if(!el) return;
+  const sc = $('#sheet').scrollTop;
+  const custs = [...db.customers].sort((a,b)=>a.name.localeCompare(b.name,'zh-Hant'));
+  const pick = cat => db.items.filter(i=>i.cat===cat).map(i=>`<button type="button" class="${d.itemIds.includes(i.id)?'on':''}" onclick="apptToggleItem('${i.id}')">${esc(i.name)}</button>`).join('');
+  el.innerHTML = `
+    <div class="sheet-head"><h2>${d._id?'編輯預約':'新增預約'}</h2><button class="close" onclick="closeModal()">✕</button></div>
+    <div class="card">
+      <label class="field"><span>顧客 *</span>
+        <select onchange="apptDraft.customerId=this.value">
+          <option value="">請選擇顧客</option>
+          ${custs.map(c=>`<option value="${c.id}" ${c.id===d.customerId?'selected':''}>${esc(c.name)}${c.phone?`・${esc(c.phone)}`:''}</option>`).join('')}
+        </select>
+      </label>
+      <div class="grid2">
+        <label class="field"><span>日期 *</span><input type="date" value="${esc(d.date)}" onchange="apptDraft.date=this.value"></label>
+        <label class="field"><span>時間 *</span><input type="time" value="${esc(d.time)}" step="900" onchange="apptDraft.time=this.value"></label>
+      </div>
+      <div class="field-label">預約服務</div>
+      <div class="quick">${pick('service') || '<span class="muted">尚無服務項目</span>'}</div>
+      <div class="field-label">預購保養品</div>
+      <div class="quick">${pick('product') || '<span class="muted">尚無保養品</span>'}</div>
+      <label class="field" style="margin:0"><span>備註</span><input type="text" value="${esc(d.note||'')}" placeholder="例：第一次來店、需要停車位" oninput="apptDraft.note=this.value"></label>
+    </div>
+    <button class="btn block" onclick="saveAppt()">${d._id?'儲存變更':'建立預約'}</button>
+    ${d._id ? `<button class="btn danger block" style="margin-top:12px" onclick="cancelAppt('${d._id}')">取消此預約</button>` : ''}
+  `;
+  $('#sheet').scrollTop = sc;
+}
+function apptToggleItem(id){
+  const ids = apptDraft.itemIds;
+  apptDraft.itemIds = ids.includes(id) ? ids.filter(x=>x!==id) : [...ids, id];
+  renderApptForm();
+}
+function saveAppt(){
+  const d = apptDraft;
+  if(!d.customerId){ toast('請選擇顧客'); return; }
+  if(!d.date || !d.time){ toast('請選擇日期與時間'); return; }
+  const data = {customerId:d.customerId, date:d.date, time:d.time, itemIds:d.itemIds, note:(d.note||'').trim()};
+  if(d._id) Object.assign(db.appointments.find(x=>x.id===d._id), data);
+  else db.appointments.push({id:uid(), status:'booked', createdAt:Date.now(), ...data});
+  save(); closeModal();
+  apptFilter = d.date <= todayStr() ? 'today' : d.date === addDays(1) ? 'tomorrow' : 'upcoming';
+  toast(d._id ? '已更新預約' : '已建立預約，可複製 LINE 提醒給顧客');
+  go('appointments');
+}
+function cancelAppt(id){
+  if(!confirm('確定取消此預約？')) return;
+  db.appointments.find(x=>x.id===id).status = 'cancelled';
+  save(); closeModal(); renderAppointments(); toast('已取消預約');
+}
+// 預約 → 結帳單：帶入顧客與預約品項
+function apptToCheckout(id){
+  const a = db.appointments.find(x=>x.id===id); if(!a) return;
+  resetCheckout();
+  co.customerId = a.customerId; co.apptId = a.id;
+  apptItems(a).forEach(i=>{ co.cart[i.id] = 1; });
+  go('checkout'); toast('已帶入預約資料');
+}
+function apptBanner(){
+  const a = db.appointments.find(x=>x.id===co.apptId);
+  return a ? `<div class="badges">${soft(`來自預約 ${apptWhen(a)}`,'rose')}<button type="button" class="link-btn" onclick="co.apptId='';renderCheckout()">取消連結</button></div>` : '';
+}
+async function copyApptText(id){
+  const a = db.appointments.find(x=>x.id===id); const c = a && getCust(a.customerId); if(!c) return;
+  const names = apptItems(a).map(i=>i.name).join('、');
+  const text = [
+    `✦ ${db.shopName} ✦ 預約確認`,
+    '━━━━━━━━━━━━━━',
+    `${c.name} 您好～已為您保留以下時段：`,
+    `📅 ${fmtDW(a.date)} ${a.time}`,
+    `💆 預約項目：${names || '現場與美容師討論'}`,
+    ...(a.note ? [`📝 備註：${a.note}`] : []),
+    '━━━━━━━━━━━━━━',
+    '如需更改時間，請直接回覆此訊息唷！',
+    '期待與您見面 🤍',
+  ].join('\n');
+  toast(await copyText(text) ? '已複製 LINE 預約提醒' : '複製失敗');
+}
+function showReceiptByTx(tx){
+  const o = db.orders.find(x=>x.txNo===tx);
+  if(o) showReceipt(o.id); else toast('找不到對應的收據');
 }
 
 /* ================= 消費紀錄 ================= */
@@ -1572,6 +1825,7 @@ function dailyStats(date){
     os, count:os.length, saleCount:sales.length, topCount:tops.length,
     revenue:sum(os,o=>o.paid), saleRevenue:sum(sales,o=>o.paid), topRevenue:sum(tops,o=>o.paid),
     pkgUsed:sum(sales,o=>o.creditsUsed), balUsed:sum(sales,o=>o.balanceUsed),
+    ptsCover:sum(sales,o=>o.pointsCover), ptsEarned:sum(sales,o=>o.pointsEarned),
     discount:sum(sales,o=>o.discount), subtotal:sum(sales,o=>o.total),
     guests:new Set(sales.map(o=>o.customerId||o.id)).size, byMethod,
   };
@@ -1600,6 +1854,7 @@ function openDaily(date){
         <div class="line total-line"><span>實收合計</span><span>${money(s.revenue)}</span></div>
         <div class="line" style="margin-top:10px;color:var(--sub)"><span>消費小計（折抵前）</span><span>${money(s.subtotal)}</span></div>
         <div class="line" style="color:var(--sub)"><span>壽星優惠</span><span>−${money(s.discount)}</span></div>
+        <div class="line" style="color:var(--sub)"><span>點數折抵 / 本日發放點數</span><span>−${money(s.ptsCover)}・+${s.ptsEarned} 點</span></div>
         <div class="line" style="color:var(--sub)"><span>加值收入（儲值 / 包套）</span><span>${money(s.topRevenue)}</span></div>
       </div>
     </div>
@@ -1628,6 +1883,8 @@ async function copyDaily(date){
 function renderSettings(){
   $('#setFooter').value = db.footer || '';
   $('#setBdayOff').value = db.birthdayOff;
+  $('#setPtsEvery').value = db.pointsEvery;
+  $('#setPtsValue').value = db.pointValue;
   $('#shopSummary').textContent = `${db.shopName}・服務 ${db.items.filter(i=>i.cat==='service').length} 項・保養品 ${db.items.filter(i=>i.cat==='product').length} 項・套餐 ${db.bundles.length} 組`;
   $('#careList').innerHTML = db.careTips.length ? db.careTips.map(t=>`
     <div class="list-item" style="align-items:flex-start">
@@ -1639,7 +1896,9 @@ function renderSettings(){
 function saveShop(){
   db.footer = $('#setFooter').value.trim();
   db.birthdayOff = Math.min(100, Math.max(0, parseFloat($('#setBdayOff').value)||0));
-  save(); toast('已儲存收據與優惠設定');
+  db.pointsEvery = Math.max(0, parseFloat($('#setPtsEvery').value)||0);
+  db.pointValue = Math.max(0, parseFloat($('#setPtsValue').value)||0);
+  save(); toast('已儲存收據、優惠與點數設定');
 }
 function addCare(){
   const title = $('#newCareTitle').value.trim(), text = $('#newCareText').value.trim();
