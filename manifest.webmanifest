@@ -1,6 +1,6 @@
 {
-  "name": "美容皮膚管理 CRM",
-  "short_name": "美容 CRM",
+  "name": "SKIN ATELIER 美容皮膚管理",
+  "short_name": "SKIN ATELIER",
   "description": "美容皮膚管理 CRM＋POS：顧客檔案、預約追訪、複合結帳與 LINE 收據，離線可用。",
   "lang": "zh-Hant",
   "start_url": "./",
@@ -10,8 +10,23 @@
   "background_color": "#FFFFFF",
   "theme_color": "#FFFFFF",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
