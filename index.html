@@ -16,7 +16,7 @@
 <!-- 字體：有網路時載入 Google Fonts，離線自動退回系統字體 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   /* ===== Maison Rose：白底細框 × 襯線粗體 × 霧玫瑰 ===== */
   :root{
@@ -706,6 +706,29 @@
   .list-item:last-child{border:none}
   .check{display:flex;align-items:center;gap:10px;font-size:14px;margin-top:14px;cursor:pointer;min-height:40px}
   .check input{width:20px;height:20px;accent-color:var(--rose)}
+
+  /* ===== 小字：黑體半粗、暖灰色（標籤、說明、提示） ===== */
+  :root{ --label:#9A938E; }
+  .section-title,.sub-title,.field-label,label.field>span,.card-head p,.muted,.hint,
+  .stat .k,.thead,.st-h,.lbl,.rc-meta span,.rc-sec,.rc-bal span,.rc-kind,.rc-eyebrow,.rc-total span,
+  .page-head .date,.side-brand p,.side-foot,.side nav small,.amt-row .cur,.qty-row .lb,.mini,.mini-field,
+  .tl-item .d,.tl-staff,.recon,.empty,.badge,.tag,.soft,.cust .meta,.m-meta,.appt-time span,.change span,
+  .caution-box .lbl,.rebook .lbl,.paybar .lbl,.amount-panel .lbl,.tpl em,.tpl small,.coupon span,.bundle span,
+  .ph > span,.ph.add small,.cp-head .muted,.item .p,.chips .cnt{
+    font-family:var(--sans);
+  }
+  .section-title,.sub-title,.field-label,label.field>span,.stat .k,.thead,.st-h,.lbl,.rc-meta span,.rc-sec,
+  .rc-bal span,.rc-total span,.amt-row .cur,.qty-row .lb,.mini,.mini-field,.caution-box .lbl,.rebook .lbl,
+  .paybar .lbl,.amount-panel .lbl,.change span{
+    color:var(--label);font-weight:600;letter-spacing:.04em;
+  }
+  .section-title,.sub-title{font-size:15px}
+  .section-title em,.section-title span{font-family:var(--sans)}
+  label.field>span,.field-label{font-size:14.5px}
+  .card-head p,.muted,.hint{color:var(--label);font-weight:500;letter-spacing:.02em}
+  .page-head p{font-family:var(--sans);font-weight:500;color:#857D78;letter-spacing:.02em}
+  .tl-item .d{letter-spacing:.04em}
+  .sub-title.remain b{font-family:var(--serif);color:var(--text);letter-spacing:.02em}
 </style>
 </head>
 <body>
