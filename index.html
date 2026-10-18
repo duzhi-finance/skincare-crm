@@ -419,6 +419,59 @@
   .pick-row.on{border-color:var(--rose);background:var(--rose-pale)}
   .card.editing{border-color:var(--rose-line)}
 
+  /* ===== 出單動畫 ===== */
+  .rc-feed{position:relative;overflow:hidden;padding-top:12px;margin:0 -4px 18px;padding-left:4px;padding-right:4px}
+  .rc-feed .rc{margin-bottom:0;border-top-left-radius:6px;border-top-right-radius:6px}
+  .printer-slot{
+    position:absolute;top:0;left:0;right:0;height:16px;border-radius:10px;z-index:2;
+    background:linear-gradient(180deg,#4a4442,#2f2b2a);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 6px 14px rgba(47,43,42,.18)
+  }
+  .printer-slot::after{content:"";position:absolute;left:22px;right:22px;bottom:4px;height:2px;border-radius:2px;background:#151313}
+  .rc-feed.printing .rc{animation:rcFeed 1.55s cubic-bezier(.22,.75,.28,1) both}
+  .rc-feed.printing ~ *{animation:fadeLate .5s ease 1.2s both}
+  @keyframes rcFeed{
+    0%{transform:translateY(-100%)}
+    12%{transform:translateY(-88%)}
+    18%{transform:translateY(-84%)}
+    100%{transform:translateY(0)}
+  }
+  @keyframes fadeLate{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){ .rc-feed.printing .rc,.rc-feed.printing ~ *{animation:none} }
+
+  /* ===== 照片相簿 ===== */
+  .ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-top:10px}
+  .ph{
+    position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:var(--bg-soft);border:1.5px solid var(--border);
+    padding:0;cursor:pointer;display:block
+  }
+  .ph img{width:100%;height:100%;object-fit:cover;display:block}
+  .ph > span{position:absolute;left:6px;bottom:6px;font-size:11px;font-weight:700;background:rgba(255,255,255,.88);border-radius:999px;padding:1px 8px;color:var(--text)}
+  .ph.add{display:flex;flex-direction:column;align-items:center;justify-content:center;border-style:dashed;color:var(--sub);gap:2px}
+  .ph.add b{font-size:24px;font-weight:300;line-height:1}
+  .ph.add small{font-size:11px;text-align:center;padding:0 4px}
+  .ph.missing::after{content:"僅存於原裝置";position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:var(--sub);background:var(--bg-soft)}
+  .ph-label{position:absolute;left:4px;right:4px;bottom:4px;width:auto;min-height:30px;padding:2px 22px 2px 8px;font-size:12px;border-radius:999px;background-color:rgba(255,255,255,.92);background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%}
+  .ph-del{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:none;background:rgba(47,43,42,.6);color:#fff;font-size:15px;line-height:1;cursor:pointer}
+  .ph-view{border-radius:22px;overflow:hidden;background:#000;border:1.5px solid var(--border)}
+  .ph-view img{width:100%;max-height:68vh;object-fit:contain;display:block}
+  .cmp-thumb.is-before{border-color:var(--ink)}
+  .cmp-thumb.is-after{border-color:var(--rose)}
+  .cmp-thumb.is-before span{background:var(--ink);color:#fff}
+  .cmp-thumb.is-after span{background:var(--rose);color:#fff}
+
+  /* ===== 前後對比滑塊 ===== */
+  .ba{position:relative;aspect-ratio:3/4;max-height:66vh;margin:0 auto;border-radius:24px;overflow:hidden;background:#1e1b1a;user-select:none;touch-action:pan-y;--pos:50%}
+  .ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+  .ba-before{clip-path:inset(0 calc(100% - var(--pos)) 0 0)}
+  .ba-line{position:absolute;top:0;bottom:0;left:var(--pos);width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 12px rgba(0,0,0,.35);pointer-events:none}
+  .ba-line span{position:absolute;top:50%;left:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 4px 14px rgba(0,0,0,.25)}
+  .ba-line span::before,.ba-line span::after{content:"";position:absolute;top:50%;width:0;height:0;margin-top:-6px;border:6px solid transparent}
+  .ba-line span::before{left:7px;border-right-color:var(--text)}
+  .ba-line span::after{right:7px;border-left-color:var(--text)}
+  .ba-tag{position:absolute;top:12px;font-style:normal;font-size:11px;font-weight:700;letter-spacing:.14em;color:#fff;background:rgba(47,43,42,.55);padding:3px 10px;border-radius:999px;pointer-events:none}
+  .ba-tag.l{left:12px} .ba-tag.r{right:12px}
+  .ba-range{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize;-webkit-appearance:none;appearance:none}
+
   /* ===== 優惠券 ===== */
   .coupons{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:6px}
   .coupon{
@@ -715,6 +768,10 @@
         <label class="field"><span>收據結尾語</span><input type="text" id="setFooter"></label>
         <label class="field"><span>術後關心追蹤天數</span><input type="number" id="setFollowDays" min="0" max="30" inputmode="numeric"></label>
       </div>
+      <label class="option-row first" style="margin-bottom:16px">
+        <div><b>出單音效</b><div class="muted">結帳成功時播放輕柔的印表機出單聲</div></div>
+        <span class="switch"><input type="checkbox" id="setSoundOn" onchange="setSoundOn(this.checked)"><i></i></span>
+      </label>
       <button class="btn sm" onclick="saveShop()">儲存</button>
     </div>
 
@@ -784,7 +841,7 @@
   <div class="sheet">
     <div class="grab"></div>
     <div class="sheet-head"><h2>電子收據</h2><button class="close" onclick="closeReceipt()">✕</button></div>
-    <div id="receiptCard"></div>
+    <div class="rc-feed" id="receiptFeed"><div class="printer-slot"></div><div id="receiptCard"></div></div>
     <button class="btn block" id="copyBtn" onclick="copyReceipt()">一鍵複製 LINE 文字收據</button>
     <p class="muted" style="text-align:center;margin:10px 0 14px">複製後貼到顧客的 LINE 聊天室即可</p>
     <button class="btn ghost block" id="rebookBtn" style="margin-bottom:14px">＋ 依回訪建議建立下次預約</button>
@@ -1145,6 +1202,7 @@ function saveCustomer(id){
 function deleteCustomer(id){
   const c = getCust(id);
   if(!confirm(`確定刪除「${c.name}」？\n此顧客的施作紀錄將一併刪除（消費紀錄保留）。`)) return;
+  (c.records||[]).forEach(deleteRecordPhotos);
   db.customers = db.customers.filter(x=>x.id!==id);
   save(); closeModal(); renderCustomers(); toast('已刪除顧客');
 }
@@ -1190,16 +1248,19 @@ function openDetail(id){
       <div class="field-label">本次膚況速記</div>
       ${quickTagsHTML('rNote')}
       <label class="field"><span>美容項目 / 備註說明</span><textarea id="rNote" placeholder="點選上方標籤快速帶入，或自行輸入…"></textarea></label>
+      <div class="field-label">皮膚照片<span class="hint">最多 ${MAX_PHOTOS} 張・自動壓縮為 1024px 存在本機</span></div>
+      <div class="ph-grid" id="rPhotos" style="margin-bottom:16px"></div>
       <button class="btn ghost block" onclick="addRecord('${id}')">儲存施作紀錄</button>
     </div>
 
-    <div class="section-title">皮膚管理紀錄 · HISTORY<span>${records.length} 筆</span></div>
+    <div class="section-title">皮膚管理紀錄 · HISTORY<span>${records.length} 筆${records.reduce((n,r)=>n+(r.photos||[]).length,0) >= 2 ? `・<button type="button" class="link-btn" onclick="openCompare('${id}')">全部照片前後對比</button>` : ''}</span></div>
     <div class="card">
       ${records.length ? `<div class="tl">${records.map(r=>`
         <div class="tl-item">
           <button class="x" onclick="deleteRecord('${id}','${r.id}')">刪除</button>
           <div class="d">${fmtD(r.date)}</div>
           <div class="t">${esc(r.note)}</div>
+          ${phGrid(id, r)}
         </div>`).join('')}</div>` : '<div class="empty" style="padding:16px">尚無施作紀錄</div>'}
     </div>
 
@@ -1219,22 +1280,32 @@ function openDetail(id){
       <button class="btn ghost" onclick="copyCareMsg('${id}')">傳送 LINE 關心</button>
     </div>
   `);
+  if(pendingFor !== id){ pendingPhotos.forEach(p=>URL.revokeObjectURL(p.url)); pendingPhotos = []; pendingFor = id; }
+  renderPending();
+  hydratePhotos($('#sheet'));
 }
-function addRecord(id){
+async function addRecord(id){
   const note = $('#rNote').value.trim();
   const date = $('#rDate').value || todayStr();
-  if(!note){ toast('請輸入施作內容'); return; }
+  if(!note && !pendingPhotos.length){ toast('請輸入施作內容或加入照片'); return; }
   const c = getCust(id);
+  const rec = {id:uid(), date, note, createdAt:Date.now(), photos:[]};
+  if(pendingPhotos.length){
+    try{ rec.photos = await storePhotos(id, rec.id, pendingPhotos); }
+    catch(e){ toast('照片儲存失敗：' + (e.message || '儲存空間不足')); return; }
+    pendingPhotos.forEach(p=>URL.revokeObjectURL(p.url)); pendingPhotos = [];
+  }
   c.records = c.records || [];
-  c.records.push({id:uid(), date, note, createdAt:Date.now()});
+  c.records.push(rec);
   c.updatedAt = Date.now();
-  save(); toast('已新增施作紀錄'); openDetail(id); renderCustomers();
+  save(); toast(rec.photos.length ? `已新增施作紀錄與 ${rec.photos.length} 張照片` : '已新增施作紀錄'); openDetail(id); renderCustomers();
 }
 function deleteRecord(cid, rid){
-  if(!confirm('確定刪除這筆施作紀錄？')) return;
-  const c = getCust(cid);
-  c.records = c.records.filter(r=>r.id!==rid);
-  save(); openDetail(cid);
+  const c = getCust(cid), r = c.records.find(x=>x.id===rid);
+  if(!confirm(`確定刪除這筆施作紀錄？${r?.photos?.length ? `\n（含 ${r.photos.length} 張照片）` : ''}`)) return;
+  if(r) deleteRecordPhotos(r);
+  c.records = c.records.filter(x=>x.id!==rid);
+  save(); refreshDetail(cid);
 }
 
 /* 儲值 / 加購包套 */
@@ -1291,7 +1362,7 @@ function saveTopup(id){
     notices: c.packageExpiry && addC ? [`包套有效期限至 ${fmtD(c.packageExpiry)}`] : [],
   };
   db.orders.unshift(order);
-  save(); renderCustomers(); closeModal(); showReceipt(order.id);
+  save(); renderCustomers(); closeModal(); showReceipt(order.id, {print:true});
 }
 
 /* ================= 結帳（POS 複合付款） ================= */
@@ -1626,7 +1697,7 @@ function confirmCheckout(){
   save();
   resetCheckout();
   renderCheckout();
-  showReceipt(order.id);
+  showReceipt(order.id, {print:true});
 }
 
 /* ================= 電子收據 ================= */
@@ -1749,10 +1820,14 @@ function receiptCard(o){
     <div class="rc-foot">${esc(db.footer || 'Thank you')}</div>
   </div>`;
 }
-function showReceipt(orderId){
+function showReceipt(orderId, opts = {}){
   const o = db.orders.find(x=>x.id===orderId); if(!o) return;
   closeModal();
   $('#receiptCard').innerHTML = receiptCard(o);
+  // 新結帳：收據從出紙口緩緩吐出，搭配出單音效
+  const feed = $('#receiptFeed');
+  feed.classList.remove('printing'); void feed.offsetWidth;
+  if(opts.print){ feed.classList.add('printing'); if(db.soundOn !== false) playPrintSound(); }
   $('#receiptText').textContent = buildReceipt(o);
   $('#receiptDetails').open = false;
   const b = $('#copyBtn'); b.classList.remove('copied'); b.textContent = '一鍵複製 LINE 文字收據';
@@ -2323,6 +2398,243 @@ function pasteSettingsCode(){
   if(applySettings(obj)) closeModal();
 }
 
+/* ================= 出單音效（Web Audio 即時合成，不需音效檔） ================= */
+let audioCtx = null;
+function playPrintSound(){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = audioCtx;
+    if(ctx.state === 'suspended') ctx.resume();
+    const t0 = ctx.currentTime + 0.02;
+    const noise = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.06), ctx.sampleRate);
+    const ch = noise.getChannelData(0);
+    for(let i=0; i<ch.length; i++) ch[i] = Math.random()*2 - 1;
+    // 一聲短促的濾波雜訊＝紙張與齒輪的「喀」
+    const tick = (t, freq, gain, dur) => {
+      const src = ctx.createBufferSource(); src.buffer = noise;
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 1.4;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(bp).connect(g).connect(ctx.destination);
+      src.start(t); src.stop(t + dur + 0.02);
+    };
+    tick(t0, 1700, 0.16, 0.05);                                           // 啟動「喀」
+    for(let i=0; i<16; i++) tick(t0 + 0.12 + i*0.072, 3000 + Math.random()*700, 0.03, 0.03);   // 細碎出紙聲
+    // 低沉柔和的馬達聲
+    const osc = ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = 92;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 360;
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(0.0001, t0 + 0.1);
+    og.gain.exponentialRampToValueAtTime(0.022, t0 + 0.2);
+    og.gain.setValueAtTime(0.022, t0 + 1.25);
+    og.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.4);
+    osc.connect(lp).connect(og).connect(ctx.destination);
+    osc.start(t0 + 0.1); osc.stop(t0 + 1.45);
+    tick(t0 + 1.46, 2300, 0.11, 0.07);                                    // 撕紙「喀嚓」
+  }catch(e){ /* 不支援音效時靜默略過 */ }
+}
+function setSoundOn(on){ db.soundOn = on; save(); if(on) playPrintSound(); toast(on ? '已開啟出單音效' : '已關閉出單音效'); }
+
+/* ================= 照片：IndexedDB 本地大容量存圖 ================= */
+const PHOTO_LABELS = ['施作前','施作後','T字部位','左臉','右臉','局部清粉刺'];
+const MAX_PHOTOS = 6;
+const PhotoDB = (()=>{
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej)=>{
+    if(!('indexedDB' in window)) return rej(new Error('此瀏覽器不支援 IndexedDB'));
+    const r = indexedDB.open('skincareCRM_photos', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('photos', {keyPath:'id'}).createIndex('customerId', 'customerId');
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => { dbp = null; rej(r.error); };
+  }));
+  const run = async (mode, fn) => {
+    const d = await open();
+    return new Promise((res, rej)=>{
+      const t = d.transaction('photos', mode), req = fn(t.objectStore('photos'));
+      t.oncomplete = () => res(req?.result);
+      t.onerror = t.onabort = () => rej(t.error || new Error('儲存空間不足'));
+    });
+  };
+  return {
+    put: p  => run('readwrite', s => s.put(p)),
+    get: id => run('readonly',  s => s.get(id)),
+    del: id => run('readwrite', s => s.delete(id)),
+    clear: () => run('readwrite', s => s.clear()),
+  };
+})();
+// 讀過的照片快取成 object URL，避免重複讀取
+const photoURLs = new Map();
+async function photoURL(id){
+  if(photoURLs.has(id)) return photoURLs.get(id);
+  const p = await PhotoDB.get(id);
+  if(!p?.blob) return null;
+  const url = URL.createObjectURL(p.blob);
+  photoURLs.set(id, url);
+  return url;
+}
+// 把畫面上 <img data-photo="id"> 換成實際照片；找不到時顯示「僅存於原裝置」
+function hydratePhotos(root){
+  root.querySelectorAll('img[data-photo]').forEach(async img=>{
+    try{
+      const url = await photoURL(img.dataset.photo);
+      if(url) img.src = url; else img.closest('.ph, .ba, .cmp-thumb')?.classList.add('missing');
+    }catch(e){ img.closest('.ph, .ba, .cmp-thumb')?.classList.add('missing'); }
+  });
+}
+// 壓縮：長邊縮到 1024px、JPEG 品質 0.82，兼顧清晰度與容量
+async function compressImage(file, max = 1024, quality = 0.82){
+  let src, w, h;
+  try{ src = await createImageBitmap(file, {imageOrientation:'from-image'}); w = src.width; h = src.height; }
+  catch(e){
+    src = await new Promise((res, rej)=>{ const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(file); });
+    w = src.naturalWidth; h = src.naturalHeight;
+  }
+  const scale = Math.min(1, max / Math.max(w, h));
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(w * scale); cv.height = Math.round(h * scale);
+  cv.getContext('2d').drawImage(src, 0, 0, cv.width, cv.height);
+  if(src.close) src.close();
+  return new Promise(res => cv.toBlob(res, 'image/jpeg', quality));
+}
+async function storePhotos(cid, rid, list){
+  const out = [];
+  for(const p of list){
+    const id = uid();
+    await PhotoDB.put({id, customerId:cid, recordId:rid, label:p.label||'', blob:p.blob, createdAt:Date.now()});
+    out.push({id, label:p.label||''});
+  }
+  return out;
+}
+const phGrid = (cid, r) => {
+  const ps = r.photos || [];
+  return `<div class="ph-grid">
+    ${ps.map(p=>`<button type="button" class="ph" onclick="openPhoto('${cid}','${r.id}','${p.id}')"><img data-photo="${p.id}" alt="${esc(p.label||'照片')}">${p.label?`<span>${esc(p.label)}</span>`:''}</button>`).join('')}
+    ${ps.length < MAX_PHOTOS ? `<label class="ph add"><input type="file" accept="image/*" multiple hidden onchange="addRecordPhotos('${cid}','${r.id}',this)"><b>＋</b><small>照片 ${ps.length}/${MAX_PHOTOS}</small></label>` : ''}
+  </div>
+  ${ps.length >= 2 ? `<button type="button" class="btn sm ghost" style="margin-top:10px" onclick="openCompare('${cid}','${r.id}')">前後對比</button>` : ''}`;
+};
+
+/* 新增紀錄時暫存的照片（尚未寫入資料庫） */
+let pendingPhotos = [], pendingFor = '';
+function renderPending(){
+  const el = $('#rPhotos'); if(!el) return;
+  el.innerHTML = pendingPhotos.map((p,i)=>`
+    <div class="ph"><img src="${p.url}" alt="">
+      <select class="ph-label" onchange="pendingPhotos[${i}].label=this.value"><option value="">標記</option>${PHOTO_LABELS.map(l=>`<option ${p.label===l?'selected':''}>${l}</option>`).join('')}</select>
+      <button type="button" class="ph-del" aria-label="移除" onclick="removePending(${i})">×</button>
+    </div>`).join('')
+    + (pendingPhotos.length < MAX_PHOTOS ? `<label class="ph add"><input type="file" accept="image/*" multiple hidden onchange="pickPending(this)"><b>＋</b><small>拍照 / 上傳 ${pendingPhotos.length}/${MAX_PHOTOS}</small></label>` : '');
+}
+async function pickPending(input){
+  const files = [...input.files].slice(0, MAX_PHOTOS - pendingPhotos.length);
+  input.value = '';
+  if(!files.length) return;
+  toast('照片壓縮中…');
+  for(const f of files){
+    try{
+      const blob = await compressImage(f);
+      const label = pendingPhotos.length === 0 ? '施作前' : pendingPhotos.length === 1 ? '施作後' : '';
+      pendingPhotos.push({blob, url:URL.createObjectURL(blob), label});
+    }catch(e){ toast('有照片無法讀取，已略過'); }
+  }
+  renderPending(); toast(`已加入 ${files.length} 張照片`);
+}
+function removePending(i){ URL.revokeObjectURL(pendingPhotos[i].url); pendingPhotos.splice(i,1); renderPending(); }
+// 重新整理顧客檔案但保留捲動位置
+function refreshDetail(cid){ const sc = $('#sheet').scrollTop; openDetail(cid); $('#sheet').scrollTop = sc; }
+async function addRecordPhotos(cid, rid, input){
+  const c = getCust(cid), r = c?.records?.find(x=>x.id===rid); if(!r) return;
+  r.photos = r.photos || [];
+  const files = [...input.files].slice(0, MAX_PHOTOS - r.photos.length);
+  input.value = '';
+  if(!files.length){ toast(`每筆紀錄最多 ${MAX_PHOTOS} 張照片`); return; }
+  toast('照片壓縮中…');
+  try{
+    const list = [];
+    for(const f of files) list.push({blob:await compressImage(f), label:''});
+    r.photos.push(...await storePhotos(cid, rid, list));
+    save(); refreshDetail(cid); toast(`已新增 ${list.length} 張照片`);
+  }catch(e){ toast('照片儲存失敗：' + (e.message || '儲存空間不足')); }
+}
+
+/* 照片檢視：大圖、標記部位、刪除 */
+function openPhoto(cid, rid, pid){
+  const r = getCust(cid)?.records?.find(x=>x.id===rid), p = r?.photos?.find(x=>x.id===pid); if(!p) return;
+  openModal(`
+    <div class="sheet-head"><h2>照片</h2><button class="close" onclick="openDetail('${cid}')">✕</button></div>
+    <div class="ph-view"><img data-photo="${pid}" alt=""></div>
+    <div class="muted" style="margin:10px 0 8px">${fmtD(r.date)}・標記部位</div>
+    <div class="quick">${PHOTO_LABELS.map(l=>`<button type="button" class="${p.label===l?'on':''}" onclick="setPhotoLabel('${cid}','${rid}','${pid}','${l}')">${l}</button>`).join('')}</div>
+    <div class="grid2" style="margin-top:8px">
+      <button class="btn ghost" onclick="openDetail('${cid}')">← 返回顧客檔案</button>
+      <button class="btn danger" onclick="deletePhoto('${cid}','${rid}','${pid}')">刪除照片</button>
+    </div>`);
+  hydratePhotos($('#sheet'));
+}
+function setPhotoLabel(cid, rid, pid, label){
+  const p = getCust(cid).records.find(x=>x.id===rid).photos.find(x=>x.id===pid);
+  p.label = p.label === label ? '' : label;
+  save(); openPhoto(cid, rid, pid);
+}
+function deletePhoto(cid, rid, pid){
+  if(!confirm('確定刪除這張照片？')) return;
+  const r = getCust(cid).records.find(x=>x.id===rid);
+  r.photos = r.photos.filter(x=>x.id!==pid);
+  PhotoDB.del(pid).catch(()=>{});
+  if(photoURLs.has(pid)){ URL.revokeObjectURL(photoURLs.get(pid)); photoURLs.delete(pid); }
+  save(); openDetail(cid); toast('已刪除照片');
+}
+const deleteRecordPhotos = r => (r.photos||[]).forEach(p=>PhotoDB.del(p.id).catch(()=>{}));
+
+/* 前後對比滑塊：左右拖曳中間線比對做臉前後 */
+let cmp = null;
+function openCompare(cid, rid){
+  const c = getCust(cid); if(!c) return;
+  const recs = (c.records||[]).filter(r=>!rid || r.id===rid).sort((a,b)=>a.date.localeCompare(b.date));
+  const list = recs.flatMap(r=>(r.photos||[]).map(p=>({...p, date:r.date})));
+  if(list.length < 2){ toast('至少需要 2 張照片才能對比'); return; }
+  const pick = (label, fallback) => list.find(p=>p.label===label) || fallback;
+  const before = pick('施作前', list[0]);
+  const after = pick('施作後', list.filter(p=>p.id!==before.id).slice(-1)[0]);
+  cmp = {cid, rid, list, before:before.id, after:after.id, slot:'before', pos:50};
+  renderCompare();
+}
+function renderCompare(){
+  const {cid, list, before, after, slot, pos} = cmp;
+  const info = id => list.find(p=>p.id===id);
+  openModal(`
+    <div class="sheet-head"><h2>前後對比</h2><button class="close" onclick="openDetail('${cid}')">✕</button></div>
+    <div class="ba" style="--pos:${pos}%">
+      <img class="ba-after" data-photo="${after}" alt="施作後">
+      <img class="ba-before" data-photo="${before}" alt="施作前">
+      <div class="ba-line"><span></span></div>
+      <em class="ba-tag l">BEFORE・${esc(info(before).label||fmtD(info(before).date).slice(5))}</em>
+      <em class="ba-tag r">AFTER・${esc(info(after).label||fmtD(info(after).date).slice(5))}</em>
+      <input type="range" class="ba-range" min="0" max="100" value="${pos}" aria-label="拖曳比對" oninput="cmp.pos=this.value;this.parentNode.style.setProperty('--pos',this.value+'%')">
+    </div>
+    <p class="muted" style="text-align:center;margin:10px 0 16px">左右拖曳中間線，比對施作前後的膚況差異</p>
+    <div class="card">
+      <div class="card-head"><h3>選擇對比照片</h3><p>先選要更換「前」或「後」，再點下方照片</p></div>
+      ${segHTML([['before','設定「前」'],['after','設定「後」']], slot, 'setCmpSlot')}
+      <div class="ph-grid">${list.map(p=>`
+        <button type="button" class="ph cmp-thumb ${p.id===before?'is-before':''} ${p.id===after?'is-after':''}" onclick="setCmpPhoto('${p.id}')">
+          <img data-photo="${p.id}" alt=""><span>${p.id===before?'前':p.id===after?'後':esc(p.label||fmtD(p.date).slice(5))}</span>
+        </button>`).join('')}</div>
+    </div>
+    <button class="btn ghost block" onclick="openDetail('${cid}')">← 返回顧客檔案</button>`);
+  hydratePhotos($('#sheet'));
+}
+function setCmpSlot(s){ cmp.slot = s; renderCompare(); }
+function setCmpPhoto(id){
+  const other = cmp.slot === 'before' ? 'after' : 'before';
+  if(cmp[other] === id) cmp[other] = cmp[cmp.slot];      // 選到另一邊的照片時互換
+  cmp[cmp.slot] = id;
+  cmp.slot = other;
+  renderCompare();
+}
+
 /* ================= 消費紀錄 ================= */
 function renderOrders(){
   const t = todayStr();
@@ -2413,6 +2725,7 @@ async function copyDaily(date){
 function renderSettings(){
   $('#setFooter').value = db.footer || '';
   $('#setFollowDays').value = db.followDays;
+  $('#setSoundOn').checked = db.soundOn !== false;
   $('#setPtsOn').checked = ptsOn();
   $('#ptsFields').hidden = !ptsOn();
   $('#setPtsEvery').value = db.pointsEvery;
@@ -2631,6 +2944,7 @@ function resetAll(){
   if(!confirm('確定清除「所有」顧客、紀錄與設定？此動作無法復原！\n建議先匯出備份。')) return;
   if(prompt('請輸入「刪除」以確認') !== '刪除') return;
   db = migrate(defaultData()); save(); updateTitle(); resetCheckout();
+  PhotoDB.clear().catch(()=>{});
   renderSettings(); toast('已清除所有資料');
 }
 
