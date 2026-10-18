@@ -28,7 +28,7 @@
     --silver:#A39E99;
     --ink:#353130;           /* 黑卡色 */
     --danger:#B9605A;
-    --ok:#8FAE94;
+    --ok:#B27A73;
     --radius:28px;
     --gap:24px;
     --shadow:0 1px 0 rgba(255,255,255,.8), 0 10px 34px rgba(150,110,100,.045);
@@ -297,9 +297,9 @@
   .warn,.info{display:flex;gap:10px;align-items:baseline;border-radius:16px;padding:12px 16px;font-size:14px;margin-top:8px;border:1px solid}
   .warn::before,.info::before{content:"";flex-shrink:0;width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.7;transform:translateY(-2px)}
   .warn{background:rgba(176,137,104,.10);border-color:rgba(176,137,104,.26);color:#86664A}
-  .info{background:rgba(143,163,148,.10);border-color:rgba(143,163,148,.26);color:#56695A}
+  .info{background:var(--bg-soft);border-color:var(--border);color:#7D6E69}
 
-  /* ===== 柔和半透明膠囊：sage＝注意、ochre＝包套、rose＝壽星 ===== */
+  /* ===== 柔和半透明膠囊：taupe＝注意、ochre＝包套、rose＝壽星 ===== */
   .badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
   .soft{
     display:inline-flex;align-items:center;gap:7px;padding:3px 12px 3px 10px;border-radius:999px;border:1px solid;
@@ -308,11 +308,11 @@
     box-shadow:inset 0 1px 0 rgba(255,255,255,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   }
   .soft::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.75}
-  .soft.sage{background-color:rgba(143,163,148,.16);border-color:rgba(143,163,148,.34);color:#566A5A}
+  .soft.taupe{background-color:rgba(163,152,147,.14);border-color:rgba(163,152,147,.32);color:#766A65}
   .soft.ochre{background-color:rgba(176,137,104,.13);border-color:rgba(176,137,104,.30);color:#86664A}
   .soft.rose{background-color:rgba(200,145,138,.13);border-color:rgba(200,145,138,.32);color:#A2675F}
-  .caution-box{margin-top:14px;padding:12px 16px 14px;border-radius:18px;background:rgba(143,163,148,.07);border:1px solid rgba(143,163,148,.22)}
-  .caution-box .lbl{font-size:11.5px;font-weight:700;letter-spacing:.2em;color:#7C8E80}
+  .caution-box{margin-top:14px;padding:12px 16px 14px;border-radius:18px;background:rgba(163,152,147,.06);border:1px solid rgba(163,152,147,.22)}
+  .caution-box .lbl{font-size:11.5px;font-weight:700;letter-spacing:.2em;color:#8F837E}
   .caution-box .badges{margin-top:6px}
 
   /* 速記 / 叮嚀 膠囊 */
@@ -716,20 +716,20 @@ function pkgAlerts(c){
 // 膠囊切換鈕：opts = [[value,label,disabled?],...]
 const segHTML = (opts, value, handler) => `<div class="seg">${opts.map(([v,l,dis])=>
   `<button type="button" class="${v===value?'active':''}" ${dis?'disabled':''} onclick="${handler}('${v}')">${l}</button>`).join('')}</div>`;
-// 頭像配色：VIP＝墨黑，其餘依姓名固定分配 霧玫瑰 / 銀灰 / 霧藍 / 鼠尾草
-const AVATAR_COLORS = ['#C8918A','#A39E99','#7FA0B3','#9AAA98'];
+// 頭像配色：VIP＝墨黑，其餘依姓名固定分配 霧玫瑰 / 銀灰 / 霧藍 / 藕紫灰
+const AVATAR_COLORS = ['#C8918A','#A39E99','#7FA0B3','#B5A0A6'];
 const avatarBg = c => isVIP(c) ? 'var(--ink)' : AVATAR_COLORS[[...(c.name||'')].reduce((h,ch)=>h+ch.codePointAt(0),0) % AVATAR_COLORS.length];
 const avatarHTML = (c, size) => `<div class="avatar" style="background:${avatarBg(c)};${size?`width:${size}px;height:${size}px;font-size:${Math.round(size*.38)}px`:''}">${esc(initial(c.name))}</div>`;
 const vipTag = c => isVIP(c) ? '<span class="tag vip">VIP</span>' : '';
-// 柔和半透明膠囊：sage＝注意事項、ochre＝包套提醒、rose＝壽星
+// 柔和半透明膠囊：taupe＝注意事項、ochre＝包套提醒、rose＝壽星
 const soft = (t, tone) => `<span class="soft ${tone}">${esc(t)}</span>`;
 function badgesHTML(c, maxCaution = 99){
   const cs = c.cautions || [];
   const arr = [
     ...(isBdayMonth(c) ? [soft('本月壽星','rose')] : []),
     ...pkgAlerts(c).map(t=>soft(t,'ochre')),
-    ...cs.slice(0,maxCaution).map(t=>soft(t,'sage')),
-    ...(cs.length > maxCaution ? [soft(`另 ${cs.length-maxCaution} 項注意`,'sage')] : []),
+    ...cs.slice(0,maxCaution).map(t=>soft(t,'taupe')),
+    ...(cs.length > maxCaution ? [soft(`另 ${cs.length-maxCaution} 項注意`,'taupe')] : []),
   ];
   return arr.length ? `<div class="badges">${arr.join('')}</div>` : '';
 }
@@ -918,7 +918,7 @@ function openDetail(id){
         <button class="btn sm light" onclick="openCustomerForm('${id}')">編輯</button>
       </div>
       ${isBdayMonth(c) ? `<div class="badges" style="margin-top:12px">${soft('本月壽星・結帳可套用壽星優惠','rose')}</div>` : ''}
-      ${cs.length ? `<div class="caution-box"><div class="lbl">特殊注意 · CAUTIONS</div><div class="badges">${cs.map(t=>soft(t,'sage')).join('')}</div></div>` : ''}
+      ${cs.length ? `<div class="caution-box"><div class="lbl">特殊注意 · CAUTIONS</div><div class="badges">${cs.map(t=>soft(t,'taupe')).join('')}</div></div>` : ''}
       ${c.skin?.length?`<div class="tags" style="margin-top:14px">${c.skin.map(s=>`<span class="tag">${esc(s)}</span>`).join('')}</div>`:''}
       ${c.note?`<div class="info" style="white-space:pre-wrap;margin-top:14px">備註　${esc(c.note)}</div>`:''}
       <div class="stats">
