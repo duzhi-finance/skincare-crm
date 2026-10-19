@@ -796,10 +796,12 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>服務與商品</h3><p>點選熱門組合一次帶入，或依大類快速篩選單項；數量減至 0 即移除</p></div>
-      <div class="section-title" style="margin-top:0">熱門組合 · BUNDLES</div>
-      <div id="coBundles"></div>
-      <div class="section-title">服務選單 · MENU</div>
+      <div class="card-head"><h3>服務與商品</h3><p id="coMenuDesc">點選熱門組合一次帶入，或依大類快速篩選單項；數量減至 0 即移除</p></div>
+      <div id="coBundleWrap">
+        <div class="section-title" style="margin-top:0">熱門組合 · BUNDLES</div>
+        <div id="coBundles"></div>
+      </div>
+      <div class="section-title" id="coMenuTitle">服務選單 · MENU</div>
       <div id="coCats"></div>
       <div id="coItems"></div>
     </div>
@@ -1473,8 +1475,8 @@ function openTopup(id){
         <label class="field"><span>購買堂數</span><input type="number" id="tCredits" value="0" min="0" inputmode="numeric"></label>
         <label class="field"><span>贈送堂數</span><input type="number" id="tBonus" value="0" min="0" inputmode="numeric"></label>
       </div>
-      <div class="field-label">包套專案（點選自動帶入）</div>
-      <div class="quick" id="planChips">${db.packagePlans.map(p=>`<button type="button" data-id="${p.id}" title="${esc(planLabel(p))}" onclick="applyPlan('${p.id}')">${esc(p.name)}</button>`).join('') || '<span class="muted">可在「店務設定 → 包套專案」新增</span>'}</div>
+      ${db.packagePlans.length ? `<div class="field-label">包套專案（點選自動帶入）</div>
+      <div class="quick" id="planChips">${db.packagePlans.map(p=>`<button type="button" data-id="${p.id}" title="${esc(planLabel(p))}" onclick="applyPlan('${p.id}')">${esc(p.name)}</button>`).join('') || '<span class="muted">可在「店務設定 → 包套專案」新增</span>'}</div>` : ''}
       <label class="field"><span>增加儲值金</span><input type="number" id="tBalance" value="0" min="0" inputmode="numeric"></label>
       <div class="grid2">
         <label class="field"><span>包套名稱</span><input type="text" id="tPkgName" value="${esc(c.packageName||'')}" placeholder="例：水飛梭保濕包套"></label>
@@ -1617,10 +1619,12 @@ function renderCheckout(){
   $('#coSearch').style.display = c ? 'none' : '';
 
   // 熱門組合
+  const cartHas = Object.values(co.cart).some(q=>q>0);
+  $('#coBundleWrap').hidden = !db.bundles.length && !cartHas;
   $('#coBundles').innerHTML = (db.bundles.length ? `<div class="bundles">${db.bundles.map(b=>`
       <button type="button" class="bundle ${bundleOn(b)?'on':''}" onclick="applyBundle('${b.id}')">
         <b>${esc(b.name)}</b><span>${esc(bundleItems(b).map(x=>x.item.name+(x.qty>1?`×${x.qty}`:'')).join(' + '))}</span><em>${money(bundlePrice(b))}</em>
-      </button>`).join('')}</div>` : '<div class="muted" style="margin-bottom:8px">尚無套餐，可在「店務設定」新增，或將目前選取存為套餐</div>')
+      </button>`).join('')}</div>` : '')
     + (Object.values(co.cart).some(q=>q>0) ? `<button type="button" class="btn sm dashed" style="margin-bottom:6px" onclick="saveBundle()">＋ 將目前選取存為套餐</button>` : '');
 
   // 品項
@@ -1639,11 +1643,17 @@ function renderCheckout(){
   };
   // 大類切換列：已選品項的大類會顯示數量
   const cats = db.categories.filter(c=>db.items.some(i=>i.catId===c.id));
-  if(co.catFilter && !cats.some(c=>c.id===co.catFilter)) co.catFilter = '';
-  $('#coCats').innerHTML = catChips(co.catFilter, 'setCatFilter', v=>v ? db.items.filter(i=>i.catId===v && co.cart[i.id]>0).length : 0);
-  $('#coItems').innerHTML = (co.catFilter ? cats.filter(c=>c.id===co.catFilter) : cats).map(cat=>`
-    <div class="cat-group"><div class="sub-title">${esc(cat.name)}</div><div class="items">${itemHtml(db.items.filter(i=>i.catId===cat.id))}</div></div>`).join('')
-    || '<div class="muted">尚無品項，可至「店務設定」新增</div>';
+  // 只有一個大類有品項（如純除毛店）：隱藏切換列，直接展開全部項目
+  const single = cats.length <= 1;
+  if(single || (co.catFilter && !cats.some(c=>c.id===co.catFilter))) co.catFilter = '';
+  $('#coCats').innerHTML = single ? '' : catChips(co.catFilter, 'setCatFilter', v=>v ? db.items.filter(i=>i.catId===v && co.cart[i.id]>0).length : 0);
+  $('#coMenuTitle').textContent = single && cats[0] ? `服務選單 · ${cats[0].name}` : '服務選單 · MENU';
+  $('#coMenuDesc').textContent = (db.bundles.length ? '點選熱門組合一次帶入，或' : '') + (single ? '點選項目加入本次結帳' : '依大類快速篩選單項') + '；數量減至 0 即移除';
+  $('#coMenuTitle').style.marginTop = $('#coBundleWrap').hidden ? '0' : '';
+  $('#coItems').innerHTML = !cats.length ? '<div class="muted">尚無品項，請至「店務設定 → 服務項目」新增</div>'
+    : single ? `<div class="items">${itemHtml(db.items.filter(i=>i.catId===cats[0].id))}</div>`
+    : (co.catFilter ? cats.filter(c=>c.id===co.catFilter) : cats).map(cat=>`
+    <div class="cat-group"><div class="sub-title">${esc(cat.name)}</div><div class="items">${itemHtml(db.items.filter(i=>i.catId===cat.id))}</div></div>`).join('');
 
   const k = posCalc(c);
 
@@ -1690,18 +1700,18 @@ function renderCheckout(){
   // 衛教叮嚀：依服務自動勾選，勾選後可即時微調本次文字
   autoPickCare(k.lines);
   $('#coCare').innerHTML = `
-    <div class="sub-title" style="margin-top:0">本次服務師 · THERAPIST</div>
-    ${staffSelect('coStaff', co.staffId, "co.staffId=this.value;db.lastStaff=this.value;save()")}
-    <div class="sub-title">本次膚況 / 服務備註 · NOTES</div>
+    ${db.staff.length ? `<div class="sub-title" style="margin-top:0">本次服務師 · THERAPIST</div>
+    ${staffSelect('coStaff', co.staffId, "co.staffId=this.value;db.lastStaff=this.value;save()")}` : ''}
+    <div class="sub-title" ${db.staff.length ? '' : 'style="margin-top:0"'}>本次膚況 / 服務備註 · NOTES</div>
     ${quickTagsHTML('coSkinNote')}
     <textarea id="coSkinNote" class="note-mini" placeholder="例：兩頰加強修復，退紅狀況良好" oninput="co.skinNote=this.value">${esc(co.skinNote)}</textarea>
-    <div class="sub-title">衛教叮嚀 · POST-CARE<span class="muted" style="letter-spacing:0;font-weight:400">・勾選後帶入 LINE 收據，可直接修改本次文字</span></div>
+    ${db.careTips.length ? `<div class="sub-title">衛教叮嚀 · POST-CARE<span class="muted" style="letter-spacing:0;font-weight:400">・勾選後帶入 LINE 收據，可直接修改本次文字</span></div>
     <div class="quick">${db.careTips.map(t=>`<button type="button" class="${co.care.includes(t.id)?'on':''}" onclick="toggleCare('${t.id}')">${esc(t.title)}</button>`).join('') || '<span class="muted">尚無叮嚀，可至「店務設定 → 衛教叮嚀」新增</span>'}</div>
     ${co.care.map(id=>{ const t = db.careTips.find(x=>x.id===id); if(!t) return ''; const edited = co.careEdit[id] != null && co.careEdit[id] !== t.text; return `
       <div class="care-pick">
         <div class="cp-head"><b>${esc(t.title)}</b>${edited ? `<span class="soft rose">本次已修改</span><button type="button" class="link-btn" onclick="resetCareEdit('${id}')">還原範本</button>` : '<span class="muted">可直接修改，只套用這一次</span>'}</div>
         <textarea oninput="co.careEdit['${id}']=this.value">${esc(co.careEdit[id] ?? t.text)}</textarea>
-      </div>`; }).join('')}
+      </div>`; }).join('')}` : ''}
     ${c ? `<label class="option-row">
       <div><b>寫入顧客服務時間軸</b><div class="muted">結帳後自動記錄日期、服務師、服務項目與本次備註</div></div>
       <span class="switch"><input type="checkbox" ${co.addRecord?'checked':''} onchange="co.addRecord=this.checked"><i></i></span>
@@ -2224,7 +2234,42 @@ function templateTabHTML(){
   return `<div class="card">
     <div class="card-head"><h3>預設品項</h3><p>恢復美容預設品項或清空重來；會取代目前的品項、套餐、保養叮嚀與標籤，顧客、預約與消費紀錄不受影響</p></div>
     ${tplCards(db.template, 'useTemplate')}
+  </div>
+  <div class="card">
+    <div class="card-head"><h3>建立單一專精門市</h3><p>適合純除毛、純清粉刺等專門店：只保留一個服務大類並清空現有品項，再自行新增項目與價格。結帳畫面會自動隱藏分類切換列</p></div>
+    <label class="field"><span>服務大類名稱</span><input type="text" id="spName" placeholder="例：專業除毛"></label>
+    <label class="check" style="margin:0 0 14px"><input type="checkbox" id="spHome"> 同時保留「居家保養品」大類（有販售商品時勾選）</label>
+    <button class="btn block" onclick="makeSpecialty()">建立單一專精門市</button>
+  </div>
+  <div class="card">
+    <div class="card-head"><h3>清空與重新定義</h3><p>勾選要清空的內容，清空後可全部重新建立；顧客、預約、消費紀錄、照片、服務師與標籤都不受影響</p></div>
+    ${[['items','服務項目與保養品',db.items.length,'項'],['bundles','快捷套餐',db.bundles.length,'組'],['packagePlans','包套專案',db.packagePlans.length,'個'],['careTips','衛教叮嚀',db.careTips.length,'個'],['coupons','優惠券',db.coupons.length,'張']]
+      .map(([k,l,n,u])=>`<label class="check" style="margin:0 0 6px"><input type="checkbox" name="clr" value="${k}"> ${l}<span class="muted" style="margin-left:auto">${n} ${u}</span></label>`).join('')}
+    <button class="btn danger block" style="margin-top:12px" onclick="clearSelected()">清空所選項目</button>
   </div>`;
+}
+const CLEAR_LABEL = {items:'服務項目與保養品', bundles:'快捷套餐', packagePlans:'包套專案', careTips:'衛教叮嚀', coupons:'優惠券'};
+function clearSelected(){
+  const keys = [...document.querySelectorAll('input[name=clr]:checked')].map(i=>i.value);
+  if(!keys.length){ toast('請先勾選要清空的項目'); return; }
+  if(!confirm(`確定清空：${keys.map(k=>CLEAR_LABEL[k]).join('、')}？\n此動作無法復原（顧客與消費紀錄不受影響）。`)) return;
+  keys.forEach(k=>{ db[k] = []; });
+  if(keys.includes('items')) db.bundles.forEach(b=>{ b.items = []; });
+  db.bundles = db.bundles.filter(b=>b.items.length);
+  resetCheckout(); save(); renderShopSettings(); toast('已清空，可重新建立');
+}
+function makeSpecialty(){
+  const name = $('#spName').value.trim();
+  if(!name){ toast('請輸入服務大類名稱，例如：專業除毛'); $('#spName').focus(); return; }
+  const keepHome = $('#spHome').checked;
+  if(!confirm(`建立「${name}」單一專精門市？\n會清空目前的品項、套餐、包套專案與衛教叮嚀，只保留「${name}」${keepHome?'與「居家保養品」':''}大類。\n顧客、預約與消費紀錄不受影響。`)) return;
+  const home = keepHome ? (db.categories.find(c=>c.kind==='product') || {name:'居家保養品', kind:'product'}) : null;
+  db.categories = [{id:uid(), name, kind:'service'}, ...(home ? [{id:home.id || uid(), name:home.name, kind:'product'}] : [])];
+  db.items = []; db.bundles = []; db.packagePlans = []; db.careTips = [];
+  db.template = 'custom';
+  itemCatFilter = ''; resetCheckout(); save();
+  shopTab = 'items'; renderShopSettings(); $('#sheet').scrollTop = 0;
+  toast(`已建立「${name}」專精門市，請新增服務項目與價格`);
 }
 function useTemplate(k){
   const t = TEMPLATES[k];
@@ -2262,7 +2307,7 @@ function discountHTML(c){
     ${list.length ? `<div class="coupons">${list.map(cp=>{ const chk = couponCheck(cp, c); return `
       <button type="button" class="coupon ${co.couponId===cp.id?'on':''}" ${chk.ok?'':'disabled'} onclick="toggleCoupon('${cp.id}')">
         <b>${esc(cp.name)}</b><span>${couponLabel(cp)}・${chk.ok ? COUPON_COND[cp.cond] : chk.why}</span>
-      </button>`; }).join('')}</div>` : '<div class="muted" style="margin-bottom:8px">尚無啟用中的優惠券，可在「店務設定 → 優惠券」新增</div>'}
+      </button>`; }).join('')}</div>` : ''}
     <div class="amt-row"><span class="cur">手動折扣 $</span>
       <input type="number" id="coManual" value="${esc(co.manualOff)}" min="0" inputmode="numeric" placeholder="0" onchange="co.manualOff=this.value;renderCheckout()"></div>`;
 }
@@ -2817,7 +2862,7 @@ function itemsTabHTML(){
   const catSel = i => `<select class="mini-sel" onchange="setItemCat('${i.id}',this.value)" aria-label="所屬大類">${db.categories.map(c=>`<option value="${c.id}" ${i.catId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>`;
   return `<div class="card">
     <div class="card-head"><h3>服務選單與價格</h3><p>直接修改欄位即自動儲存；回訪天數用於建議下次預約日</p></div>
-    ${catChips(itemCatFilter, 'setItemCatFilter', v=>db.items.filter(i=>!v || i.catId===v).length)}
+    ${db.categories.length > 1 ? catChips(itemCatFilter, 'setItemCatFilter', v=>db.items.filter(i=>!v || i.catId===v).length) : ''}
     ${list.length ? list.map(i=>`
       <div class="edit-row">
         <input type="text" class="nm" value="${esc(i.name)}" onchange="updateItem('${i.id}','name',this.value)" aria-label="品項名稱">
