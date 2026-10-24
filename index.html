@@ -707,28 +707,33 @@
   .check{display:flex;align-items:center;gap:10px;font-size:14px;margin-top:14px;cursor:pointer;min-height:40px}
   .check input{width:20px;height:20px;accent-color:var(--rose)}
 
-  /* ===== 小字：黑體半粗、暖灰色（標籤、說明、提示） ===== */
-  :root{ --label:#9A938E; }
+  /* ===== 內文：明體（襯線）一般字重、柔和暖灰（標籤、說明、提示、導覽） ===== */
+  :root{ --label:#8C8380; }
   .section-title,.sub-title,.field-label,label.field>span,.card-head p,.muted,.hint,
   .stat .k,.thead,.st-h,.lbl,.rc-meta span,.rc-sec,.rc-bal span,.rc-kind,.rc-eyebrow,.rc-total span,
-  .page-head .date,.side-brand p,.side-foot,.side nav small,.amt-row .cur,.qty-row .lb,.mini,.mini-field,
+  .page-head .date,.page-head p,.side-brand p,.side-foot,.side nav small,.amt-row .cur,.qty-row .lb,.mini,.mini-field,
   .tl-item .d,.tl-staff,.recon,.empty,.badge,.tag,.soft,.cust .meta,.m-meta,.appt-time span,.change span,
   .caution-box .lbl,.rebook .lbl,.paybar .lbl,.amount-panel .lbl,.tpl em,.tpl small,.coupon span,.bundle span,
-  .ph > span,.ph.add small,.cp-head .muted,.item .p,.chips .cnt{
-    font-family:var(--sans);
+  .ph > span,.ph.add small,.cp-head .muted,.item .p,.chips .cnt,.section-title em,.section-title span{
+    font-family:var(--serif);
   }
+  /* 小標題與欄位名稱：明體 500、暖灰 */
   .section-title,.sub-title,.field-label,label.field>span,.stat .k,.thead,.st-h,.lbl,.rc-meta span,.rc-sec,
   .rc-bal span,.rc-total span,.amt-row .cur,.qty-row .lb,.mini,.mini-field,.caution-box .lbl,.rebook .lbl,
   .paybar .lbl,.amount-panel .lbl,.change span{
-    color:var(--label);font-weight:600;letter-spacing:.04em;
+    color:var(--label);font-weight:500;letter-spacing:.06em;
   }
   .section-title,.sub-title{font-size:15px}
-  .section-title em,.section-title span{font-family:var(--sans)}
   label.field>span,.field-label{font-size:14.5px}
-  .card-head p,.muted,.hint{color:var(--label);font-weight:500;letter-spacing:.02em}
-  .page-head p{font-family:var(--sans);font-weight:500;color:#857D78;letter-spacing:.02em}
-  .tl-item .d{letter-spacing:.04em}
-  .sub-title.remain b{font-family:var(--serif);color:var(--text);letter-spacing:.02em}
+  /* 說明與提示文字：明體 400、行距放寬 */
+  .card-head p,.muted,.hint{color:var(--label);font-weight:400;letter-spacing:.04em;line-height:1.85}
+  .page-head p{font-weight:400;color:#7E7572;letter-spacing:.04em;line-height:1.9}
+  .empty{font-weight:400;color:var(--label);letter-spacing:.06em;line-height:1.9}
+  /* 側欄與底部導覽：明體一般字重，選中時稍粗 */
+  .side nav b{font-weight:400;letter-spacing:.08em}
+  .side nav button.active b{font-weight:600}
+  .tl-item .d{letter-spacing:.06em}
+  .sub-title.remain b{color:var(--text);letter-spacing:.02em}
 </style>
 </head>
 <body>
