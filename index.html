@@ -1016,8 +1016,8 @@ const TEMPLATES = {
     ],
     tags:{typesLabel:'膚質',
       types:['乾性','油性','混合','敏感','痘痘肌','中性','暗沉','泛紅'],
-      notes:['T字偏乾','T字出油','兩頰泛紅','兩頰加強修復','退紅狀況良好','加強保濕','粉刺較多','毛孔粗大','除毛區微紅','狀況穩定'],
-      cautions:['酒精過敏','怕痛力道要輕','外泌體避開眼周','敏感肌除毛選溫和蠟','近期使用 A 酸','敷臉不蓋眼睛','對香精敏感','近期曝曬','孕期中','易過敏體質'],
+      notes:['T字偏乾','T字出油','兩頰泛紅','兩頰加強修復','退紅狀況良好','加強保濕','粉刺較多','毛孔粗大','毛髮粗硬','毛量較多','除毛區微紅','狀況穩定'],
+      cautions:['酒精過敏','怕痛力道要輕','外泌體避開眼周','敏感肌除毛選溫和蠟','毛囊炎體質','近期使用 A 酸','敷臉不蓋眼睛','對香精敏感','近期曝曬','孕期中','易過敏體質'],
       prefs:['喜歡安靜','喜歡聊天','怕冷需蓋毯','偏好無香','偏好晚間時段','需提醒防曬']}},
   blank:{label:'空白開始', en:'BLANK', desc:'保留五大服務大類，品項全部自行建立',
     services:[], products:[], bundles:[], care:[],
@@ -1038,25 +1038,42 @@ const DEFAULT_PLANS = [
   {name:'腋下除毛 10 次券', buy:10, bonus:0, price:5400, days:365},
 ];
 // 套用範本：取代品項、套餐、保養叮嚀與標籤（不影響顧客與消費紀錄）
-function applyTemplate(d, key){
+// 各大類專屬關鍵字：店家沒有提供該類服務時，相關的衛教與標籤也不帶入
+const CAT_WORDS = {
+  skin:/T字|兩頰|粉刺|毛孔|敷臉|A ?酸|退紅|加強保濕/,
+  exo:/外泌體/,
+  hair:/除毛|熱蠟|蜜蠟|溫和蠟|毛髮|毛量|毛囊/,
+  body:/體雕/,
+};
+const ALL_CAT_KEYS = DEFAULT_CATEGORIES.map(c=>c.key);
+// 套用範本：取代品項、套餐、包套、衛教與標籤（不影響顧客與消費紀錄）；keys＝店家提供的服務大類
+function applyTemplate(d, key, keys = ALL_CAT_KEYS){
   const t = TEMPLATES[key] || TEMPLATES.skin;
-  d.categories = DEFAULT_CATEGORIES.map(c=>({id:uid(), ...c}));
-  const cid = key => d.categories.find(c=>c.key===key).id;
+  d.categories = DEFAULT_CATEGORIES.filter(c=>keys.includes(c.key)).map(c=>({id:uid(), ...c}));
+  if(!d.categories.length) d.categories = [{id:uid(), key:'skin', name:'皮膚管理', kind:'service'}];
+  const cid = k => d.categories.find(c=>c.key===k)?.id;
+  const off = Object.entries(CAT_WORDS).filter(([k])=>!keys.includes(k)).map(([,re])=>re);
+  const allowed = txt => !off.some(re=>re.test(txt));
   d.items = [
-    ...t.services.map(([name,price,cycle,key])=>({id:uid(), catId:cid(key||'skin'), cat:'service', name, price, cycle})),
-    ...t.products.map(([name,price])=>({id:uid(), catId:cid('home'), cat:'product', name, price})),
+    ...t.services.filter(sv=>cid(sv[3]||'skin')).map(([name,price,cycle,k])=>({id:uid(), catId:cid(k||'skin'), cat:'service', name, price, cycle})),
+    ...(cid('home') ? t.products.filter(([name])=>allowed(name)).map(([name,price])=>({id:uid(), catId:cid('home'), cat:'product', name, price})) : []),
   ];
   d.bundles = bundlesByName(d.items, t.bundles);
-  d.careTips = t.care.map(c=>({id:uid(), ...c, keys:c.keys || inferCareKeys(c)}));
+  const names = d.items.map(i=>i.name).join('｜');
+  d.careTips = t.care.map(c=>({id:uid(), ...c, keys:c.keys || inferCareKeys(c)}))
+    .filter(c=>allowed(c.title) && (!c.keys.length || c.keys.some(kw=>names.includes(kw))));
   d.tags = JSON.parse(JSON.stringify(t.tags));
-  d.template = key;
+  ['types','notes','cautions','prefs'].forEach(k=>{ d.tags[k] = d.tags[k].filter(allowed); });
+  d.packagePlans = DEFAULT_PLANS.filter(pl=>d.items.some(i=>pl.name.includes(i.name))).map(pl=>({id:uid(), ...pl}));
+  d.template = key; d.catKeys = [...keys];
   return d;
 }
+// 套餐只在所有品項都存在時才建立（避免只剩一半的套餐）
 function bundlesByName(items, list){
-  return list.map(([name,names])=>({
-    id:uid(), name,
-    items:names.map(n=>items.find(i=>i.name===n)).filter(Boolean).map(i=>({itemId:i.id,qty:1})),
-  })).filter(b=>b.items.length);
+  return list.map(([name,names])=>{
+    const found = names.map(n=>items.find(i=>i.name===n)).filter(Boolean);
+    return found.length === names.length ? {id:uid(), name, items:found.map(i=>({itemId:i.id, qty:1}))} : null;
+  }).filter(Boolean);
 }
 const DEFAULT_CYCLE = [['水飛梭',14],['清粉刺',21],['酸類',28]];   // 舊資料依名稱推定回訪天數
 
@@ -2190,14 +2207,20 @@ function showReceiptByTx(tx){
 }
 
 /* ================= 開店設定精靈（首次使用） ================= */
-let obTpl = 'skin';
-const tplPreview = t => [...t.services.map(s=>s[0]), ...t.products.map(p=>p[0])].slice(0,4).join('、') || '自行新增品項';
-function tplCards(selected, handler){
-  return `<div class="tpl-grid">${Object.entries(TEMPLATES).map(([k,t])=>`
-    <button type="button" class="tpl ${k===selected?'on':''}" onclick="${handler}('${k}')">
-      <em>${t.en}</em><b>${t.label}</b><span>${t.desc}</span><small>${esc(tplPreview(t))}</small>
-    </button>`).join('')}</div>`;
+let obKeys = [...ALL_CAT_KEYS], obBlank = false;
+// 服務大類勾選卡片（開店設定與「預設品項」共用）
+function catPickHTML(keys, handler){
+  const t = TEMPLATES.skin;
+  return `<div class="tpl-grid">${DEFAULT_CATEGORIES.map(c=>{
+    const list = c.kind==='product' ? t.products.map(x=>x[0]) : t.services.filter(x=>(x[3]||'skin')===c.key).map(x=>x[0]);
+    const on = keys.includes(c.key);
+    return `<button type="button" class="tpl ${on?'on':''}" onclick="${handler}('${c.key}')">
+      <em>${on ? '✓ 有提供' : '未提供'}</em><b>${c.name}</b>
+      <small>${esc(list.slice(0,3).join('、'))}${list.length>3 ? ` 等 ${list.length} 項` : ''}</small>
+    </button>`;
+  }).join('')}</div>`;
 }
+const toggleKey = (arr, k) => arr.includes(k) ? arr.filter(x=>x!==k) : [...arr, k];
 function openSetup(){
   openModal('<div id="setupBox"></div>');
   renderSetup();
@@ -2207,33 +2230,36 @@ function renderSetup(){
   const name = $('#obName')?.value ?? (db.setupDone ? db.shopName : '');
   el.innerHTML = `
     <div class="sheet-head"><h2>歡迎使用・開店設定</h2><button class="close" onclick="closeModal()">✕</button></div>
-    <p class="muted" style="margin:-6px 0 18px">建議選擇「美容皮膚管理」，系統會帶入熱門美容項目、保養品、套餐、優惠券與皮膚標籤。之後都能在「店務設定」自由修改。</p>
+    <p class="muted" style="margin:-6px 0 18px">勾選你的店有提供的服務，系統只會帶入這些類別的項目、價格、套餐、包套與衛教。之後都能在「店務設定」自由增減。</p>
     <div class="card">
       <div class="card-head"><h3>店家名稱</h3><p>顯示於頂部與收據抬頭</p></div>
       <input type="text" id="obName" value="${esc(name)}" placeholder="例：玫瑰光美學工作室">
     </div>
     <div class="card">
-      <div class="card-head"><h3>選擇起始品項</h3><p>每家店的項目不同，帶入後都能自由新增、修改或刪除</p></div>
-      ${tplCards(obTpl, 'pickSetupTpl')}
+      <div class="card-head"><h3>你的店提供哪些服務？</h3><p>可複選；例如純除毛店只勾「專業除毛」，沒有外泌體就不要勾</p></div>
+      ${catPickHTML(obKeys, 'pickSetupKey')}
+      <label class="check" style="margin:14px 0 0"><input type="checkbox" ${obBlank?'checked':''} onchange="obBlank=this.checked"> 只建立服務大類，不帶入預設項目與價格（全部自己建立）</label>
     </div>
     <button class="btn block" onclick="finishSetup()">開始使用</button>
   `;
 }
-function pickSetupTpl(k){ obTpl = k; renderSetup(); }
+function pickSetupKey(k){ obKeys = toggleKey(obKeys, k); renderSetup(); }
 function finishSetup(){
   const name = $('#obName').value.trim();
   if(!name){ toast('請輸入店家名稱'); $('#obName').focus(); return; }
-  applyTemplate(db, obTpl);
+  if(!obKeys.length){ toast('請至少勾選一類服務'); return; }
+  applyTemplate(db, obBlank ? 'blank' : 'skin', DEFAULT_CATEGORIES.map(c=>c.key).filter(k=>obKeys.includes(k)));
   db.shopName = name; db.setupDone = true;
   resetCheckout(); save(); closeModal(); updateTitle(); go('customers');
-  toast(`已套用「${TEMPLATES[obTpl].label}」範本，可在店務設定調整品項`);
+  toast(`已建立：${db.categories.map(c=>c.name).join('、')}，可在店務設定調整品項`);
 }
 
 /* ===== 店務設定：產業範本 / 標籤清單 / 批次匯入 ===== */
 function templateTabHTML(){
   return `<div class="card">
-    <div class="card-head"><h3>預設品項</h3><p>恢復美容預設品項或清空重來；會取代目前的品項、套餐、保養叮嚀與標籤，顧客、預約與消費紀錄不受影響</p></div>
-    ${tplCards(db.template, 'useTemplate')}
+    <div class="card-head"><h3>重新選擇提供的服務</h3><p>勾選店家有提供的服務大類後套用，會取代目前的品項、套餐、包套、衛教與標籤；顧客、預約與消費紀錄不受影響</p></div>
+    ${catPickHTML(tplKeys, 'pickTplKey')}
+    <button class="btn block" style="margin-top:14px" onclick="applyTplKeys()">套用預設品項（${tplKeys.length} 類）</button>
   </div>
   <div class="card">
     <div class="card-head"><h3>建立單一專精門市</h3><p>適合純除毛、純清粉刺等專門店：只保留一個服務大類並清空現有品項，再自行新增項目與價格。結帳畫面會自動隱藏分類切換列</p></div>
@@ -2271,11 +2297,15 @@ function makeSpecialty(){
   shopTab = 'items'; renderShopSettings(); $('#sheet').scrollTop = 0;
   toast(`已建立「${name}」專精門市，請新增服務項目與價格`);
 }
-function useTemplate(k){
-  const t = TEMPLATES[k];
-  if(!confirm(`套用「${t.label}」範本？\n目前的品項、套餐、保養叮嚀與標籤清單會被取代（顧客與消費紀錄不受影響）。`)) return;
-  applyTemplate(db, k); resetCheckout(); save();
-  renderShopSettings(); toast(`已套用「${t.label}」範本`);
+let tplKeys = null;
+function pickTplKey(k){ tplKeys = toggleKey(tplKeys, k); renderShopSettings(); }
+function applyTplKeys(){
+  if(!tplKeys.length){ toast('請至少勾選一類服務'); return; }
+  const names = DEFAULT_CATEGORIES.filter(c=>tplKeys.includes(c.key)).map(c=>c.name).join('、');
+  if(!confirm(`套用預設品項：${names}？\n目前的品項、套餐、包套、衛教與標籤會被取代（顧客與消費紀錄不受影響）。`)) return;
+  applyTemplate(db, 'skin', DEFAULT_CATEGORIES.map(c=>c.key).filter(k=>tplKeys.includes(k)));
+  itemCatFilter = ''; resetCheckout(); save();
+  renderShopSettings(); toast(`已套用：${names}`);
 }
 const TAG_FIELDS = [
   ['types',   '顧客分類標籤', '建檔時可複選，也用於顧客列表篩選'],
@@ -2946,6 +2976,13 @@ function categoryTabHTML(){
         </div>
       </div>`).join('')}
   </div>
+  ${(()=>{ const missing = DEFAULT_CATEGORIES.filter(c=>!db.categories.some(x=>x.name===c.name)); const t = TEMPLATES.skin;
+    return missing.length ? `<div class="card">
+      <div class="card-head"><h3>加入預設大類</h3><p>開始提供新服務時，一鍵加入大類與預設項目、價格、包套和衛教，之後都能修改</p></div>
+      ${missing.map(c=>{ const n = c.kind==='product' ? t.products.length : t.services.filter(x=>(x[3]||'skin')===c.key).length; return `
+        <div class="list-item"><div class="grow"><b>${c.name}</b><div class="muted">含 ${n} 個預設項目</div></div>
+          <button class="btn sm" onclick="addPresetCategory('${c.key}')">＋ 加入</button></div>`; }).join('')}
+    </div>` : ''; })()}
   <div class="card">
     <div class="card-head"><h3>新增大類</h3></div>
     <div class="grid2">
@@ -2975,14 +3012,39 @@ function addCategory(){
 function deleteCategory(id){
   if(db.categories.length <= 1){ toast('至少需保留一個大類'); return; }
   const c = catById(id), items = db.items.filter(i=>i.catId===id);
-  const others = db.categories.filter(x=>x.id!==id);
-  const target = others.find(x=>x.kind===c.kind) || others[0];
-  if(!confirm(items.length ? `刪除「${c.name}」？\n其中 ${items.length} 個品項會移到「${target.name}」。` : `確定刪除「${c.name}」？`)) return;
-  items.forEach(i=>{ i.catId = target.id; i.cat = target.kind; });
-  db.categories = others;
+  if(!confirm(items.length
+    ? `刪除「${c.name}」？\n其中 ${items.length} 個品項與相關套餐也會一併刪除（消費紀錄不受影響）。\n\n想保留品項的話，請先到「服務項目」把它們改到其他大類。`
+    : `確定刪除「${c.name}」？`)) return;
+  const ids = new Set(items.map(i=>i.id));
+  db.items = db.items.filter(i=>!ids.has(i.id));
+  ids.forEach(i=>{ delete co.cart[i]; });
+  db.bundles = db.bundles.filter(b=>!b.items.some(x=>ids.has(x.itemId)));   // 少了品項的套餐整組移除
+  db.categories = db.categories.filter(x=>x.id!==id);
   if(co.catFilter===id) co.catFilter = '';
   if(itemCatFilter===id) itemCatFilter = '';
-  save(); renderShopSettings(); toast('已刪除服務大類');
+  if(db.catKeys && c.key) db.catKeys = db.catKeys.filter(k=>k!==c.key);
+  save(); renderShopSettings(); toast(`已刪除「${c.name}」${items.length ? `與 ${items.length} 個品項` : ''}`);
+}
+// 加入預設大類：連同預設項目、相關衛教、包套與套餐（已存在的同名項目不重複加入）
+function addPresetCategory(key){
+  const c = DEFAULT_CATEGORIES.find(x=>x.key===key), t = TEMPLATES.skin; if(!c) return;
+  const cat = {id:uid(), key, name:c.name, kind:c.kind};
+  db.categories.push(cat);
+  const list = c.kind==='product'
+    ? t.products.map(([name,price])=>({id:uid(), catId:cat.id, cat:'product', name, price}))
+    : t.services.filter(x=>(x[3]||'skin')===key).map(([name,price,cycle])=>({id:uid(), catId:cat.id, cat:'service', name, price, cycle}));
+  // 相關商品（如外泌體精華、除毛後舒緩凝膠）放進現有的居家商品大類
+  const re = CAT_WORDS[key], home = db.categories.find(x=>x.kind==='product' && x.id!==cat.id);
+  if(re && home) t.products.filter(([name])=>re.test(name)).forEach(([name,price])=>list.push({id:uid(), catId:home.id, cat:'product', name, price}));
+  const fresh = list.filter(i=>!db.items.some(x=>x.name===i.name));
+  db.items.push(...fresh);
+  if(re) ['types','notes','cautions','prefs'].forEach(k=>{ t.tags[k].filter(x=>re.test(x) && !db.tags[k].includes(x)).forEach(x=>db.tags[k].push(x)); });
+  const names = fresh.map(i=>i.name).join('｜');
+  t.care.forEach(cr=>{ const keys = inferCareKeys(cr); if(keys.some(k=>names.includes(k)) && !db.careTips.some(x=>x.title===cr.title)) db.careTips.push({id:uid(), ...cr, keys}); });
+  DEFAULT_PLANS.filter(pl=>fresh.some(i=>pl.name.includes(i.name)) && !db.packagePlans.some(x=>x.name===pl.name)).forEach(pl=>db.packagePlans.push({id:uid(), ...pl}));
+  bundlesByName(db.items, t.bundles).filter(b=>!db.bundles.some(x=>x.name===b.name) && b.items.some(x=>fresh.some(f=>f.id===x.itemId))).forEach(b=>db.bundles.push(b));
+  if(db.catKeys && !db.catKeys.includes(key)) db.catKeys.push(key);
+  save(); renderShopSettings(); toast(`已加入「${c.name}」與 ${fresh.length} 個預設項目`);
 }
 
 /* ===== 店務設定：服務師 ===== */
@@ -3281,6 +3343,7 @@ let bDraft = {id:null, name:'', items:{}};
 const SHOP_TABS = [['shop','店家資訊'],['items','服務項目'],['category','服務大類'],['staff','服務師'],['bundle','快捷套餐'],['coupon','優惠券'],['plan','包套專案'],['care','衛教叮嚀'],['tags','皮膚標籤'],['template','預設品項']];
 function openShopSettings(tab){
   if(tab) shopTab = tab;
+  tplKeys = db.catKeys ? [...db.catKeys] : DEFAULT_CATEGORIES.filter(c=>db.categories.some(x=>x.name===c.name)).map(c=>c.key);
   if(shopTab==='service' || shopTab==='product') shopTab = 'items';
   openModal('<div id="shopSet"></div>');
   renderShopSettings();
