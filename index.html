@@ -178,8 +178,9 @@
     width:100%;border:1.5px solid var(--border);background:#fff;border-radius:16px;min-height:52px;
     padding:12px 16px;outline:none;transition:.2s;font-size:16px;-webkit-appearance:none;appearance:none;
   }
-  input,textarea{font-family:var(--sans)}
-  input::placeholder,textarea::placeholder{color:#C3B8B4}
+  input,textarea,select{font-family:var(--serif);font-weight:400;letter-spacing:.04em;color:#4E4644}
+  input[type=number],input[type=tel],input[type=date]{letter-spacing:.06em}
+  input::placeholder,textarea::placeholder{color:#C3B8B4;font-family:var(--serif);font-weight:400;letter-spacing:.04em}
   input:focus,textarea:focus{border-color:var(--rose-line);box-shadow:0 0 0 4px rgba(200,145,138,.12)}
   textarea{min-height:110px;resize:vertical;line-height:1.8}
   label.field{display:block;margin-bottom:16px}
@@ -614,7 +615,7 @@
   .link-btn{border:none;background:none;color:var(--sub);font-size:12.5px;text-decoration:underline;cursor:pointer;padding:0 4px}
   select{
     width:100%;border:1.5px solid var(--border);background:#fff;border-radius:16px;min-height:52px;padding:12px 40px 12px 16px;
-    font-size:16px;font-family:var(--sans);outline:none;-webkit-appearance:none;appearance:none;
+    font-size:16px;font-family:var(--serif);outline:none;-webkit-appearance:none;appearance:none;
     background-image:linear-gradient(45deg,transparent 50%,var(--sub) 50%),linear-gradient(135deg,var(--sub) 50%,transparent 50%);
     background-position:calc(100% - 22px) 50%,calc(100% - 17px) 50%;background-size:5px 5px;background-repeat:no-repeat;
   }
@@ -893,7 +894,7 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>LINE 官方帳號</h3><p>收據彈窗的「📱 開啟 LINE 發送」會先複製文字，再一鍵切換到 LINE</p></div>
+      <div class="card-head"><h3>LINE 官方帳號</h3><p>收據彈窗的「開啟 LINE 發送」會先複製文字，再一鍵切換到 LINE</p></div>
       <label class="field"><span>店家 LINE 官方帳號 ID / 連結</span><input type="text" id="setLineId" placeholder="例：@your_shop_id 或 https://line.me/R/ti/p/@your_shop_id" autocapitalize="off" autocorrect="off"></label>
       <div class="field-label">開啟 LINE 的方式</div>
       <div id="lineModeSeg"></div>
@@ -960,7 +961,7 @@
     <div class="rc-feed" id="receiptFeed"><div class="printer-slot"></div><div id="receiptCard"></div></div>
     <div class="rc-btns">
       <button class="btn" id="copyBtn" onclick="copyReceipt()">一鍵複製 LINE 文字收據</button>
-      <button class="btn line-btn" onclick="sendReceiptLine()">📱 開啟 LINE 發送</button>
+      <button class="btn line-btn" onclick="sendReceiptLine()">開啟 LINE 發送</button>
     </div>
     <button class="btn ghost block" style="margin-top:10px;min-height:52px;font-size:15.5px" onclick="printReceipt()">🖨️ 列印熱感應收據</button>
     <p class="muted" style="text-align:center;margin:10px 0 14px">「開啟 LINE 發送」會先複製收據，再切換到 LINE，選顧客聊天室貼上即可</p>
@@ -2548,7 +2549,7 @@ function renderFollowups(){
       </div>
       <div class="appt-acts">
         <button class="btn sm" onclick="copyFollow(${i})">複製 LINE ${x.kind==='care'?'關心':'喚回'}訊息</button>
-        <button class="btn sm line-btn" onclick="copyFollow(${i},true)">📱 LINE</button>
+        <button class="btn sm line-btn" onclick="copyFollow(${i},true)">LINE</button>
         <button class="btn sm ghost" onclick="openApptForm('',{customerId:'${x.c.id}'})">預約</button>
         <button class="btn sm light" onclick="openDetail('${x.c.id}')">檔案</button>
       </div>
