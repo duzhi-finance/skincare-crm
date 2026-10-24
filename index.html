@@ -174,12 +174,15 @@
   .btn:disabled{opacity:.42;pointer-events:none}
 
   /* 表單 */
-  input[type=text],input[type=tel],input[type=number],input[type=date],input[type=search],textarea{
+  input[type=text],input[type=tel],input[type=number],input[type=date],input[type=time],input[type=search],textarea{
     width:100%;border:1.5px solid var(--border);background:#fff;border-radius:16px;min-height:52px;
     padding:12px 16px;outline:none;transition:.2s;font-size:16px;-webkit-appearance:none;appearance:none;
   }
   input,textarea,select{font-family:var(--serif);font-weight:400;letter-spacing:.04em;color:#4E4644}
-  input[type=number],input[type=tel],input[type=date]{letter-spacing:.06em}
+  input[type=number],input[type=tel],input[type=date],input[type=time]{letter-spacing:.06em}
+  input[type=date],input[type=time]{text-align:left;display:block}
+  input::-webkit-date-and-time-value{text-align:left}
+  input[type=search]::-webkit-search-decoration{-webkit-appearance:none}
   input::placeholder,textarea::placeholder{color:#C3B8B4;font-family:var(--serif);font-weight:400;letter-spacing:.04em}
   input:focus,textarea:focus{border-color:var(--rose-line);box-shadow:0 0 0 4px rgba(200,145,138,.12)}
   textarea{min-height:110px;resize:vertical;line-height:1.8}
@@ -708,7 +711,29 @@
   .check{display:flex;align-items:center;gap:10px;font-size:14px;margin-top:14px;cursor:pointer;min-height:40px}
   .check input{width:20px;height:20px;accent-color:var(--rose)}
 
-  /* ===== 內文：明體（襯線）一般字重、柔和暖灰（標籤、說明、提示、導覽） ===== */
+  /* ===== 簡化版面：折疊區塊、設定分組、新手引導 ===== */
+.fold-head{cursor:pointer;user-select:none;margin-bottom:0}
+.fold-head .fold-ic{flex:none;font-family:var(--serif);font-size:13.5px;color:var(--rose-deep,#A8746C);letter-spacing:.08em;border:1px solid var(--border);border-radius:999px;padding:6px 14px}
+.fold-body{margin-top:18px}
+.more-toggle{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 4px;padding:14px 18px;border:1px dashed var(--border);border-radius:16px;background:#fff;font-family:var(--serif);font-size:14.5px;color:var(--label,#8C8380);letter-spacing:.05em;cursor:pointer}
+.more-toggle b{font-weight:500;color:var(--rose-deep,#A8746C);font-size:13px}
+.group-title{font-family:var(--serif);font-size:13px;letter-spacing:.22em;color:var(--label,#8C8380);margin:34px 4px 14px;display:flex;align-items:center;gap:14px}
+.group-title:first-child{margin-top:0}
+.group-title::after{content:"";flex:1;height:1px;background:var(--border)}
+.feat-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.feat-row > div:first-child{flex:1;min-width:0}
+.feat-row .acts{display:flex;align-items:center;gap:12px;flex:none}
+.guide{border-color:var(--rose-line,#E7CFCB)}
+.guide ol{list-style:none;margin:6px 0 0;padding:0;counter-reset:g}
+.guide li{display:flex;align-items:center;gap:14px;padding:14px 0;border-top:1px solid var(--border);counter-increment:g}
+.guide li:first-child{border-top:none}
+.guide li::before{content:counter(g);flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--rose-line,#E7CFCB);display:grid;place-items:center;font-family:var(--serif);color:var(--rose-deep,#A8746C);font-size:14px}
+.guide li.done::before{content:"✓";background:var(--rose,#C8918A);border-color:var(--rose,#C8918A);color:#fff}
+.guide li.done .grow b{color:var(--label,#8C8380);text-decoration:line-through;text-decoration-color:rgba(140,131,128,.5)}
+.guide .grow{flex:1;min-width:0}
+.guide .grow b{font-family:var(--serif);font-weight:500;letter-spacing:.04em}
+.tab-sep{flex:none;align-self:center;width:1px;height:20px;background:var(--border);margin:0 4px}
+/* ===== 內文：明體（襯線）一般字重、柔和暖灰（標籤、說明、提示、導覽） ===== */
   :root{ --label:#8C8380; }
   .section-title,.sub-title,.field-label,label.field>span,.card-head p,.muted,.hint,
   .stat .k,.thead,.st-h,.lbl,.rc-meta span,.rc-sec,.rc-bal span,.rc-kind,.rc-eyebrow,.rc-total span,
@@ -768,6 +793,7 @@
 
   <!-- ========== 顧客 ========== -->
   <section class="page active" id="page-customers">
+    <div id="guideBox"></div>
     <div class="chips" id="custChips"></div>
     <div class="search"><input type="search" id="custSearch" placeholder="搜尋姓名或電話…" autocomplete="off"></div>
     <div class="card list-card">
@@ -813,14 +839,17 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>付款與核銷</h3><p>包套、儲值金與現金可同時使用，系統自動計算實收金額</p></div>
+      <div class="card-head"><h3>付款方式</h3><p id="coPayDesc">選擇顧客後，包套與儲值金會自動帶入扣抵，可隨時關閉</p></div>
       <div id="coPay"></div>
       <div id="coMsg"></div>
     </div>
 
-    <div class="card">
-      <div class="card-head"><h3>服務師與紀錄</h3><p>本次服務師、膚況備註與居家保養叮嚀，會一併帶入收據與顧客時間軸</p></div>
-      <div id="coCare"></div>
+    <div class="card" id="coRecCard">
+      <div class="card-head row-head fold-head" onclick="toggleRec()">
+        <div><h3>本次紀錄（選填）</h3><p id="coRecSum">服務師、膚況備註與衛教叮嚀，會帶入收據與顧客時間軸</p></div>
+        <span class="fold-ic" id="coRecIc">展開</span>
+      </div>
+      <div id="coCare" class="fold-body" hidden></div>
     </div>
 
     <div class="card">
@@ -847,23 +876,27 @@
 
   <!-- ========== 設定 ========== -->
   <section class="page" id="page-settings">
+    <div class="group-title">常用 · ESSENTIALS</div>
     <div class="card">
       <div class="card-head row-head">
-        <div><h3>店務設定</h3><p class="muted" style="margin:2px 0 0" id="shopSummary"></p></div>
-        <button class="btn sm" onclick="openShopSettings('shop')">開啟</button>
+        <div><h3>服務與價格</h3><p class="muted" style="margin:2px 0 0" id="shopSummary"></p></div>
+        <button class="btn sm" onclick="openShopSettings('items')">管理</button>
       </div>
       <div class="chips" style="margin:16px 0 0">
         <button onclick="openShopSettings('shop')">店家名稱</button>
-        <button onclick="openShopSettings('items')">服務項目</button>
-        <button onclick="openShopSettings('category')">服務大類</button>
+        <button onclick="openShopSettings('items')">服務項目與價格</button>
         <button onclick="openShopSettings('staff')">服務師</button>
-        <button onclick="openShopSettings('bundle')">快捷套餐</button>
-        <button onclick="openShopSettings('coupon')">優惠券</button>
-        <button onclick="openShopSettings('plan')">包套專案</button>
-        <button onclick="openShopSettings('care')">衛教叮嚀</button>
-        <button onclick="openShopSettings('tags')">皮膚標籤</button>
-        <button onclick="openSetup()">重新開店設定</button>
+        <button onclick="openShopSettings('bundle')">熱門組合</button>
       </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>LINE 官方帳號</h3><p>收據彈窗的「開啟 LINE 發送」會先複製文字，再一鍵切換到 LINE</p></div>
+      <label class="field"><span>店家 LINE 官方帳號 ID / 連結</span><input type="text" id="setLineId" placeholder="例：@your_shop_id 或 https://line.me/R/ti/p/@your_shop_id" autocapitalize="off" autocorrect="off"></label>
+      <div class="field-label">開啟 LINE 的方式</div>
+      <div id="lineModeSeg"></div>
+      <p class="muted" id="lineModeHint" style="margin:0 0 14px"></p>
+      <button class="btn sm" onclick="saveShop()">儲存</button>
     </div>
 
     <div class="card">
@@ -880,56 +913,66 @@
     </div>
 
     <div class="card">
-      <div class="card-head row-head">
-        <div><h3>會員點數</h3><p class="muted" style="margin:2px 0 0">關閉後，結帳、顧客檔案與收據都會自動隱藏點數欄位</p></div>
-        <label class="switch"><input type="checkbox" id="setPtsOn" onchange="setPointsOn(this.checked)"><i></i></label>
+      <div class="card-head"><h3>資料備份</h3><p>資料只存在這台裝置的瀏覽器，建議每天營業結束後匯出一次</p></div>
+      <div class="grid2">
+        <button class="btn" onclick="exportJSON()">匯出備份</button>
+        <button class="btn ghost" onclick="document.getElementById('importFile').click()">從備份復原</button>
       </div>
-      <div id="ptsFields" style="margin-top:18px">
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+      <div class="muted" id="lastBackup" style="margin-top:12px"></div>
+    </div>
+
+    <div class="group-title">會員方案 · MEMBERSHIP</div>
+    <div class="card">
+      <div class="card-head"><h3>功能開關</h3><p>需要才打開；關閉的功能不會出現在結帳、顧客檔案與收據</p></div>
+      <label class="option-row first">
+        <div><b>會員點數</b><div class="muted">消費累積點數，結帳時可折抵</div></div>
+        <span class="switch"><input type="checkbox" id="setPtsOn" onchange="setPointsOn(this.checked)"><i></i></span>
+      </label>
+      <div id="ptsFields" style="margin-top:14px">
         <div class="grid2">
           <label class="field"><span>每消費 $ 得 1 點</span><input type="number" id="setPtsEvery" min="0" inputmode="numeric" placeholder="100"></label>
           <label class="field"><span>1 點折抵 $</span><input type="number" id="setPtsValue" min="0" inputmode="numeric" placeholder="1"></label>
         </div>
-        <button class="btn sm" onclick="saveShop()">儲存點數規則</button>
+        <button class="btn sm" style="margin-bottom:6px" onclick="saveShop()">儲存點數規則</button>
+      </div>
+      <div class="option-row feat-row">
+        <div><b>多堂方案</b><div class="muted">買 N 堂送 M 堂，加購包套時一鍵帶入堂數、售價與效期</div></div>
+        <div class="acts"><button class="btn sm light" id="planMgr" onclick="openShopSettings('plan')">管理</button>
+        <label class="switch"><input type="checkbox" id="setPlansOn" onchange="setFeature('plansOn',this.checked)"><i></i></label></div>
+      </div>
+      <div class="option-row feat-row">
+        <div><b>優惠券</b><div class="muted">新客、壽星等優惠，結帳時一鍵套用</div></div>
+        <div class="acts"><button class="btn sm light" id="couponMgr" onclick="openShopSettings('coupon')">管理</button>
+        <label class="switch"><input type="checkbox" id="setCouponsOn" onchange="setFeature('couponsOn',this.checked)"><i></i></label></div>
+      </div>
+    </div>
+
+    <div class="group-title">進階 · ADVANCED</div>
+    <div class="card">
+      <div class="card-head"><h3>進階設定</h3><p>服務範圍、大類、衛教叮嚀與標籤，設定一次之後很少需要更動</p></div>
+      <div class="chips" style="margin:4px 0 0">
+        <button onclick="openShopSettings('template')">我的服務範圍</button>
+        <button onclick="openShopSettings('category')">服務大類</button>
+        <button onclick="openShopSettings('care')">衛教叮嚀（<span id="careCount">0</span>）</button>
+        <button onclick="openShopSettings('tags')">顧客標籤</button>
+        <button onclick="openSetup()">重新開店設定</button>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>LINE 官方帳號</h3><p>收據彈窗的「開啟 LINE 發送」會先複製文字，再一鍵切換到 LINE</p></div>
-      <label class="field"><span>店家 LINE 官方帳號 ID / 連結</span><input type="text" id="setLineId" placeholder="例：@your_shop_id 或 https://line.me/R/ti/p/@your_shop_id" autocapitalize="off" autocorrect="off"></label>
-      <div class="field-label">開啟 LINE 的方式</div>
-      <div id="lineModeSeg"></div>
-      <p class="muted" id="lineModeHint" style="margin:0 0 14px"></p>
-      <button class="btn sm" onclick="saveShop()">儲存</button>
-    </div>
-
-    <div class="card">
-      <div class="card-head row-head">
-        <div><h3>衛教叮嚀</h3><p class="muted" style="margin:2px 0 0">目前 <span id="careCount">0</span> 個主題，可自由新增、修改、刪除</p></div>
-        <button class="btn sm" onclick="openShopSettings('care')">管理</button>
+      <div class="card-head"><h3>複製設定到其他 iPad</h3><p>只包含店名、服務與保養品、熱門組合、優惠券、多堂方案、標籤與點數規則，不含顧客資料</p></div>
+      <div class="grid2">
+        <button class="btn ghost" onclick="exportSettings()">匯出店家設定</button>
+        <button class="btn ghost" onclick="document.getElementById('importSettings').click()">匯入店家設定</button>
       </div>
+      <button class="btn light block" style="margin-top:10px;min-height:50px;font-size:15px" onclick="openSettingsCode()">用「設定碼」複製 / 貼上（可透過 LINE 傳送）</button>
+      <input type="file" id="importSettings" accept=".json,application/json" hidden>
     </div>
 
     <div class="card">
       <div class="card-head"><h3>安裝到主畫面</h3><p>像 App 一樣從主畫面開啟、全螢幕使用，沒有網路也能開單</p></div>
       <div id="installBox"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-head"><h3>資料備份與同步</h3><p>資料只存在此瀏覽器，建議每日營業結束後匯出備份</p></div>
-      <div class="grid2">
-        <button class="btn" onclick="exportJSON()">匯出 JSON 備份</button>
-        <button class="btn ghost" onclick="document.getElementById('importFile').click()">匯入 JSON 復原</button>
-      </div>
-      <input type="file" id="importFile" accept=".json,application/json" hidden>
-      <div class="muted" id="lastBackup" style="margin-top:12px"></div>
-      <div class="sub-title" style="margin-top:24px">店家設定 · 複製到其他 iPad</div>
-      <p class="muted" style="margin-top:0">只包含店名、服務與保養品、套餐、優惠券、包套專案、皮膚標籤與點數規則，不含顧客資料</p>
-      <div class="grid2">
-        <button class="btn ghost" onclick="exportSettings()">匯出店家設定 JSON</button>
-        <button class="btn ghost" onclick="document.getElementById('importSettings').click()">匯入店家設定 JSON</button>
-      </div>
-      <button class="btn light block" style="margin-top:10px;min-height:50px;font-size:15px" onclick="openSettingsCode()">用「設定碼」複製 / 貼上（可透過 LINE 傳送）</button>
-      <input type="file" id="importSettings" accept=".json,application/json" hidden>
     </div>
 
     <div class="card">
@@ -1043,7 +1086,7 @@ const DEFAULT_PLANS = [
   {name:'靈芝外泌體育膚 買 5 送 1', buy:5, bonus:1, price:16000, days:180},
   {name:'腋下除毛 10 次券', buy:10, bonus:0, price:5400, days:365},
 ];
-// 套用範本：取代品項、套餐、保養叮嚀與標籤（不影響顧客與消費紀錄）
+// 套用範本：取代品項、熱門組合、保養叮嚀與標籤（不影響顧客與消費紀錄）
 // 各大類專屬關鍵字：店家沒有提供該類服務時，相關的衛教與標籤也不帶入
 const CAT_WORDS = {
   skin:/T字|兩頰|粉刺|毛孔|敷臉|A ?酸|退紅|加強保濕/,
@@ -1052,7 +1095,7 @@ const CAT_WORDS = {
   body:/體雕/,
 };
 const ALL_CAT_KEYS = DEFAULT_CATEGORIES.map(c=>c.key);
-// 套用範本：取代品項、套餐、包套、衛教與標籤（不影響顧客與消費紀錄）；keys＝店家提供的服務大類
+// 套用範本：取代品項、熱門組合、包套、衛教與標籤（不影響顧客與消費紀錄）；keys＝店家提供的服務大類
 function applyTemplate(d, key, keys = ALL_CAT_KEYS){
   const t = TEMPLATES[key] || TEMPLATES.skin;
   d.categories = DEFAULT_CATEGORIES.filter(c=>keys.includes(c.key)).map(c=>({id:uid(), ...c}));
@@ -1095,7 +1138,7 @@ function defaultData(){
     setupDone:false,
   }, 'skin');
 }
-// 補齊舊版資料缺少的欄位（回訪週期、叮嚀、套餐、標籤…）
+// 補齊舊版資料缺少的欄位（回訪週期、叮嚀、熱門組合、標籤…）
 function migrate(d){
   d.items.forEach(i=>{
     if(i.cat==='service' && i.cycle===undefined){
@@ -1117,7 +1160,12 @@ function migrate(d){
   if(!Array.isArray(d.appointments)) d.appointments = [];
   if(!Array.isArray(d.coupons)) d.coupons = DEFAULT_COUPONS(d.birthdayOff).map(x=>({id:uid(), ...x}));
   if(!Array.isArray(d.packagePlans)) d.packagePlans = DEFAULT_PLANS.map(x=>({id:uid(), ...x}));
-  if(d.pointsOn===undefined) d.pointsOn = true;
+  // 功能開關：點數、優惠券、多堂方案預設關閉，需要時再到設定開啟
+  if(d.pointsOn===undefined) d.pointsOn = false;
+  if(d.couponsOn===undefined) d.couponsOn = false;
+  if(d.plansOn===undefined) d.plansOn = false;
+  // 新手引導：已有消費紀錄的舊資料不再顯示
+  if(!d.guide) d.guide = {items:false, staff:false, hide:(d.orders||[]).length > 0};
   if(d.followDays===undefined) d.followDays = 3;          // 術後關心追蹤天數
   if(!d.contactLog || typeof d.contactLog!=='object') d.contactLog = {};
   // 服務大類：舊資料依 service / product 歸到「皮膚管理」/「居家保養品」
@@ -1235,7 +1283,7 @@ const PAGE_META = {
   customers:['顧客管理','搜尋、建檔與查看每位顧客的膚況、注意事項、剩餘包套與儲值金，點擊顧客即可查看完整皮膚管理紀錄。'],
   checkout:['快速結帳','選擇顧客與品項，包套、儲值金與現金可複合付款，系統自動計算實收並產生附交易單號的電子收據。'],
   orders:['消費紀錄','所有結帳與加值紀錄都在這裡，點擊任一筆即可重新開啟收據。'],
-  settings:['店家設定','店務設定（店名、品項、套餐）、收據與優惠、保養叮嚀與資料備份，設定完成後立即套用。'],
+  settings:['店家設定','分成常用、會員方案與進階三層；平常只需要用到「常用」，其他功能需要時再打開。'],
 };
 function go(page){
   currentPage = page;
@@ -1274,7 +1322,24 @@ const CUST_FILTERS = {
   bday: isBdayMonth,
   pkg:  c => pkgAlerts(c).length > 0,
 };
+// 新手引導：三個步驟都完成或按「略過」後不再顯示
+function renderGuide(){
+  const g = db.guide || {hide:true};
+  const steps = [
+    [g.items, '確認服務項目與價格', '價格不對可直接修改', "openShopSettings('items')", '前往'],
+    [g.staff, '新增你的服務師', '結帳時可記錄是誰服務', "openShopSettings('staff')", '前往'],
+    [db.orders.some(o=>o.type==='sale'), '完成第一筆結帳', '選顧客、點項目、確認結帳', "go('checkout')", '開始'],
+  ];
+  const all = steps.every(x=>x[0]);
+  if(g.hide || all){ $('#guideBox').innerHTML = ''; if(all && !g.hide){ g.hide = true; save(); } return; }
+  $('#guideBox').innerHTML = `<div class="card guide">
+    <div class="card-head row-head"><div><h3>開始使用 · 3 個步驟</h3><p class="muted" style="margin:2px 0 0">完成後這張卡片會自動消失</p></div>
+      <button class="link-btn" onclick="db.guide.hide=true;save();renderGuide()">略過</button></div>
+    <ol>${steps.map(([done,t,d,fn,b])=>`<li class="${done?'done':''}"><div class="grow"><b>${t}</b><div class="muted">${d}</div></div>${done?'':`<button class="btn sm" onclick="${fn}">${b}</button>`}</li>`).join('')}</ol>
+  </div>`;
+}
 function renderCustomers(){
+  renderGuide();
   const chips = [['all','全部'],['vip','VIP'],['bday','本月壽星'],['pkg','包套提醒'],...db.tags.types.map(s=>[s,s])];
   $('#typesHead').textContent = db.tags.typesLabel;
   $('#custChips').innerHTML = chips.map(([v,l])=>`<button class="${custFilter===v?'active':''}" onclick="setCustFilter('${v}')">${l}</button>`).join('');
@@ -1498,8 +1563,8 @@ function openTopup(id){
         <label class="field"><span>購買堂數</span><input type="number" id="tCredits" value="0" min="0" inputmode="numeric"></label>
         <label class="field"><span>贈送堂數</span><input type="number" id="tBonus" value="0" min="0" inputmode="numeric"></label>
       </div>
-      ${db.packagePlans.length ? `<div class="field-label">包套專案（點選自動帶入）</div>
-      <div class="quick" id="planChips">${db.packagePlans.map(p=>`<button type="button" data-id="${p.id}" title="${esc(planLabel(p))}" onclick="applyPlan('${p.id}')">${esc(p.name)}</button>`).join('') || '<span class="muted">可在「店務設定 → 包套專案」新增</span>'}</div>` : ''}
+      ${plansOn() && db.packagePlans.length ? `<div class="field-label">多堂方案（點選自動帶入）</div>
+      <div class="quick" id="planChips">${db.packagePlans.map(p=>`<button type="button" data-id="${p.id}" title="${esc(planLabel(p))}" onclick="applyPlan('${p.id}')">${esc(p.name)}</button>`).join('') || '<span class="muted">可在「店務設定 → 多堂方案」新增</span>'}</div>` : ''}
       <label class="field"><span>增加儲值金</span><input type="number" id="tBalance" value="0" min="0" inputmode="numeric"></label>
       <div class="grid2">
         <label class="field"><span>包套名稱</span><input type="text" id="tPkgName" value="${esc(c.packageName||'')}" placeholder="例：水飛梭保濕包套"></label>
@@ -1546,8 +1611,8 @@ function saveTopup(id){
 
 /* ================= 結帳（POS 複合付款） ================= */
 const PAY_REMAIN = [['cash','現金'],['transfer','轉帳'],['linepay','LINE Pay']];
-const co = { catFilter:'', staffId:'', customerId:'', cart:{}, usePkg:false, useBal:false, balAmt:0, usePts:false, ptsAmt:0, payMethod:'cash', cashIn:'', addRecord:true, couponId:'', manualOff:'', care:[], careOff:[], careEdit:{}, skinNote:'', apptId:'' };
-function resetCheckout(){ Object.assign(co, {staffId:db.lastStaff||'', customerId:'', cart:{}, usePkg:false, useBal:false, balAmt:0, usePts:false, ptsAmt:0, payMethod:'cash', cashIn:'', couponId:'', manualOff:'', care:[], careOff:[], careEdit:{}, skinNote:'', apptId:''}); }
+const co = { catFilter:'', staffId:'', customerId:'', cart:{}, usePkg:false, useBal:false, balAmt:0, usePts:false, ptsAmt:0, payMethod:'cash', cashIn:'', addRecord:true, couponId:'', manualOff:'', care:[], careOff:[], careEdit:{}, skinNote:'', apptId:'', recOpen:false, moreOpen:false, pkgAuto:false, balAuto:false, _autoFor:null };
+function resetCheckout(){ Object.assign(co, {staffId:db.lastStaff||'', customerId:'', cart:{}, usePkg:false, useBal:false, balAmt:0, usePts:false, ptsAmt:0, payMethod:'cash', cashIn:'', couponId:'', manualOff:'', care:[], careOff:[], careEdit:{}, skinNote:'', apptId:'', recOpen:false, moreOpen:false, pkgAuto:false, balAuto:false, _autoFor:null}); }
 
 function checkoutFor(id){ closeModal(); resetCheckout(); co.customerId = id; go('checkout'); }
 
@@ -1578,6 +1643,7 @@ function posCalc(c){
   const {lines, service, product, total} = calc();
   const msgs = [];
   const canPkg = !!c && (c.credits||0) >= 1 && service > 0;
+  if(co.pkgAuto) co.usePkg = canPkg;                     // 有包套就自動扣 1 次（手動關閉後不再自動）
   if(co.usePkg && !canPkg) co.usePkg = false;
   const pkgCover = co.usePkg ? service : 0;            // 包套 1 次折抵本次全部服務項目
   const afterPkg = total - pkgCover;
@@ -1602,6 +1668,7 @@ function posCalc(c){
   const due = afterDisc - pointsCover;
   const balMax = c ? Math.max(0, Math.min(c.balance||0, due)) : 0;
   if(!c || !(c.balance > 0)) co.useBal = false;
+  if(co.balAuto && c && c.balance > 0){ co.useBal = balMax > 0; co.balAmt = balMax; }   // 儲值金自動全額扣抵
   let balanceUse = 0;
   if(co.useBal){
     const want = Math.max(0, Math.round(Number(co.balAmt)||0));
@@ -1631,6 +1698,8 @@ function renderCheckout(){
   // 顧客
   const c = getCust(co.customerId);
   if(!c){ co.customerId = ''; co.usePkg = false; co.useBal = false; }
+  // 換了顧客：包套與儲值金預設自動帶入扣抵
+  if(co._autoFor !== co.customerId){ co._autoFor = co.customerId; co.pkgAuto = co.balAuto = !!c; }
   $('#coCustomer').innerHTML = c ? `
     <div class="picked">
       ${avatarHTML(c,44)}
@@ -1648,7 +1717,7 @@ function renderCheckout(){
       <button type="button" class="bundle ${bundleOn(b)?'on':''}" onclick="applyBundle('${b.id}')">
         <b>${esc(b.name)}</b><span>${esc(bundleItems(b).map(x=>x.item.name+(x.qty>1?`×${x.qty}`:'')).join(' + '))}</span><em>${money(bundlePrice(b))}</em>
       </button>`).join('')}</div>` : '')
-    + (Object.values(co.cart).some(q=>q>0) ? `<button type="button" class="btn sm dashed" style="margin-bottom:6px" onclick="saveBundle()">＋ 將目前選取存為套餐</button>` : '');
+    + (Object.values(co.cart).some(q=>q>0) ? `<button type="button" class="btn sm dashed" style="margin-bottom:6px" onclick="saveBundle()">＋ 將目前選取存為熱門組合</button>` : '');
 
   // 品項
   const itemHtml = arr => {
@@ -1681,13 +1750,33 @@ function renderCheckout(){
   const k = posCalc(c);
 
   // 付款與核銷：包套 + 儲值金 + 剩餘付款，可同時使用
+  const hasPkg = c && (c.credits||0) > 0, hasBal = c && (c.balance||0) > 0;
+  const ptsRow = c && ptsOn() && (Number(db.pointValue)||0) > 0;
+  const moreParts = [ptsRow?'點數':'', couponsOn()?'優惠券':'', '手動折扣'].filter(Boolean);
+  const moreUsed = co.usePts || !!co.couponId || Number(co.manualOff) > 0;
+  const moreOpen = co.moreOpen || moreUsed;
+  $('#coPayDesc').textContent = !c ? '散客結帳：可使用現金 / 轉帳 / LINE Pay'
+    : (hasPkg || hasBal) ? '已自動帶入包套與儲值金扣抵，不需要時可關閉' : '此顧客沒有包套或儲值金，直接選擇付款方式';
   $('#coPay').innerHTML = `
-    ${c ? `
+    ${hasPkg ? `
     <label class="option-row first ${k.canPkg?'':'is-off'}">
-      <div><b>扣包套 1 次</b><div class="muted">${c.packageName?esc(c.packageName)+'・':''}剩 ${c.credits||0} 次・${k.service?`折抵本次服務 ${money(k.service)}`:'需選擇服務項目'}</div></div>
-      <span class="switch"><input type="checkbox" ${co.usePkg?'checked':''} ${k.canPkg?'':'disabled'} onchange="co.usePkg=this.checked;renderCheckout()"><i></i></span>
+      <div><b>扣包套 1 次</b><div class="muted">${c.packageName?esc(c.packageName)+'・':''}剩 ${c.credits||0} 次・${k.service?`折抵本次服務 ${money(k.service)}`:'選擇服務項目後自動扣抵'}</div></div>
+      <span class="switch"><input type="checkbox" ${co.usePkg?'checked':''} ${k.canPkg?'':'disabled'} onchange="co.pkgAuto=false;co.usePkg=this.checked;renderCheckout()"><i></i></span>
+    </label>` : ''}
+    ${hasBal ? `<label class="option-row ${hasPkg?'':'first'}">
+      <div><b>扣儲值金</b><div class="muted">餘額 ${money(c.balance)}${co.useBal?`・本次扣抵 ${money(k.balanceUse)}`:''}</div></div>
+      <span class="switch"><input type="checkbox" ${co.useBal?'checked':''} onchange="toggleBal(this.checked)"><i></i></span>
     </label>
-    ${ptsOn() && (Number(db.pointValue)||0) > 0 ? `<label class="option-row ${(c.points||0)>0?'':'is-off'}">
+    ${co.useBal ? `<div class="amt-row">
+      <span class="cur">扣抵金額 $</span>
+      <input type="number" id="coBalAmt" value="${k.balanceUse}" min="0" inputmode="numeric" onchange="co.balAuto=false;co.balAmt=this.value;renderCheckout()">
+      <button type="button" class="btn sm ghost" onclick="co.balAuto=true;renderCheckout()">全額</button>
+    </div>` : ''}` : ''}
+    <button type="button" class="more-toggle" onclick="co.moreOpen=!${moreOpen};renderCheckout()">
+      <span>更多付款選項・${moreParts.join('、')}</span><b>${moreUsed ? '使用中' : moreOpen ? '收合' : '展開'}</b>
+    </button>
+    ${moreOpen ? `
+    ${ptsRow ? `<label class="option-row first ${(c.points||0)>0?'':'is-off'}">
       <div><b>點數折抵</b><div class="muted">可用 ${c.points||0} 點・1 點折 ${money(db.pointValue)}${co.usePts?`・本次最多 ${k.ptsMax} 點`:''}</div></div>
       <span class="switch"><input type="checkbox" ${co.usePts?'checked':''} ${(c.points||0)>0?'':'disabled'} onchange="togglePts(this.checked)"><i></i></span>
     </label>
@@ -1696,16 +1785,7 @@ function renderCheckout(){
       <input type="number" id="coPtsAmt" value="${k.ptsUse}" min="0" inputmode="numeric" onchange="co.ptsAmt=this.value;renderCheckout()">
       <button type="button" class="btn sm ghost" onclick="co.ptsAmt=${k.ptsMax};renderCheckout()">全部</button>
     </div>` : ''}` : ''}
-    <label class="option-row ${(c.balance||0)>0?'':'is-off'}">
-      <div><b>扣儲值金</b><div class="muted">餘額 ${money(c.balance)}${co.useBal?`・本次最多可扣 ${money(k.balMax)}`:''}</div></div>
-      <span class="switch"><input type="checkbox" ${co.useBal?'checked':''} ${(c.balance||0)>0?'':'disabled'} onchange="toggleBal(this.checked)"><i></i></span>
-    </label>
-    ${co.useBal ? `<div class="amt-row">
-      <span class="cur">扣抵金額 $</span>
-      <input type="number" id="coBalAmt" value="${k.balanceUse}" min="0" inputmode="numeric" onchange="co.balAmt=this.value;renderCheckout()">
-      <button type="button" class="btn sm ghost" onclick="co.balAmt=${k.balMax};renderCheckout()">全額</button>
-    </div>` : ''}` : `<div class="info" style="margin-top:0">散客結帳：僅可使用現金 / 轉帳 / LINE Pay</div>`}
-    ${discountHTML(c)}
+    ${discountHTML(c)}` : ''}
     <div class="sub-title remain">剩餘金額付款 · REMAINING<b>${money(k.paid)}</b></div>
     ${k.paid > 0 ? segHTML(PAY_REMAIN, co.payMethod, 'setPayMethod') + (co.payMethod==='cash' ? `
       <div class="cash-box">
@@ -1722,6 +1802,11 @@ function renderCheckout(){
 
   // 衛教叮嚀：依服務自動勾選，勾選後可即時微調本次文字
   autoPickCare(k.lines);
+  const stf = db.staff.find(x=>x.id===co.staffId);
+  const recBits = [stf ? '服務師 '+stf.name : '', co.skinNote.trim() ? '已填備註' : '', co.care.length ? `衛教 ${co.care.length} 則` : ''].filter(Boolean);
+  $('#coRecSum').textContent = recBits.length ? recBits.join('・') : '服務師、膚況備註與衛教叮嚀，會帶入收據與顧客時間軸';
+  $('#coRecIc').textContent = co.recOpen ? '收合' : '展開';
+  $('#coCare').hidden = !co.recOpen;
   $('#coCare').innerHTML = `
     ${db.staff.length ? `<div class="sub-title" style="margin-top:0">本次服務師 · THERAPIST</div>
     ${staffSelect('coStaff', co.staffId, "co.staffId=this.value;db.lastStaff=this.value;save()")}` : ''}
@@ -1801,10 +1886,11 @@ function togglePts(on){
   renderCheckout();
 }
 function toggleBal(on){
-  co.useBal = on;
-  if(on){ co.useBal = false; const k = posCalc(getCust(co.customerId)); co.useBal = true; co.balAmt = k.balMax; }
+  co.useBal = on; co.balAuto = on;   // 開啟時預設全額，關閉後不再自動帶入
   renderCheckout();
 }
+// 本次紀錄（選填）：預設收合，標題列顯示已填內容
+function toggleRec(){ co.recOpen = !co.recOpen; renderCheckout(); }
 // 已選取的卡片再點不會取消（避免誤觸），以「−」減到 0 才移除
 function toggleItem(id){ if(!co.cart[id]){ co.cart[id] = 1; renderCheckout(); } }
 function setPayMethod(v){ co.payMethod = v; co.cashIn = ''; renderCheckout(); }
@@ -1822,10 +1908,10 @@ function applyBundle(id){
 function saveBundle(){
   const items = Object.entries(co.cart).filter(([,q])=>q>0).map(([itemId,qty])=>({itemId,qty}));
   if(!items.length) return;
-  const name = prompt('請輸入套餐名稱', '');
+  const name = prompt('請輸入組合名稱', '');
   if(!name || !name.trim()) return;
   db.bundles.push({id:uid(), name:name.trim(), items});
-  save(); renderCheckout(); toast('已儲存為熱門套餐');
+  save(); renderCheckout(); toast('已儲存為熱門組合');
 }
 
 // 包套提醒（結帳後剩餘狀態）：badge＝畫面標籤、text＝收據文字
@@ -2236,7 +2322,7 @@ function renderSetup(){
   const name = $('#obName')?.value ?? (db.setupDone ? db.shopName : '');
   el.innerHTML = `
     <div class="sheet-head"><h2>歡迎使用・開店設定</h2><button class="close" onclick="closeModal()">✕</button></div>
-    <p class="muted" style="margin:-6px 0 18px">勾選你的店有提供的服務，系統只會帶入這些類別的項目、價格、套餐、包套與衛教。之後都能在「店務設定」自由增減。</p>
+    <p class="muted" style="margin:-6px 0 18px">勾選你的店有提供的服務，系統只會帶入這些類別的項目、價格、熱門組合、多堂方案與衛教。之後都能在「店務設定」自由增減。</p>
     <div class="card">
       <div class="card-head"><h3>店家名稱</h3><p>顯示於頂部與收據抬頭</p></div>
       <input type="text" id="obName" value="${esc(name)}" placeholder="例：玫瑰光美學工作室">
@@ -2262,8 +2348,20 @@ function finishSetup(){
 
 /* ===== 店務設定：產業範本 / 標籤清單 / 批次匯入 ===== */
 function templateTabHTML(){
+  const now = db.categories.map(c=>c.name).join('、') || '尚未設定';
   return `<div class="card">
-    <div class="card-head"><h3>重新選擇提供的服務</h3><p>勾選店家有提供的服務大類後套用，會取代目前的品項、套餐、包套、衛教與標籤；顧客、預約與消費紀錄不受影響</p></div>
+    <div class="card-head"><h3>我的服務範圍</h3><p>目前提供：${esc(now)}</p></div>
+    <p class="muted" style="margin:0">依需求選一種方式：新增一類服務、重新選擇全部服務、改成單一專精門市，或清空後自己建立。顧客、預約與消費紀錄都不受影響。</p>
+  </div>
+  ${(()=>{ const missing = DEFAULT_CATEGORIES.filter(c=>!db.categories.some(x=>x.name===c.name)); const t = TEMPLATES.skin;
+    return missing.length ? `<div class="card">
+      <div class="card-head"><h3>加入一類服務</h3><p>開始提供新服務時，一鍵加入大類與預設項目、價格、包套和衛教，之後都能修改</p></div>
+      ${missing.map(c=>{ const n = c.kind==='product' ? t.products.length : t.services.filter(x=>(x[3]||'skin')===c.key).length; return `
+        <div class="list-item"><div class="grow"><b>${c.name}</b><div class="muted">含 ${n} 個預設項目</div></div>
+          <button class="btn sm" onclick="addPresetCategory('${c.key}')">＋ 加入</button></div>`; }).join('')}
+    </div>` : ''; })()}
+  <div class="card">
+    <div class="card-head"><h3>重新選擇提供的服務</h3><p>勾選店家有提供的服務大類後套用，會取代目前的品項、熱門組合、包套、衛教與標籤；顧客、預約與消費紀錄不受影響</p></div>
     ${catPickHTML(tplKeys, 'pickTplKey')}
     <button class="btn block" style="margin-top:14px" onclick="applyTplKeys()">套用預設品項（${tplKeys.length} 類）</button>
   </div>
@@ -2275,12 +2373,12 @@ function templateTabHTML(){
   </div>
   <div class="card">
     <div class="card-head"><h3>清空與重新定義</h3><p>勾選要清空的內容，清空後可全部重新建立；顧客、預約、消費紀錄、照片、服務師與標籤都不受影響</p></div>
-    ${[['items','服務項目與保養品',db.items.length,'項'],['bundles','快捷套餐',db.bundles.length,'組'],['packagePlans','包套專案',db.packagePlans.length,'個'],['careTips','衛教叮嚀',db.careTips.length,'個'],['coupons','優惠券',db.coupons.length,'張']]
+    ${[['items','服務項目與保養品',db.items.length,'項'],['bundles','熱門組合',db.bundles.length,'組'],['packagePlans','多堂方案',db.packagePlans.length,'個'],['careTips','衛教叮嚀',db.careTips.length,'個'],['coupons','優惠券',db.coupons.length,'張']]
       .map(([k,l,n,u])=>`<label class="check" style="margin:0 0 6px"><input type="checkbox" name="clr" value="${k}"> ${l}<span class="muted" style="margin-left:auto">${n} ${u}</span></label>`).join('')}
     <button class="btn danger block" style="margin-top:12px" onclick="clearSelected()">清空所選項目</button>
   </div>`;
 }
-const CLEAR_LABEL = {items:'服務項目與保養品', bundles:'快捷套餐', packagePlans:'包套專案', careTips:'衛教叮嚀', coupons:'優惠券'};
+const CLEAR_LABEL = {items:'服務項目與保養品', bundles:'熱門組合', packagePlans:'多堂方案', careTips:'衛教叮嚀', coupons:'優惠券'};
 function clearSelected(){
   const keys = [...document.querySelectorAll('input[name=clr]:checked')].map(i=>i.value);
   if(!keys.length){ toast('請先勾選要清空的項目'); return; }
@@ -2294,7 +2392,7 @@ function makeSpecialty(){
   const name = $('#spName').value.trim();
   if(!name){ toast('請輸入服務大類名稱，例如：專業除毛'); $('#spName').focus(); return; }
   const keepHome = $('#spHome').checked;
-  if(!confirm(`建立「${name}」單一專精門市？\n會清空目前的品項、套餐、包套專案與衛教叮嚀，只保留「${name}」${keepHome?'與「居家保養品」':''}大類。\n顧客、預約與消費紀錄不受影響。`)) return;
+  if(!confirm(`建立「${name}」單一專精門市？\n會清空目前的品項、熱門組合、多堂方案與衛教叮嚀，只保留「${name}」${keepHome?'與「居家保養品」':''}大類。\n顧客、預約與消費紀錄不受影響。`)) return;
   const home = keepHome ? (db.categories.find(c=>c.kind==='product') || {name:'居家保養品', kind:'product'}) : null;
   db.categories = [{id:uid(), name, kind:'service'}, ...(home ? [{id:home.id || uid(), name:home.name, kind:'product'}] : [])];
   db.items = []; db.bundles = []; db.packagePlans = []; db.careTips = [];
@@ -2308,7 +2406,7 @@ function pickTplKey(k){ tplKeys = toggleKey(tplKeys, k); renderShopSettings(); }
 function applyTplKeys(){
   if(!tplKeys.length){ toast('請至少勾選一類服務'); return; }
   const names = DEFAULT_CATEGORIES.filter(c=>tplKeys.includes(c.key)).map(c=>c.name).join('、');
-  if(!confirm(`套用預設品項：${names}？\n目前的品項、套餐、包套、衛教與標籤會被取代（顧客與消費紀錄不受影響）。`)) return;
+  if(!confirm(`套用預設品項：${names}？\n目前的品項、熱門組合、包套、衛教與標籤會被取代（顧客與消費紀錄不受影響）。`)) return;
   applyTemplate(db, 'skin', DEFAULT_CATEGORIES.map(c=>c.key).filter(k=>tplKeys.includes(k)));
   itemCatFilter = ''; resetCheckout(); save();
   renderShopSettings(); toast(`已套用：${names}`);
@@ -2320,8 +2418,10 @@ const TAG_FIELDS = [
   ['prefs',   '服務喜好', '例如喜歡安靜、力道偏輕'],
 ];
 function setTypesLabel(v){ db.tags.typesLabel = v.trim() || '顧客類型'; save(); renderShopSettings(); toast('已更新分類名稱'); }
-/* ================= 優惠券 / 包套專案 / 點數開關 ================= */
+/* ================= 優惠券 / 多堂方案 / 點數開關 ================= */
 const ptsOn = () => !!db.pointsOn;
+const couponsOn = () => !!db.couponsOn;
+const plansOn = () => !!db.plansOn;
 const COUPON_COND = {all:'不限對象', new:'限新客首次消費', bday:'限本月壽星'};
 const couponLabel = cp => cp.type==='percent' ? zhe(cp.value) : `折 ${money(cp.value)}`;
 function couponCheck(cp, c){
@@ -2332,14 +2432,14 @@ function couponCheck(cp, c){
 }
 // 目前選取且符合條件的優惠券；不符合時自動取消
 function activeCoupon(c){
-  const cp = db.coupons.find(x=>x.id===co.couponId);
+  const cp = couponsOn() && db.coupons.find(x=>x.id===co.couponId);
   if(cp && couponCheck(cp, c).ok) return cp;
   co.couponId = ''; return null;
 }
 function toggleCoupon(id){ co.couponId = co.couponId===id ? '' : id; renderCheckout(); }
 function discountHTML(c){
-  const list = db.coupons.filter(x=>x.enabled);
-  return `<div class="sub-title">優惠折扣 · DISCOUNT</div>
+  const list = couponsOn() ? db.coupons.filter(x=>x.enabled) : [];
+  return `<div class="sub-title">${list.length ? '優惠折扣 · DISCOUNT' : '手動折扣 · DISCOUNT'}</div>
     ${list.length ? `<div class="coupons">${list.map(cp=>{ const chk = couponCheck(cp, c); return `
       <button type="button" class="coupon ${co.couponId===cp.id?'on':''}" ${chk.ok?'':'disabled'} onclick="toggleCoupon('${cp.id}')">
         <b>${esc(cp.name)}</b><span>${couponLabel(cp)}・${chk.ok ? COUPON_COND[cp.cond] : chk.why}</span>
@@ -2407,11 +2507,11 @@ function deleteCoupon(id){
   save(); renderShopSettings();
 }
 
-/* ===== 店務設定：包套專案 ===== */
+/* ===== 店務設定：多堂方案 ===== */
 function plansTabHTML(){
   const num = (p, k, w=64) => `<input type="number" value="${p[k]}" inputmode="numeric" style="width:${w}px" onchange="updatePlan('${p.id}','${k}',this.value)">`;
   return `<div class="card">
-    <div class="card-head"><h3>包套專案</h3><p>加購包套時點選專案，會自動帶入堂數、售價與到期日</p></div>
+    <div class="card-head"><h3>多堂方案</h3><p>加購包套時點選專案，會自動帶入堂數、售價與到期日</p></div>
     ${db.packagePlans.length ? db.packagePlans.map(p=>`
       <div class="edit-row">
         <input type="text" class="nm" value="${esc(p.name)}" onchange="updatePlan('${p.id}','name',this.value)" aria-label="專案名稱">
@@ -2422,10 +2522,10 @@ function plansTabHTML(){
           <label class="mini">效期${num(p,'days',70)}天</label>
           <button class="btn sm danger" style="margin-left:auto" onclick="deletePlan('${p.id}')">刪除</button>
         </div>
-      </div>`).join('') : '<div class="muted">尚無包套專案</div>'}
+      </div>`).join('') : '<div class="muted">尚無多堂方案</div>'}
   </div>
   <div class="card">
-    <div class="card-head"><h3>新增包套專案</h3><p>效期填 0 表示不設到期日</p></div>
+    <div class="card-head"><h3>新增多堂方案</h3><p>效期填 0 表示不設到期日</p></div>
     <label class="field"><span>專案名稱</span><input type="text" id="plName" placeholder="例：PDRN 導入 買 3 送 1"></label>
     <div class="grid2">
       <label class="field"><span>購買堂數</span><input type="number" id="plBuy" inputmode="numeric" placeholder="5"></label>
@@ -2433,31 +2533,31 @@ function plansTabHTML(){
       <label class="field"><span>專案售價</span><input type="number" id="plPrice" inputmode="numeric" placeholder="9000"></label>
       <label class="field"><span>有效天數</span><input type="number" id="plDays" inputmode="numeric" placeholder="180"></label>
     </div>
-    <button class="btn block" onclick="addPlan()">＋ 新增包套專案</button>
+    <button class="btn block" onclick="addPlan()">＋ 新增多堂方案</button>
   </div>`;
 }
 function updatePlan(id, key, v){
   const p = db.packagePlans.find(x=>x.id===id); if(!p) return;
   p[key] = key==='name' ? (v.trim() || p.name) : Math.max(0, parseInt(v)||0);
-  save(); toast('已更新包套專案');
+  save(); toast('已更新多堂方案');
 }
 function addPlan(){
   const name = $('#plName').value.trim(), buy = parseInt($('#plBuy').value)||0;
   if(!name || buy <= 0){ toast('請輸入專案名稱與購買堂數'); return; }
   db.packagePlans.push({id:uid(), name, buy, bonus:Math.max(0, parseInt($('#plBonus').value)||0),
     price:Math.max(0, parseInt($('#plPrice').value)||0), days:Math.max(0, parseInt($('#plDays').value)||0)});
-  save(); renderShopSettings(); toast('已新增包套專案');
+  save(); renderShopSettings(); toast('已新增多堂方案');
 }
 function deletePlan(id){
-  if(!confirm('確定刪除此包套專案？（不影響已購買的顧客）')) return;
+  if(!confirm('確定刪除此多堂方案？（不影響已購買的顧客）')) return;
   db.packagePlans = db.packagePlans.filter(x=>x.id!==id); save(); renderShopSettings();
 }
 
-/* ===== 店務設定：皮膚標籤（點 × 刪除、輸入新增） ===== */
+/* ===== 店務設定：顧客標籤（點 × 刪除、輸入新增） ===== */
 const TAG_TONES = {types:'rose', notes:'rose', cautions:'taupe', prefs:'pref'};
 function tagsTabHTML(){
   return `<div class="card">
-    <div class="card-head"><h3>皮膚標籤</h3><p>點標籤上的 × 即可刪除；輸入框可一次新增多個（以「、」分隔，按 Enter 新增）</p></div>
+    <div class="card-head"><h3>顧客標籤</h3><p>點標籤上的 × 即可刪除；輸入框可一次新增多個（以「、」分隔，按 Enter 新增）</p></div>
     <label class="field" style="margin:0"><span>顧客分類名稱</span><input type="text" value="${esc(db.tags.typesLabel)}" placeholder="例：膚質" onchange="setTypesLabel(this.value)"></label>
   </div>
   ${TAG_FIELDS.map(([k,label,hint])=>`<div class="card">
@@ -2579,7 +2679,7 @@ function renderTaskSeg(){
 function setTaskTab(t){ taskTab = t; renderAppointments(); }
 
 /* ================= 店家設定匯出 / 匯入（複製到其他 iPad） ================= */
-const SETTINGS_KEYS = ['shopName','footer','template','categories','staff','items','bundles','careTips','tags','coupons','packagePlans','lineId','lineMode','pointsOn','pointsEvery','pointValue','followDays'];
+const SETTINGS_KEYS = ['shopName','footer','template','categories','staff','items','bundles','careTips','tags','coupons','packagePlans','lineId','lineMode','pointsOn','couponsOn','plansOn','pointsEvery','pointValue','followDays'];
 const settingsPayload = () => ({type:'skincare-crm-settings', version:1, exportedAt:new Date().toISOString(),
   settings:Object.fromEntries(SETTINGS_KEYS.map(k=>[k, db[k]]))});
 function downloadJSON(obj, filename){
@@ -2594,7 +2694,7 @@ function applySettings(obj){
   if(!obj || obj.type!=='skincare-crm-settings' || !obj.settings || !Array.isArray(obj.settings.items)){
     alert('這不是店家設定檔。\n若要還原完整資料（含顧客），請使用上方的「匯入 JSON 復原」。'); return false;
   }
-  if(!confirm(`套用「${obj.settings.shopName||''}」的店家設定？\n品項、套餐、優惠券、包套專案、標籤與點數規則會被取代；這台的顧客、預約與消費紀錄不受影響。`)) return false;
+  if(!confirm(`套用「${obj.settings.shopName||''}」的店家設定？\n品項、熱門組合、優惠券、多堂方案、標籤與點數規則會被取代；這台的顧客、預約與消費紀錄不受影響。`)) return false;
   SETTINGS_KEYS.forEach(k=>{ if(obj.settings[k] !== undefined) db[k] = JSON.parse(JSON.stringify(obj.settings[k])); });
   migrate(db); db.setupDone = true;
   resetCheckout(); save(); updateTitle(); renderSettings(); toast('已套用店家設定 ✓');
@@ -2982,13 +3082,6 @@ function categoryTabHTML(){
         </div>
       </div>`).join('')}
   </div>
-  ${(()=>{ const missing = DEFAULT_CATEGORIES.filter(c=>!db.categories.some(x=>x.name===c.name)); const t = TEMPLATES.skin;
-    return missing.length ? `<div class="card">
-      <div class="card-head"><h3>加入預設大類</h3><p>開始提供新服務時，一鍵加入大類與預設項目、價格、包套和衛教，之後都能修改</p></div>
-      ${missing.map(c=>{ const n = c.kind==='product' ? t.products.length : t.services.filter(x=>(x[3]||'skin')===c.key).length; return `
-        <div class="list-item"><div class="grow"><b>${c.name}</b><div class="muted">含 ${n} 個預設項目</div></div>
-          <button class="btn sm" onclick="addPresetCategory('${c.key}')">＋ 加入</button></div>`; }).join('')}
-    </div>` : ''; })()}
   <div class="card">
     <div class="card-head"><h3>新增大類</h3></div>
     <div class="grid2">
@@ -3019,7 +3112,7 @@ function deleteCategory(id){
   if(db.categories.length <= 1){ toast('至少需保留一個大類'); return; }
   const c = catById(id), items = db.items.filter(i=>i.catId===id);
   if(!confirm(items.length
-    ? `刪除「${c.name}」？\n其中 ${items.length} 個品項與相關套餐也會一併刪除（消費紀錄不受影響）。\n\n想保留品項的話，請先到「服務項目」把它們改到其他大類。`
+    ? `刪除「${c.name}」？\n其中 ${items.length} 個品項與相關熱門組合也會一併刪除（消費紀錄不受影響）。\n\n想保留品項的話，請先到「服務項目」把它們改到其他大類。`
     : `確定刪除「${c.name}」？`)) return;
   const ids = new Set(items.map(i=>i.id));
   db.items = db.items.filter(i=>!ids.has(i.id));
@@ -3318,7 +3411,9 @@ function renderSettings(){
   $('#ptsFields').hidden = !ptsOn();
   $('#setPtsEvery').value = db.pointsEvery;
   $('#setPtsValue').value = db.pointValue;
-  $('#shopSummary').textContent = `${db.shopName}・服務 ${db.items.filter(i=>i.cat==='service').length} 項・保養品 ${db.items.filter(i=>i.cat==='product').length} 項・套餐 ${db.bundles.length} 組・優惠券 ${db.coupons.length} 張`;
+  $('#setPlansOn').checked = plansOn(); $('#planMgr').hidden = !plansOn();
+  $('#setCouponsOn').checked = couponsOn(); $('#couponMgr').hidden = !couponsOn();
+  $('#shopSummary').textContent = `${db.shopName}・服務 ${db.items.filter(i=>i.cat==='service').length} 項・保養品 ${db.items.filter(i=>i.cat==='product').length} 項・服務師 ${db.staff.length} 位・熱門組合 ${db.bundles.length} 組`;
   renderInstall();
   $('#lastBackup').textContent = db.lastBackup ? `上次匯出備份：${fmtDT(db.lastBackup)}` : '尚未匯出過備份';
 }
@@ -3343,10 +3438,21 @@ function setPointsOn(on){
   db.pointsOn = on; resetCheckout(); save(); renderSettings();
   toast(on ? '已開啟會員點數' : '已關閉會員點數，相關欄位已隱藏');
 }
+const FEAT_LABEL = {couponsOn:'優惠券', plansOn:'多堂方案'};
+function setFeature(k, on){
+  db[k] = on; if(k==='couponsOn' && !on) co.couponId = '';
+  save(); renderSettings();
+  toast(on ? `已開啟${FEAT_LABEL[k]}` : `已關閉${FEAT_LABEL[k]}，結帳與顧客畫面不再顯示`);
+}
 /* ================= 店務設定彈窗：店名 / 服務 / 保養品 / 套餐 ================= */
 let shopTab = 'shop';
 let bDraft = {id:null, name:'', items:{}};
-const SHOP_TABS = [['shop','店家資訊'],['items','服務項目'],['category','服務大類'],['staff','服務師'],['bundle','快捷套餐'],['coupon','優惠券'],['plan','包套專案'],['care','衛教叮嚀'],['tags','皮膚標籤'],['template','預設品項']];
+// 頁籤分三組：常用 / 會員方案（依功能開關顯示）/ 進階；'|' 為分隔線
+const SHOP_TABS = [['shop','店家資訊'],['items','服務項目'],['staff','服務師'],['bundle','熱門組合'],'|',['plan','多堂方案'],['coupon','優惠券'],'|',['template','我的服務範圍'],['category','服務大類'],['care','衛教叮嚀'],['tags','顧客標籤']];
+function shopTabs(){
+  const t = SHOP_TABS.filter(x=>!(x[0]==='plan' && !plansOn() && shopTab!=='plan') && !(x[0]==='coupon' && !couponsOn() && shopTab!=='coupon'));
+  return t.filter((x,i)=>x!=='|' || (i>0 && t[i-1]!=='|'));
+}
 function openShopSettings(tab){
   if(tab) shopTab = tab;
   tplKeys = db.catKeys ? [...db.catKeys] : DEFAULT_CATEGORIES.filter(c=>db.categories.some(x=>x.name===c.name)).map(c=>c.key);
@@ -3355,14 +3461,15 @@ function openShopSettings(tab){
   renderShopSettings();
 }
 function setShopTab(t){ shopTab = t; renderShopSettings(); $('#sheet').scrollTop = 0; }
+function markGuide(){ if(db.guide && (shopTab==='items' || shopTab==='staff') && !db.guide[shopTab]){ db.guide[shopTab] = true; save(); } }
 // 重繪時保留捲動位置，連續編輯不會跳回頂端
 function renderShopSettings(){
   const el = $('#shopSet'); if(!el) return;
   const sc = $('#sheet').scrollTop;
   el.innerHTML = `
     <div class="sheet-head"><h2>店務設定</h2><button class="close" onclick="closeShopSettings()">✕</button></div>
-    <div class="chips">${SHOP_TABS.map(([v,l])=>`<button class="${shopTab===v?'active':''}" onclick="setShopTab('${v}')">${l}</button>`).join('')}</div>
-    ${({shop:shopInfoHTML, bundle:bundleEditorHTML, template:templateTabHTML, tags:tagsTabHTML, care:careTabHTML, coupon:couponsTabHTML, plan:plansTabHTML, category:categoryTabHTML, staff:staffTabHTML}[shopTab] || itemsTabHTML)()}
+    <div class="chips">${shopTabs().map(x=>x==='|' ? '<span class="tab-sep"></span>' : `<button class="${shopTab===x[0]?'active':''}" onclick="setShopTab('${x[0]}')">${x[1]}</button>`).join('')}</div>
+    ${(markGuide(), '')}${({shop:shopInfoHTML, bundle:bundleEditorHTML, template:templateTabHTML, tags:tagsTabHTML, care:careTabHTML, coupon:couponsTabHTML, plan:plansTabHTML, category:categoryTabHTML, staff:staffTabHTML}[shopTab] || itemsTabHTML)()}
   `;
   $('#sheet').scrollTop = sc;
   const ch = el.querySelector('.chips'), act = ch?.querySelector('.active');
@@ -3373,6 +3480,7 @@ function closeShopSettings(){
   updateTitle();
   if(currentPage==='checkout') renderCheckout();
   if(currentPage==='settings') renderSettings();
+  if(currentPage==='customers') renderCustomers();
 }
 function shopInfoHTML(){
   return `<div class="card">
@@ -3387,9 +3495,9 @@ function shopInfoHTML(){
       <div class="line"><span>服務師</span><span>${db.staff.map(s=>s.name).join('、') || '—'}</span></div>
       <div class="line"><span>服務項目</span><span>${db.items.filter(i=>i.cat==='service').length} 項</span></div>
       <div class="line"><span>居家保養品</span><span>${db.items.filter(i=>i.cat==='product').length} 項</span></div>
-      <div class="line"><span>快捷套餐</span><span>${db.bundles.length} 組</span></div>
+      <div class="line"><span>熱門組合</span><span>${db.bundles.length} 組</span></div>
       <div class="line"><span>優惠券（啟用中）</span><span>${db.coupons.filter(x=>x.enabled).length} 張</span></div>
-      <div class="line"><span>包套專案</span><span>${db.packagePlans.length} 個</span></div>
+      <div class="line"><span>多堂方案</span><span>${db.packagePlans.length} 個</span></div>
     </div>
   </div>`;
 }
@@ -3405,7 +3513,7 @@ function updateItem(id, key, v){
 }
 function deleteItem(id){
   const it = db.items.find(i=>i.id===id);
-  if(!confirm(`確定刪除「${it?.name}」？\n（不影響既有消費紀錄，含此品項的套餐會一併移除該品項）`)) return;
+  if(!confirm(`確定刪除「${it?.name}」？\n（不影響既有消費紀錄，含此品項的熱門組合會一併移除該品項）`)) return;
   db.items = db.items.filter(i=>i.id!==id); delete co.cart[id];
   db.bundles.forEach(b=>{ b.items = b.items.filter(x=>x.itemId!==id); });
   db.bundles = db.bundles.filter(b=>b.items.length);
@@ -3421,24 +3529,24 @@ function bundleEditorHTML(){
     </div>`;
   }).join('') || '<div class="muted">尚無品項</div>';
   return `<div class="card">
-    <div class="card-head"><h3>快捷套餐</h3><p>結帳時點一下套餐，即可一次帶入多個服務與產品</p></div>
+    <div class="card-head"><h3>熱門組合</h3><p>結帳時點一下組合，即可一次帶入多個服務與產品</p></div>
     ${db.bundles.length ? db.bundles.map(b=>`
       <div class="list-item">
         <div class="grow"><div style="font-weight:700">${esc(b.name)}</div><div class="muted">${esc(bundleItems(b).map(x=>x.item.name+(x.qty>1?`×${x.qty}`:'')).join(' + '))}・${money(bundlePrice(b))}</div></div>
         <button class="btn sm light" onclick="editBundle('${b.id}')">編輯</button>
         <button class="btn sm danger" onclick="deleteBundle('${b.id}')">刪除</button>
-      </div>`).join('') : '<div class="muted">尚無套餐</div>'}
+      </div>`).join('') : '<div class="muted">尚無熱門組合</div>'}
   </div>
   <div class="card ${bDraft.id?'editing':''}">
-    <div class="card-head"><h3>${bDraft.id?'編輯套餐':'新增套餐'}</h3><p>設定每個品項的數量，0 表示不包含</p></div>
-    <label class="field"><span>套餐名稱</span><input type="text" id="bdName" value="${esc(bDraft.name)}" placeholder="例：經典水飛梭淨膚套餐" oninput="bDraft.name=this.value"></label>
+    <div class="card-head"><h3>${bDraft.id?'編輯組合':'新增組合'}</h3><p>設定每個品項的數量，0 表示不包含</p></div>
+    <label class="field"><span>組合名稱</span><input type="text" id="bdName" value="${esc(bDraft.name)}" placeholder="例：經典水飛梭淨膚套餐" oninput="bDraft.name=this.value"></label>
     <div class="sub-title">服務項目</div>${pick('service')}
     <div class="sub-title">居家保養品</div>${pick('product')}
-    <div class="summary"><div class="line total-line" style="margin-top:14px"><span>套餐原價合計</span><span>${money(draftTotal)}</span></div></div>
+    <div class="summary"><div class="line total-line" style="margin-top:14px"><span>組合原價合計</span><span>${money(draftTotal)}</span></div></div>
     ${bDraft.id ? `<div class="grid2" style="margin-top:14px">
       <button class="btn ghost" onclick="resetBundleDraft()">取消編輯</button>
       <button class="btn" onclick="saveBundleDraft()">儲存變更</button>
-    </div>` : `<button class="btn block" style="margin-top:14px" onclick="saveBundleDraft()">＋ 新增套餐</button>`}
+    </div>` : `<button class="btn block" style="margin-top:14px" onclick="saveBundleDraft()">＋ 新增組合</button>`}
   </div>`;
 }
 function bdQty(id, d){ bDraft.items[id] = Math.max(0, (bDraft.items[id]||0) + d); renderShopSettings(); }
@@ -3452,15 +3560,15 @@ function editBundle(id){
 function saveBundleDraft(){
   const name = bDraft.name.trim();
   const items = Object.entries(bDraft.items).filter(([,q])=>q>0).map(([itemId,qty])=>({itemId,qty}));
-  if(!name){ toast('請輸入套餐名稱'); return; }
+  if(!name){ toast('請輸入組合名稱'); return; }
   if(!items.length){ toast('請至少選擇一個品項'); return; }
   if(bDraft.id){ Object.assign(db.bundles.find(b=>b.id===bDraft.id), {name, items}); }
   else db.bundles.push({id:uid(), name, items});
-  save(); toast(bDraft.id ? '已更新套餐' : '已新增套餐');
+  save(); toast(bDraft.id ? '已更新組合' : '已新增組合');
   bDraft = {id:null, name:'', items:{}}; renderShopSettings();
 }
 function deleteBundle(id){
-  if(!confirm('確定刪除此套餐？')) return;
+  if(!confirm('確定刪除此組合？')) return;
   db.bundles = db.bundles.filter(b=>b.id!==id);
   if(bDraft.id===id) bDraft = {id:null, name:'', items:{}};
   save(); renderShopSettings();
@@ -3545,7 +3653,13 @@ async function installApp(){
 }
 // 註冊離線快取（只在正式網址等 http/https 環境）
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+  // 有新版時自動更新：回到 App 就檢查，新版接手後重新載入一次
+  const hadSW = !!navigator.serviceWorker.controller;
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'}).then(reg => {
+    document.addEventListener('visibilitychange', () => { if(document.visibilityState==='visible') reg.update().catch(()=>{}); });
+  }).catch(()=>{}));
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if(hadSW && !reloaded){ reloaded = true; location.reload(); } });
 }
 
 /* ================= 初始化 ================= */
