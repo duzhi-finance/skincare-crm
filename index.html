@@ -200,11 +200,11 @@
   .tags{display:flex;flex-wrap:wrap;gap:6px}
   .tag{font-size:12.5px;padding:2px 11px;border-radius:999px;background:var(--rose-pale);color:var(--rose-deep);font-weight:600;border:1px solid #F3E1DD}
   .tag.vip{background:var(--ink);color:#F3E6D8;border:none;font-weight:700;letter-spacing:.14em;font-size:11px;padding:1px 10px;margin-left:8px;vertical-align:middle}
-  .chip-select{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:10px}
+  .chip-select{display:flex;flex-wrap:wrap;gap:10px}
   .chip-select label{cursor:pointer}
   .chip-select input{display:none}
   .chip-select span{
-    display:flex;align-items:center;justify-content:center;min-height:48px;
+    display:flex;align-items:center;justify-content:center;min-height:46px;min-width:86px;padding:0 20px;white-space:nowrap;
     border-radius:999px;background:#fff;border:1.5px solid var(--border);font-size:14.5px;font-weight:600;transition:.2s
   }
   .chip-select input:checked+span{background:var(--rose);border-color:var(--rose);color:#fff}
@@ -348,6 +348,7 @@
   .bundle b{font-size:15.5px}
   .bundle span{font-size:12.5px;color:var(--sub);white-space:normal;line-height:1.5}
   .bundle em{font-style:normal;font-weight:700;color:var(--rose-deep);margin-top:4px}
+  .bundle em s.was{font-weight:400;color:#B5AAA6;margin-right:8px;font-size:.82em}
   .bundle.on{border-color:var(--rose);background:var(--rose-pale);box-shadow:0 8px 20px rgba(200,145,138,.15)}
 
   /* 回訪建議 */
@@ -1635,6 +1636,17 @@ function rebookFor(lines){
 }
 const bundleItems = b => b.items.map(x=>({...x, item:db.items.find(i=>i.id===x.itemId)})).filter(x=>x.item);
 const bundlePrice = b => bundleItems(b).reduce((s,x)=>s+x.item.price*x.qty,0);
+// 組合優惠價：有設定且低於原價時才生效
+const bundleDeal = b => { const o = bundlePrice(b), d = Math.round(Number(b.price)||0); return d > 0 && d < o ? d : 0; };
+// 購物車內符合的組合優惠（同一品項不重複計算；使用包套時，含服務的組合不再折扣）
+function bundleDiscounts(){
+  const left = {...co.cart}, out = [];
+  db.bundles.filter(b=>bundleDeal(b) && !(co.usePkg && bundleItems(b).some(x=>x.item.cat==='service')))
+    .sort((a,b)=>(bundlePrice(b)-bundleDeal(b))-(bundlePrice(a)-bundleDeal(a)))
+    .forEach(b=>{ const xs = bundleItems(b);
+      while(xs.length && xs.every(x=>(left[x.itemId]||0) >= x.qty)){ xs.forEach(x=>left[x.itemId]-=x.qty); out.push({name:b.name, off:bundlePrice(b)-bundleDeal(b)}); } });
+  return out;
+}
 const bundleOn = b => { const xs = bundleItems(b); return xs.length && xs.every(x=>(co.cart[x.itemId]||0) >= x.qty); };
 
 /* POS 計算：小計 − 包套折抵 − 壽星優惠 − 點數折抵 − 儲值金扣抵 ＝ 實收
@@ -1646,15 +1658,17 @@ function posCalc(c){
   if(co.pkgAuto) co.usePkg = canPkg;                     // 有包套就自動扣 1 次（手動關閉後不再自動）
   if(co.usePkg && !canPkg) co.usePkg = false;
   const pkgCover = co.usePkg ? service : 0;            // 包套 1 次折抵本次全部服務項目
-  const afterPkg = total - pkgCover;
+  const bundleList = bundleDiscounts();
+  const bundleDisc = Math.min(total - pkgCover, bundleList.reduce((t,x)=>t+x.off,0));
+  const afterPkg = total - pkgCover - bundleDisc;
   const coupon = activeCoupon(c);
   const couponDisc = coupon ? Math.min(afterPkg, coupon.type==='percent' ? Math.round(afterPkg * coupon.value / 100) : Math.round(coupon.value)) : 0;
   const manualWant = Math.max(0, Math.round(Number(co.manualOff)||0));
   const manualDisc = Math.min(manualWant, afterPkg - couponDisc);
   if(manualWant > manualDisc){ msgs.push(`手動折扣最多 ${money(manualDisc)}，已自動調整`); co.manualOff = String(manualDisc); }
-  const discount = couponDisc + manualDisc;
+  const discount = bundleDisc + couponDisc + manualDisc;
   const off = coupon?.type==='percent' ? coupon.value : 0;
-  const afterDisc = afterPkg - discount;
+  const afterDisc = afterPkg - couponDisc - manualDisc;
   const pv = ptsOn() ? Math.max(0, Number(db.pointValue)||0) : 0;
   const ptsMax = c && pv > 0 ? Math.max(0, Math.min(c.points||0, Math.floor(afterDisc / pv))) : 0;
   if(!c || !(c.points > 0) || !pv) co.usePts = false;
@@ -1679,7 +1693,7 @@ function posCalc(c){
   const balanced = pkgCover + discount + pointsCover + balanceUse + paid === total;
   const every = ptsOn() ? Number(db.pointsEvery)||0 : 0;
   const ptsEarn = c && every > 0 ? Math.floor((paid + balanceUse) / every) : 0;   // 以實際消費（現金＋儲值金）累積點數
-  return {lines, service, product, total, pkgCover, creditsUse: co.usePkg ? 1 : 0, off, discount, coupon, couponDisc, manualDisc, ptsMax, ptsUse, pointsCover, ptsEarn, due, balMax, balanceUse, paid,
+  return {lines, service, product, total, pkgCover, creditsUse: co.usePkg ? 1 : 0, off, discount, bundleList, bundleDisc, coupon, couponDisc, manualDisc, ptsMax, ptsUse, pointsCover, ptsEarn, due, balMax, balanceUse, paid,
           canPkg, msgs, ok: lines.length > 0 && balanced};
 }
 // 現金收款與找零（只在付現時檢查）
@@ -1715,7 +1729,7 @@ function renderCheckout(){
   $('#coBundleWrap').hidden = !db.bundles.length && !cartHas;
   $('#coBundles').innerHTML = (db.bundles.length ? `<div class="bundles">${db.bundles.map(b=>`
       <button type="button" class="bundle ${bundleOn(b)?'on':''}" onclick="applyBundle('${b.id}')">
-        <b>${esc(b.name)}</b><span>${esc(bundleItems(b).map(x=>x.item.name+(x.qty>1?`×${x.qty}`:'')).join(' + '))}</span><em>${money(bundlePrice(b))}</em>
+        <b>${esc(b.name)}</b><span>${esc(bundleItems(b).map(x=>x.item.name+(x.qty>1?`×${x.qty}`:'')).join(' + '))}</span><em>${bundleDeal(b) ? `<s class="was">${money(bundlePrice(b))}</s>${money(bundleDeal(b))}` : money(bundlePrice(b))}</em>
       </button>`).join('')}</div>` : '')
     + (Object.values(co.cart).some(q=>q>0) ? `<button type="button" class="btn sm dashed" style="margin-bottom:6px" onclick="saveBundle()">＋ 將目前選取存為熱門組合</button>` : '');
 
@@ -1846,6 +1860,7 @@ function renderCheckout(){
       : '<div class="muted">尚未選擇任何品項</div>'}
     <div class="line" style="margin-top:6px;color:var(--sub)"><span>小計</span><span>${money(k.total)}</span></div>
     ${k.creditsUse?`<div class="line deduct"><span>扣抵包套 1 次</span><span>−${money(k.pkgCover)}</span></div>`:''}
+    ${k.bundleList.map(x=>`<div class="line deduct"><span>組合優惠・${esc(x.name)}</span><span>−${money(x.off)}</span></div>`).join('')}
     ${k.couponDisc?`<div class="line deduct"><span>${esc(k.coupon.name)}（${couponLabel(k.coupon)}）</span><span>−${money(k.couponDisc)}</span></div>`:''}
     ${k.manualDisc?`<div class="line deduct"><span>手動折扣</span><span>−${money(k.manualDisc)}</span></div>`:''}
     ${k.ptsUse?`<div class="line deduct"><span>點數折抵（${k.ptsUse} 點）</span><span>−${money(k.pointsCover)}</span></div>`:''}
@@ -1969,7 +1984,7 @@ function confirmCheckout(){
     customerId:c?c.id:'', customerName:c?c.name:'散客',
     lines:k.lines.map(({name,price,qty,cat})=>({name,price,qty,cat})), total:k.total,
     creditsUsed:k.creditsUse, pkgCover:k.pkgCover, packageName:c?.packageName||'',
-    discount:k.discount, discountOff:k.off, couponName:k.coupon?.name||'', couponDisc:k.couponDisc, manualDisc:k.manualDisc, bdayCoupon:k.coupon?.cond==='bday',
+    discount:k.discount, bundleDisc:k.bundleDisc, bundleNames:k.bundleList.map(x=>x.name).join('、'), discountOff:k.off, couponName:k.coupon?.name||'', couponDisc:k.couponDisc, manualDisc:k.manualDisc, bdayCoupon:k.coupon?.cond==='bday',
     pointsUsed:k.ptsUse, pointsCover:k.pointsCover, pointsEarned:c ? k.ptsEarn : 0, pointsAfter:c ? c.points : null,
     balanceUsed:k.balanceUse,
     paid:k.paid, payMethod:k.paid ? co.payMethod : null,
@@ -2031,6 +2046,7 @@ function buildReceipt(o){
   } else {
     out.push(`消費小計：${money(o.total)}`);
     if(o.creditsUsed) out.push(`扣抵包套：${o.creditsUsed} 次${o.pkgCover?`（折抵 ${money(o.pkgCover)}）`:''}`);
+    if(o.bundleDisc) out.push(`組合優惠（${o.bundleNames}）：−${money(o.bundleDisc)}`);
     if(o.couponName) out.push(`${o.bdayCoupon?'🎂':'🏷'} ${o.couponName}：−${money(o.couponDisc)}`);
     if(o.manualDisc) out.push(`手動折扣：−${money(o.manualDisc)}`);
     if(o.discount && !('couponName' in o)) out.push(`🎂 壽星優惠（${zhe(o.discountOff)}）：−${money(o.discount)}`);   // 舊版紀錄
@@ -2091,6 +2107,7 @@ function receiptCard(o){
       <div class="rc-sep thin"></div>
       ${row('小計', money(o.total), 'muted')}
       ${o.creditsUsed ? row(`扣抵包套 ${o.creditsUsed} 次`, o.pkgCover ? '−'+money(o.pkgCover) : '—', 'deduct') : ''}
+      ${o.bundleDisc ? row(`組合優惠・${esc(o.bundleNames)}`, '−'+money(o.bundleDisc), 'deduct') : ''}
       ${o.couponName ? row(esc(o.couponName), '−'+money(o.couponDisc), 'deduct') : ''}
       ${o.manualDisc ? row('手動折扣', '−'+money(o.manualDisc), 'deduct') : ''}
       ${o.discount && !('couponName' in o) ? row(`壽星優惠（${zhe(o.discountOff)}）`, '−'+money(o.discount), 'deduct') : ''}
@@ -3204,6 +3221,7 @@ function thermalHTML(o){
     <div class="t-hr"></div>
     ${sale ? row('小計', money(o.total)) : ''}
     ${o.creditsUsed > 0 ? row(`扣抵包套 ${o.creditsUsed} 次`, o.pkgCover ? '-'+money(o.pkgCover) : '') : ''}
+    ${o.bundleDisc ? row('組合優惠', '-'+money(o.bundleDisc)) : ''}
     ${o.couponName ? row(esc(o.couponName), '-'+money(o.couponDisc)) : ''}
     ${o.manualDisc ? row('手動折扣', '-'+money(o.manualDisc)) : ''}
     ${o.pointsUsed ? row(`點數折抵 ${o.pointsUsed} 點`, '-'+money(o.pointsCover)) : ''}
@@ -3362,7 +3380,7 @@ function openDaily(date){
         <div class="line"><span>LINE Pay</span><span>${money(s.byMethod.linepay)}</span></div>
         <div class="line total-line"><span>實收合計</span><span>${money(s.revenue)}</span></div>
         <div class="line" style="margin-top:10px;color:var(--sub)"><span>消費小計（折抵前）</span><span>${money(s.subtotal)}</span></div>
-        <div class="line" style="color:var(--sub)"><span>優惠折扣（優惠券＋手動）</span><span>−${money(s.discount)}</span></div>
+        <div class="line" style="color:var(--sub)"><span>優惠折扣（組合＋優惠券＋手動）</span><span>−${money(s.discount)}</span></div>
         ${ptsOn() ? `<div class="line" style="color:var(--sub)"><span>點數折抵 / 本日發放點數</span><span>−${money(s.ptsCover)}・+${s.ptsEarned} 點</span></div>` : ''}
         <div class="line" style="color:var(--sub)"><span>加值收入（儲值 / 包套）</span><span>${money(s.topRevenue)}</span></div>
       </div>
@@ -3446,7 +3464,7 @@ function setFeature(k, on){
 }
 /* ================= 店務設定彈窗：店名 / 服務 / 保養品 / 套餐 ================= */
 let shopTab = 'shop';
-let bDraft = {id:null, name:'', items:{}};
+let bDraft = {id:null, name:'', items:{}, price:''};
 // 頁籤分三組：常用 / 會員方案（依功能開關顯示）/ 進階；'|' 為分隔線
 const SHOP_TABS = [['shop','店家資訊'],['items','服務項目'],['staff','服務師'],['bundle','熱門組合'],'|',['plan','多堂方案'],['coupon','優惠券'],'|',['template','我的服務範圍'],['category','服務大類'],['care','衛教叮嚀'],['tags','顧客標籤']];
 function shopTabs(){
@@ -3532,7 +3550,7 @@ function bundleEditorHTML(){
     <div class="card-head"><h3>熱門組合</h3><p>結帳時點一下組合，即可一次帶入多個服務與產品</p></div>
     ${db.bundles.length ? db.bundles.map(b=>`
       <div class="list-item">
-        <div class="grow"><div style="font-weight:700">${esc(b.name)}</div><div class="muted">${esc(bundleItems(b).map(x=>x.item.name+(x.qty>1?`×${x.qty}`:'')).join(' + '))}・${money(bundlePrice(b))}</div></div>
+        <div class="grow"><div style="font-weight:700">${esc(b.name)}</div><div class="muted">${esc(bundleItems(b).map(x=>x.item.name+(x.qty>1?`×${x.qty}`:'')).join(' + '))}・${bundleDeal(b) ? `原價 <s>${money(bundlePrice(b))}</s>・組合價 <b style="color:var(--rose-deep)">${money(bundleDeal(b))}</b>` : money(bundlePrice(b))}</div></div>
         <button class="btn sm light" onclick="editBundle('${b.id}')">編輯</button>
         <button class="btn sm danger" onclick="deleteBundle('${b.id}')">刪除</button>
       </div>`).join('') : '<div class="muted">尚無熱門組合</div>'}
@@ -3542,18 +3560,26 @@ function bundleEditorHTML(){
     <label class="field"><span>組合名稱</span><input type="text" id="bdName" value="${esc(bDraft.name)}" placeholder="例：經典水飛梭淨膚套餐" oninput="bDraft.name=this.value"></label>
     <div class="sub-title">服務項目</div>${pick('service')}
     <div class="sub-title">居家保養品</div>${pick('product')}
-    <div class="summary"><div class="line total-line" style="margin-top:14px"><span>組合原價合計</span><span>${money(draftTotal)}</span></div></div>
+    <div class="summary"><div class="line" style="margin-top:14px"><span>原價合計</span><span>${money(draftTotal)}</span></div></div>
+    <label class="field" style="margin-top:14px"><span>組合優惠價（選填，留空＝原價）</span>
+      <input type="number" id="bdPrice" min="0" inputmode="numeric" value="${bDraft.price||''}" placeholder="例：2999" oninput="bDraft.price=this.value;bdSaving()"></label>
+    <div class="muted" id="bdSaving" style="margin-top:-6px">${bdSavingText(draftTotal)}</div>
     ${bDraft.id ? `<div class="grid2" style="margin-top:14px">
       <button class="btn ghost" onclick="resetBundleDraft()">取消編輯</button>
       <button class="btn" onclick="saveBundleDraft()">儲存變更</button>
     </div>` : `<button class="btn block" style="margin-top:14px" onclick="saveBundleDraft()">＋ 新增組合</button>`}
   </div>`;
 }
+function bdSavingText(t){
+  const d = Math.round(Number(bDraft.price)||0);
+  return !d ? '結帳時以原價計算' : d >= t ? '優惠價需低於原價合計' : `結帳時顯示原價 ${money(t)}，折抵 ${money(t-d)}，實收 ${money(d)}`;
+}
+function bdSaving(){ const t = Object.entries(bDraft.items).reduce((s,[id,q])=>s+(db.items.find(i=>i.id===id)?.price||0)*q,0); const el = $('#bdSaving'); if(el) el.textContent = bdSavingText(t); }
 function bdQty(id, d){ bDraft.items[id] = Math.max(0, (bDraft.items[id]||0) + d); renderShopSettings(); }
-function resetBundleDraft(){ bDraft = {id:null, name:'', items:{}}; renderShopSettings(); }
+function resetBundleDraft(){ bDraft = {id:null, name:'', items:{}, price:''}; renderShopSettings(); }
 function editBundle(id){
   const b = db.bundles.find(x=>x.id===id); if(!b) return;
-  bDraft = {id, name:b.name, items:Object.fromEntries(b.items.map(x=>[x.itemId,x.qty]))};
+  bDraft = {id, name:b.name, items:Object.fromEntries(b.items.map(x=>[x.itemId,x.qty])), price:b.price||''};
   renderShopSettings();
   setTimeout(()=>$('#bdName')?.scrollIntoView({behavior:'smooth', block:'center'}), 30);
 }
@@ -3562,15 +3588,16 @@ function saveBundleDraft(){
   const items = Object.entries(bDraft.items).filter(([,q])=>q>0).map(([itemId,qty])=>({itemId,qty}));
   if(!name){ toast('請輸入組合名稱'); return; }
   if(!items.length){ toast('請至少選擇一個品項'); return; }
-  if(bDraft.id){ Object.assign(db.bundles.find(b=>b.id===bDraft.id), {name, items}); }
-  else db.bundles.push({id:uid(), name, items});
+  const price = Math.max(0, Math.round(Number(bDraft.price)||0)) || 0;
+  if(bDraft.id){ Object.assign(db.bundles.find(b=>b.id===bDraft.id), {name, items, price}); }
+  else db.bundles.push({id:uid(), name, items, price});
   save(); toast(bDraft.id ? '已更新組合' : '已新增組合');
-  bDraft = {id:null, name:'', items:{}}; renderShopSettings();
+  bDraft = {id:null, name:'', items:{}, price:''}; renderShopSettings();
 }
 function deleteBundle(id){
   if(!confirm('確定刪除此組合？')) return;
   db.bundles = db.bundles.filter(b=>b.id!==id);
-  if(bDraft.id===id) bDraft = {id:null, name:'', items:{}};
+  if(bDraft.id===id) bDraft = {id:null, name:'', items:{}, price:''};
   save(); renderShopSettings();
 }
 
