@@ -1,5 +1,5 @@
 // 離線快取：主程式採「網路優先、離線用快取」，確保有網路時永遠拿到最新版
-const CACHE = 'skincare-crm-v7';
+const CACHE = 'skincare-crm-v8';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -20,6 +20,9 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
 
   // 頁面：網路優先，失敗時改用快取（離線也能開）
+  // 銷售頁等其他頁面：直接走網路，不寫入 App 快取
+  const isApp = url.origin === self.location.origin && /\/(index\.html)?$/.test(url.pathname) && new URL('./', self.location).pathname === url.pathname.replace(/index\.html$/, '');
+  if (req.mode === 'navigate' && !isApp) return;
   if (req.mode === 'navigate') {
     e.respondWith(
       fetch(req, {cache:'no-store'})

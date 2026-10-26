@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>歡迎使用 SKIN ATELIER</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="../icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --border:#EFE4E0; --text:#2F2B2A; --label:#8C8380; --sub:#A39893; --rose:#C8918A; --rose-deep:#B27A73; --rose-line:#E8C5BF; --rose-pale:#FBF3F1;
+    --serif:"Noto Serif TC","Songti TC","PMingLiU",serif; --latin:"Cormorant Garamond","Noto Serif TC",serif; }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:linear-gradient(180deg,#fff,#FCF9F8);color:var(--text);font-family:var(--serif);line-height:1.8;letter-spacing:.04em;-webkit-font-smoothing:antialiased}
+  main{max-width:620px;margin:0 auto;padding:56px 20px calc(48px + env(safe-area-inset-bottom))}
+  .mark{width:64px;height:64px;border-radius:50%;border:1px solid var(--rose-line);display:grid;place-items:center;margin:0 auto 22px;background:#fff}
+  .mark::after{content:"";width:22px;height:11px;border-left:2px solid var(--rose-deep);border-bottom:2px solid var(--rose-deep);transform:translateY(-3px) rotate(-45deg)}
+  .eyebrow{text-align:center;font-family:var(--latin);font-weight:600;letter-spacing:.32em;font-size:13px;color:var(--rose-deep)}
+  h1{text-align:center;font-weight:600;font-size:clamp(26px,6vw,34px);letter-spacing:.08em;margin:10px 0 10px}
+  .lead{text-align:center;color:var(--label);margin:0 0 34px}
+  .btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:58px;border-radius:999px;background:var(--rose);color:#fff;text-decoration:none;font-family:var(--serif);font-weight:600;font-size:17px;letter-spacing:.14em;box-shadow:0 12px 28px rgba(200,145,138,.3)}
+  .btn.ghost{background:#fff;color:var(--text);border:1.5px solid var(--border);box-shadow:none;font-size:15px;min-height:50px;margin-top:12px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:26px;padding:28px 24px;margin-top:22px}
+  .card h2{font-size:18px;font-weight:600;letter-spacing:.06em;margin:0 0 4px}
+  .card .muted{color:var(--sub);font-size:14px;margin:0 0 12px}
+  ol{list-style:none;padding:0;margin:0;counter-reset:s}
+  li{counter-increment:s;display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--border);font-size:15px}
+  li:first-child{border-top:none}
+  li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;border:1px solid var(--rose-line);display:grid;place-items:center;font-family:var(--latin);font-size:16px;color:var(--rose-deep);margin-top:1px}
+  li b{font-weight:600}
+  .url{display:block;margin-top:14px;padding:12px 16px;border-radius:14px;background:var(--rose-pale);font-family:var(--latin);font-size:16px;letter-spacing:.04em;word-break:break-all;text-align:center}
+  footer{text-align:center;margin-top:30px;font-size:13px;color:var(--sub)}
+  footer a{color:var(--rose-deep)}
+</style>
+</head>
+<body>
+<main>
+  <div class="mark" aria-hidden="true"></div>
+  <div class="eyebrow">WELCOME</div>
+  <h1>付款完成，歡迎加入</h1>
+  <p class="lead">感謝你選擇 SKIN ATELIER。<br>按下方按鈕，就能開始建立你的店。</p>
+
+  <a class="btn" href="../">開始使用 App</a>
+
+  <div class="card">
+    <h2>第一次使用</h2>
+    <p class="muted">大約三分鐘就能完成</p>
+    <ol>
+      <li><div>輸入<b>店家名稱</b>，勾選你的店有提供的服務</div></li>
+      <li><div>到「店家設定 → 服務與價格」確認項目與價格</div></li>
+      <li><div>新增你的服務師，就可以開始第一筆結帳</div></li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>加到 iPad 主畫面</h2>
+    <p class="muted">像 App 一樣全螢幕開啟，沒網路也能開單</p>
+    <ol>
+      <li><div>用 <b>Safari</b> 打開 App 網址</div></li>
+      <li><div>點右上角的「分享」圖示</div></li>
+      <li><div>選「<b>加入主畫面</b>」，按「新增」</div></li>
+    </ol>
+    <span class="url" id="appUrl"></span>
+    <a class="btn ghost" href="#" id="copyUrl">複製 App 網址</a>
+  </div>
+
+  <footer>使用上有任何問題，歡迎 <a href="https://line.me/R/ti/p/@799vhtvj" target="_blank" rel="noopener">私訊 LINE 官方帳號</a></footer>
+</main>
+<script>
+  const url = new URL('../', location.href).href;
+  document.getElementById('appUrl').textContent = url;
+  document.getElementById('copyUrl').addEventListener('click', async e => {
+    e.preventDefault();
+    try{ await navigator.clipboard.writeText(url); e.target.textContent = '已複製網址'; }
+    catch(_){ e.target.textContent = url; }
+  });
+</script>
+</body>
+</html>

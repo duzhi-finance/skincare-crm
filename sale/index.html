@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SKIN ATELIER 美容皮膚管理系統</title>
+<meta name="description" content="專為美容皮膚管理工作室設計的顧客管理＋結帳系統：iPad 開單、包套儲值自動扣抵、LINE 官方帳號一鍵傳收據。一次買斷，離線可用。">
+<meta name="theme-color" content="#FFFFFF">
+<meta property="og:title" content="SKIN ATELIER 美容皮膚管理系統">
+<meta property="og:description" content="顧客檔案、包套儲值、一站式結帳、LINE 收據與追訪提醒，一台 iPad 就能搞定。">
+<meta property="og:image" content="s-checkout.jpg">
+<link rel="icon" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet">
+<script>
+/* ===== 銷售設定：改這裡即可 ===== */
+const CONFIG = {
+  price: '0,000',                        // 一次買斷價格（例：'3,980'）
+  originalPrice: '',                     // 原價（選填，留空不顯示；例：'5,980'）
+  payUrl: '',                            // 付款連結（綠界、藍新、Portaly 等收款連結）；付款完成請導回 welcome.html
+  lineUrl: 'https://line.me/R/ti/p/@799vhtvj',   // 官方帳號：未設定付款連結時，購買按鈕改為私訊購買
+};
+</script>
+<style>
+  :root{
+    --bg:#FFFFFF; --soft:#FCF9F8; --border:#EFE4E0; --text:#2F2B2A; --label:#8C8380; --sub:#A39893;
+    --rose:#C8918A; --rose-deep:#B27A73; --rose-pale:#FBF3F1; --rose-line:#E8C5BF; --ink:#353130;
+    --serif:"Noto Serif TC","Songti TC","PMingLiU",serif; --latin:"Cormorant Garamond","Noto Serif TC",serif;
+    --wrap:1120px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);font-weight:400;line-height:1.75;letter-spacing:.03em;-webkit-font-smoothing:antialiased}
+  img{max-width:100%;height:auto;display:block}
+  a{color:inherit}
+  .wrap{max-width:var(--wrap);margin:0 auto;padding:0 20px}
+  .eyebrow{font-family:var(--latin);font-weight:600;letter-spacing:.32em;font-size:13px;color:var(--rose-deep);text-transform:uppercase}
+  h1,h2,h3{font-weight:600;letter-spacing:.06em;line-height:1.35;margin:0}
+  h2{font-size:clamp(26px,4.2vw,38px)}
+  .lead{color:var(--label);font-size:clamp(15px,1.8vw,17px);line-height:1.95;letter-spacing:.05em}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 30px;border-radius:999px;border:1.5px solid var(--rose);background:var(--rose);color:#fff;font-family:var(--serif);font-size:16px;font-weight:600;letter-spacing:.12em;text-decoration:none;cursor:pointer;transition:.25s;box-shadow:0 10px 26px rgba(200,145,138,.28)}
+  .btn:hover{background:var(--rose-deep);border-color:var(--rose-deep)}
+  .btn.ghost{background:#fff;color:var(--text);border-color:var(--border);box-shadow:none}
+  .btn.ghost:hover{border-color:var(--rose-line)}
+  .btn.block{width:100%}
+
+  /* 頂部 */
+  header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.88);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid transparent;transition:.3s}
+  header.scrolled{border-bottom-color:var(--border)}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .brand{font-family:var(--latin);font-weight:600;font-size:22px;letter-spacing:.24em;text-decoration:none;line-height:1}
+  .brand small{display:block;font-family:var(--serif);font-weight:400;font-size:11px;letter-spacing:.2em;color:var(--sub);margin-top:5px}
+  header .btn{min-height:42px;padding:0 20px;font-size:14px;box-shadow:none}
+
+  /* 主視覺 */
+  .hero{padding:56px 0 40px;text-align:center;background:linear-gradient(180deg,#fff 0%,var(--soft) 100%)}
+  .hero h1{font-size:clamp(30px,6vw,54px);letter-spacing:.08em;margin:18px 0 18px}
+  .hero h1 em{font-style:normal;color:var(--rose-deep)}
+  .hero .lead{max-width:640px;margin:0 auto 30px}
+  .cta-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+  .hero .note{margin-top:16px;font-size:13px;color:var(--sub);letter-spacing:.08em}
+  .device{margin:48px auto 0;max-width:960px;padding:14px;border-radius:34px;background:#2F2B2A;box-shadow:0 40px 80px rgba(120,80,70,.18),0 0 0 1px rgba(0,0,0,.05)}
+  .device img{border-radius:22px;width:100%}
+
+  /* 區塊 */
+  section{padding:84px 0}
+  .head{text-align:center;max-width:680px;margin:0 auto 48px}
+  .head h2{margin:14px 0 14px}
+
+  /* 痛點 */
+  .pains{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+  .pain{border:1px solid var(--border);border-radius:24px;padding:28px 26px;background:#fff}
+  .pain .n{font-family:var(--latin);font-size:30px;color:var(--rose);line-height:1}
+  .pain h3{font-size:18px;margin:14px 0 8px}
+  .pain p{margin:0;color:var(--label);font-size:15px}
+
+  /* 功能 */
+  .feat{display:grid;gap:40px;align-items:center;grid-template-columns:1fr;margin-bottom:84px}
+  .feat:last-child{margin-bottom:0}
+  .feat .shot{border-radius:26px;overflow:hidden;border:1px solid var(--border);box-shadow:0 24px 60px rgba(150,110,100,.12);background:#fff}
+  .feat .shot.narrow{max-width:440px;margin:0 auto}
+  .feat h3{font-size:clamp(22px,3vw,28px);margin:12px 0 14px}
+  .feat ul{list-style:none;padding:0;margin:20px 0 0}
+  .feat li{position:relative;padding:10px 0 10px 26px;border-top:1px solid var(--border);color:var(--text);font-size:15.5px}
+  .feat li:first-child{border-top:none}
+  .feat li::before{content:"";position:absolute;left:4px;top:21px;width:8px;height:8px;border-radius:50%;background:var(--rose)}
+  @media (min-width:880px){
+    .feat{grid-template-columns:1.25fr 1fr;gap:64px}
+    .feat.rev .shot{order:2}
+  }
+
+  /* 小功能格 */
+  .soft-bg{background:var(--soft)}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))}
+  .cell{background:#fff;border:1px solid var(--border);border-radius:22px;padding:24px}
+  .cell b{display:block;font-weight:600;font-size:16.5px;letter-spacing:.06em;margin-bottom:6px}
+  .cell span{color:var(--label);font-size:14.5px;line-height:1.8}
+
+  /* 步驟 */
+  .steps{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));counter-reset:s}
+  .step{position:relative;border:1px solid var(--border);border-radius:24px;padding:30px 26px 26px;counter-increment:s}
+  .step::before{content:counter(s);display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--rose-line);font-family:var(--latin);font-size:22px;color:var(--rose-deep);margin-bottom:16px}
+  .step h3{font-size:18px;margin-bottom:6px}
+  .step p{margin:0;color:var(--label);font-size:15px}
+
+  /* 價格 */
+  .price-card{max-width:560px;margin:0 auto;border:1px solid var(--rose-line);border-radius:32px;padding:44px 32px 36px;text-align:center;background:linear-gradient(180deg,#fff,var(--rose-pale));box-shadow:0 30px 70px rgba(200,145,138,.16)}
+  .price-card .tag{display:inline-block;border:1px solid var(--rose-line);border-radius:999px;padding:4px 16px;font-size:13px;letter-spacing:.18em;color:var(--rose-deep);background:#fff}
+  .price{margin:22px 0 4px;font-family:var(--latin);font-weight:600;font-size:clamp(46px,9vw,64px);line-height:1;letter-spacing:.02em}
+  .price small{font-family:var(--serif);font-size:18px;font-weight:500;margin-right:6px;letter-spacing:.08em}
+  .was{color:var(--sub);text-decoration:line-through;font-size:15px;margin-bottom:6px}
+  .price-sub{color:var(--label);font-size:14.5px;margin-bottom:26px}
+  .incl{list-style:none;padding:0;margin:0 0 30px;text-align:left}
+  .incl li{padding:11px 0 11px 30px;border-top:1px solid var(--border);position:relative;font-size:15px}
+  .incl li::before{content:"";position:absolute;left:6px;top:19px;width:11px;height:6px;border-left:1.5px solid var(--rose-deep);border-bottom:1.5px solid var(--rose-deep);transform:rotate(-45deg)}
+  .secure{margin-top:14px;font-size:13px;color:var(--sub);letter-spacing:.06em}
+
+  /* FAQ */
+  .faq{max-width:760px;margin:0 auto}
+  details{border-top:1px solid var(--border);padding:4px 0}
+  details:last-child{border-bottom:1px solid var(--border)}
+  summary{list-style:none;cursor:pointer;padding:20px 40px 20px 0;position:relative;font-weight:500;font-size:16.5px;letter-spacing:.05em}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"";position:absolute;right:8px;top:50%;width:10px;height:10px;border-right:1.5px solid var(--rose-deep);border-bottom:1.5px solid var(--rose-deep);transform:translateY(-70%) rotate(45deg);transition:.25s}
+  details[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
+  details p{margin:0 0 20px;color:var(--label);font-size:15px;line-height:1.9}
+
+  /* 結尾 */
+  .final{text-align:center;padding:90px 0;background:var(--ink);color:#F6EEEA}
+  .final h2{color:#fff}
+  .final .lead{color:#CFC3BE;max-width:560px;margin:16px auto 32px}
+  .final .eyebrow{color:var(--rose-line)}
+  footer{padding:30px 0 calc(30px + env(safe-area-inset-bottom));text-align:center;font-size:13px;color:var(--sub);letter-spacing:.08em}
+
+  /* 手機底部購買列 */
+  .buybar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;align-items:center;gap:14px;justify-content:space-between;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:rgba(255,255,255,.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--border);transform:translateY(110%);transition:.35s}
+  .buybar.show{transform:none}
+  .buybar .p{font-family:var(--latin);font-weight:600;font-size:26px;line-height:1}
+  .buybar .p small{font-family:var(--serif);font-size:12px;font-weight:400;color:var(--sub);display:block;letter-spacing:.1em;margin-bottom:4px}
+  .buybar .btn{min-height:48px;padding:0 24px;font-size:15px}
+  @media (min-width:880px){ .buybar{display:none} }
+  @media (max-width:879px){ footer{padding-bottom:110px} }
+
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .8s ease,transform .8s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){ .reveal{opacity:1;transform:none;transition:none} html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header id="top">
+  <div class="wrap">
+    <a class="brand" href="#">SKIN ATELIER<small>美容皮膚管理系統</small></a>
+    <a class="btn buy" href="#pricing">立即購買</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Beauty Salon CRM · POS</div>
+    <h1>讓每一位顧客，<br>都被<em>細心記住</em>。</h1>
+    <p class="lead">專為美容皮膚管理工作室設計的顧客管理＋結帳系統。<br>iPad 開單、包套儲值自動扣抵、LINE 官方帳號一鍵傳收據。</p>
+    <div class="cta-row">
+      <a class="btn buy" href="#pricing">一次買斷 NT$ <span class="js-price"></span></a>
+      <a class="btn ghost" href="#features">看看有哪些功能</a>
+    </div>
+    <div class="note">不用月費・不用安裝・沒網路也能開單</div>
+    <div class="device reveal"><img src="s-checkout.jpg" alt="快速結帳畫面：熱門組合、服務選單與付款" width="1600" height="1112"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head reveal">
+      <div class="eyebrow">Sound familiar?</div>
+      <h2>你是不是也這樣？</h2>
+    </div>
+    <div class="pains">
+      <div class="pain reveal"><div class="n">01</div><h3>包套剩幾堂，要翻本子對</h3><p>顧客問「我還剩幾次？」，只能翻紙本或 Excel，忙起來還容易算錯。</p></div>
+      <div class="pain reveal"><div class="n">02</div><h3>過敏、膚況全靠腦袋記</h3><p>誰對酒精過敏、誰怕痛、上次做到哪裡，換了美容師就接不上。</p></div>
+      <div class="pain reveal"><div class="n">03</div><h3>結帳完還要手打收據</h3><p>算折扣、扣儲值、再一個字一個字打給顧客，一天下來最累的不是做臉。</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="features" class="soft-bg">
+  <div class="wrap">
+    <div class="head reveal">
+      <div class="eyebrow">Features</div>
+      <h2>一台 iPad，店務全部搞定</h2>
+      <p class="lead">從顧客建檔、開單結帳、傳收據到追蹤回訪，每一步都替美容工作室想好了。</p>
+    </div>
+
+    <div class="feat reveal">
+      <div class="shot narrow"><img src="s-detail.jpg" alt="顧客檔案：過敏標籤、包套剩餘與儲值金" loading="lazy" width="1360" height="1444"></div>
+      <div>
+        <div class="eyebrow">Client Profile</div>
+        <h3>顧客檔案，一眼看完</h3>
+        <p class="lead">膚質、過敏、服務喜好、包套剩餘與儲值金，打開就清清楚楚。</p>
+        <ul>
+          <li>過敏與特殊注意以柔和標籤提醒美容師</li>
+          <li>每次服務自動寫入時間軸：日期、服務師、膚況備註</li>
+          <li>照片前後對比，滑動就能看出改善</li>
+          <li>本月壽星、包套快到期自動標示</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feat rev reveal">
+      <div class="shot"><img src="s-pay.jpg" alt="付款方式：自動扣包套與儲值金" loading="lazy" width="1600" height="1112"></div>
+      <div>
+        <div class="eyebrow">Checkout</div>
+        <h3>一站式結帳，自動算好</h3>
+        <p class="lead">選顧客、點項目，包套與儲值金自動帶入扣抵，剩下的金額再收現金、轉帳或 LINE Pay。</p>
+        <ul>
+          <li>熱門組合一鍵帶入，可設定組合優惠價</li>
+          <li>包套、儲值金、點數、優惠券可同時使用</li>
+          <li>現金自動算找零，不怕收錯錢</li>
+          <li>自動產生交易單號與本日結算</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feat reveal">
+      <div class="shot narrow"><img src="s-receipt.jpg" alt="精緻電子收據" loading="lazy" width="1360" height="1444"></div>
+      <div>
+        <div class="eyebrow">LINE Receipt</div>
+        <h3>精緻收據，LINE 一鍵傳送</h3>
+        <p class="lead">結帳完成自動產生收據，按一下就複製好並打開你的 LINE 官方帳號，貼上即可傳給顧客。</p>
+        <ul>
+          <li>附上剩餘堂數、儲值餘額與建議回訪日</li>
+          <li>依服務自動帶入居家保養叮嚀</li>
+          <li>支援 80mm 熱感印表機列印</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feat rev reveal">
+      <div class="shot"><img src="s-tasks.jpg" alt="今日待辦與追訪" loading="lazy" width="1600" height="1112"></div>
+      <div>
+        <div class="eyebrow">Follow-up</div>
+        <h3>該關心誰，系統先提醒你</h3>
+        <p class="lead">今日預約、術後關心、包套快用完、本月壽星，自動整理成待辦清單。</p>
+        <ul>
+          <li>預約一鍵帶入結帳，不用重新選項目</li>
+          <li>術後關心與喚回訊息自動寫好</li>
+          <li>回頭客變多，是最好的行銷</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head reveal">
+      <div class="eyebrow">And more</div>
+      <h2>小細節，也都想到了</h2>
+    </div>
+    <div class="grid">
+      <div class="cell reveal"><b>服務自由設定</b><span>皮膚管理、外泌體、除毛、體雕任選，單一專精門市也適用</span></div>
+      <div class="cell reveal"><b>多堂方案</b><span>買 10 送 2 這類方案一鍵帶入堂數、售價與效期</span></div>
+      <div class="cell reveal"><b>會員點數與優惠券</b><span>需要才打開，新客、壽星優惠自動判斷資格</span></div>
+      <div class="cell reveal"><b>服務師業績</b><span>記錄每筆由誰服務，方便計算抽成</span></div>
+      <div class="cell reveal"><b>離線也能用</b><span>加到 iPad 主畫面像 App 一樣開啟，沒網路照常開單</span></div>
+      <div class="cell reveal"><b>資料在你手上</b><span>資料存在你的裝置，不上傳雲端，可隨時匯出備份</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="soft-bg">
+  <div class="wrap">
+    <div class="head reveal">
+      <div class="eyebrow">How it works</div>
+      <h2>付款後，三分鐘開始使用</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><h3>完成付款</h3><p>付款成功後自動跳轉到開始頁面，不用等人工開通。</p></div>
+      <div class="step reveal"><h3>輸入店名、勾選服務</h3><p>選擇你的店有提供的服務，系統自動帶入常用項目與價格，之後都能修改。</p></div>
+      <div class="step reveal"><h3>加到主畫面，開始開單</h3><p>用 Safari 加入主畫面，像 App 一樣全螢幕使用。</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="head reveal">
+      <div class="eyebrow">Pricing</div>
+      <h2>一次買斷，長期使用</h2>
+    </div>
+    <div class="price-card reveal">
+      <span class="tag">ONE-TIME</span>
+      <div class="was js-was" hidden>原價 NT$ <span></span></div>
+      <div class="price"><small>NT$</small><span class="js-price"></span></div>
+      <div class="price-sub">不另收月費</div>
+      <ul class="incl">
+        <li>顧客檔案、膚況紀錄與照片前後對比</li>
+        <li>一站式結帳：包套、儲值金、點數、優惠券</li>
+        <li>電子收據與 LINE 官方帳號一鍵傳送</li>
+        <li>預約排程、術後關心與追訪提醒</li>
+        <li>服務師業績、本日結算、熱感列印</li>
+        <li>iPad／iPhone／Android／電腦皆可使用</li>
+      </ul>
+      <a class="btn block buy-now" href="#">立即購買</a>
+      <div class="secure js-secure">付款完成後自動前往開始使用頁面</div>
+    </div>
+  </div>
+</section>
+
+<section class="soft-bg">
+  <div class="wrap">
+    <div class="head reveal">
+      <div class="eyebrow">FAQ</div>
+      <h2>常見問題</h2>
+    </div>
+    <div class="faq reveal">
+      <details><summary>需要每個月付費嗎？</summary><p>不需要。一次買斷，不另收月費。</p></details>
+      <details><summary>可以用在哪些裝置？</summary><p>iPad、iPhone、Android 手機與平板、電腦瀏覽器都能使用，最推薦 iPad 橫向開單。</p></details>
+      <details><summary>顧客資料存在哪裡？安全嗎？</summary><p>資料只存在你自己的裝置，不會上傳到任何雲端伺服器。建議每天營業結束後按一下「匯出備份」，換機時再匯入即可。</p></details>
+      <details><summary>沒有網路可以用嗎？</summary><p>可以。第一次開啟並加到主畫面後，沒有網路也能正常建檔、結帳與查詢。</p></details>
+      <details><summary>店裡有兩台 iPad 可以一起用嗎？</summary><p>店家設定（服務項目、價格、熱門組合等）可以用「設定碼」複製到另一台。顧客與消費資料會分別存在各台裝置，建議由一台主要負責結帳。</p></details>
+      <details><summary>LINE 收據可以自動傳給顧客嗎？</summary><p>按一下就會複製好收據並打開你的 LINE 官方帳號，點顧客的聊天室貼上即可，不用再手打。</p></details>
+      <details><summary>服務項目跟價格可以自己改嗎？</summary><p>可以。服務項目、價格、大類、熱門組合、多堂方案與衛教叮嚀都能自由新增、修改與刪除。</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <div class="eyebrow">Start today</div>
+    <h2>把時間留給顧客，<br>其他交給 SKIN ATELIER。</h2>
+    <p class="lead">一次買斷 NT$ <span class="js-price"></span>，付款完成立即開始使用。</p>
+    <a class="btn buy-now" href="#">立即購買</a>
+  </div>
+</section>
+
+<footer>© SKIN ATELIER 美容皮膚管理系統・<a href="#" class="js-contact">聯絡我們</a></footer>
+
+<div class="buybar" id="buybar">
+  <div class="p"><small>一次買斷</small>NT$ <span class="js-price"></span></div>
+  <a class="btn buy-now" href="#">立即購買</a>
+</div>
+
+<script>
+(function(){
+  const $$ = s => document.querySelectorAll(s);
+  $$('.js-price').forEach(el => el.textContent = CONFIG.price);
+  if(CONFIG.originalPrice){ const w = document.querySelector('.js-was'); w.hidden = false; w.querySelector('span').textContent = CONFIG.originalPrice; }
+  // 有付款連結：直接前往付款；沒有：改為 LINE 官方帳號私訊購買
+  const href = CONFIG.payUrl || CONFIG.lineUrl;
+  $$('.buy-now').forEach(a => { a.href = href; a.target = '_blank'; a.rel = 'noopener'; if(!CONFIG.payUrl) a.textContent = '私訊 LINE 購買'; });
+  if(!CONFIG.payUrl) document.querySelector('.js-secure').textContent = '點擊後開啟 LINE 官方帳號，我們會盡快回覆';
+  const c = document.querySelector('.js-contact'); c.href = CONFIG.lineUrl; c.target = '_blank'; c.rel = 'noopener';
+
+  const header = document.getElementById('top'), bar = document.getElementById('buybar'), pricing = document.getElementById('pricing');
+  let pricingVisible = false;
+  new IntersectionObserver(es => es.forEach(e => { pricingVisible = e.isIntersecting; onScroll(); }), {threshold:.15}).observe(pricing);
+  function onScroll(){
+    header.classList.toggle('scrolled', scrollY > 8);
+    bar.classList.toggle('show', scrollY > 600 && !pricingVisible);
+  }
+  addEventListener('scroll', onScroll, {passive:true}); onScroll();
+
+  const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }), {threshold:.12, rootMargin:'0px 0px -40px 0px'});
+  $$('.reveal').forEach(el => io.observe(el));
+})();
+</script>
+</body>
+</html>
