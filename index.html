@@ -892,12 +892,10 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>LINE 官方帳號</h3><p>收據彈窗的「開啟 LINE 發送」會先複製文字，再一鍵切換到 LINE</p></div>
-      <label class="field"><span>店家 LINE 官方帳號 ID / 連結</span><input type="text" id="setLineId" placeholder="例：@your_shop_id 或 https://line.me/R/ti/p/@your_shop_id" autocapitalize="off" autocorrect="off"></label>
+      <div class="card-head"><h3>LINE 傳送方式</h3><p>收據彈窗的「開啟 LINE 發送」會先複製收據文字，再依下方方式切換畫面</p></div>
       <div class="field-label">開啟 LINE 的方式</div>
       <div id="lineModeSeg"></div>
-      <p class="muted" id="lineModeHint" style="margin:0 0 14px"></p>
-      <button class="btn sm" onclick="saveShop()">儲存</button>
+      <p class="muted" id="lineModeHint" style="margin:0"></p>
     </div>
 
     <div class="card">
@@ -1150,7 +1148,8 @@ function migrate(d){
   if(!Array.isArray(d.careTips)) d.careTips = TEMPLATES.skin.care.map(t=>({id:uid(),...t}));
   d.careTips.forEach(t=>{ if(!Array.isArray(t.keys)) t.keys = inferCareKeys(t); });
   if(d.lineId===undefined) d.lineId = '';
-  if(d.lineMode===undefined) d.lineMode = 'share';
+  // 傳送方式改版：預設用官方帳號（舊的 oa / share 一次性改為 biz）
+  if(!d.lineModeV2){ d.lineMode = 'biz'; d.lineModeV2 = true; }
   if(!Array.isArray(d.bundles)) d.bundles = bundlesByName(d.items, TEMPLATES.skin.bundles);
   if(!d.tags) d.tags = JSON.parse(JSON.stringify(TEMPLATES.skin.tags));
   ['types','notes','cautions','prefs'].forEach(k=>{ if(!Array.isArray(d.tags[k])) d.tags[k] = []; });
@@ -1644,9 +1643,20 @@ function bundleDiscounts(){
   db.bundles.filter(b=>bundleDeal(b) && !(co.usePkg && bundleItems(b).some(x=>x.item.cat==='service')))
     .sort((a,b)=>(bundlePrice(b)-bundleDeal(b))-(bundlePrice(a)-bundleDeal(a)))
     .forEach(b=>{ const xs = bundleItems(b);
-      while(xs.length && xs.every(x=>(left[x.itemId]||0) >= x.qty)){ xs.forEach(x=>left[x.itemId]-=x.qty); out.push({name:b.name, off:bundlePrice(b)-bundleDeal(b)}); } });
+      while(xs.length && xs.every(x=>(left[x.itemId]||0) >= x.qty)){ xs.forEach(x=>left[x.itemId]-=x.qty); out.push({name:b.name, price:bundleDeal(b), off:bundlePrice(b)-bundleDeal(b), parts:xs.map(x=>({name:x.item.name, qty:x.qty}))}); } });
   return out;
 }
+// 明細顯示：組合以組合價列成一行（不顯示原價），其餘品項照常列出
+function groupLines(lines, bl){
+  const left = lines.map(l=>({...l})), rows = [];
+  (bl||[]).forEach(b=>{
+    b.parts.forEach(pt=>{ const l = left.find(x=>x.name===pt.name && x.qty>0); if(l) l.qty -= pt.qty; });
+    const r = rows.find(x=>x.name===b.name); if(r) r.qty++; else rows.push({name:b.name, price:b.price, qty:1, bundle:true});
+  });
+  return [...rows, ...left.filter(l=>l.qty>0)];
+}
+// 顯示用小計：組合已用組合價計算
+const shownTotal = o => o.total - (o.bundleLines ? (o.bundleDisc||0) : 0);
 const bundleOn = b => { const xs = bundleItems(b); return xs.length && xs.every(x=>(co.cart[x.itemId]||0) >= x.qty); };
 
 /* POS 計算：小計 − 包套折抵 − 壽星優惠 − 點數折抵 − 儲值金扣抵 ＝ 實收
@@ -1729,7 +1739,7 @@ function renderCheckout(){
   $('#coBundleWrap').hidden = !db.bundles.length && !cartHas;
   $('#coBundles').innerHTML = (db.bundles.length ? `<div class="bundles">${db.bundles.map(b=>`
       <button type="button" class="bundle ${bundleOn(b)?'on':''}" onclick="applyBundle('${b.id}')">
-        <b>${esc(b.name)}</b><span>${esc(bundleItems(b).map(x=>x.item.name+(x.qty>1?`×${x.qty}`:'')).join(' + '))}</span><em>${bundleDeal(b) ? `<s class="was">${money(bundlePrice(b))}</s>${money(bundleDeal(b))}` : money(bundlePrice(b))}</em>
+        <b>${esc(b.name)}</b><span>${esc(bundleItems(b).map(x=>x.item.name+(x.qty>1?`×${x.qty}`:'')).join(' + '))}</span><em>${money(bundleDeal(b) || bundlePrice(b))}</em>
       </button>`).join('')}</div>` : '')
     + (Object.values(co.cart).some(q=>q>0) ? `<button type="button" class="btn sm dashed" style="margin-bottom:6px" onclick="saveBundle()">＋ 將目前選取存為熱門組合</button>` : '');
 
@@ -1843,30 +1853,30 @@ function renderCheckout(){
   // 結帳明細
   const rebook = rebookFor(k.lines);
   const notices = c ? pkgNotices(c, (c.credits||0) - k.creditsUse, k.creditsUse) : [];
-  const deducted = k.pkgCover + k.discount + k.pointsCover + k.balanceUse;
+  const deducted = k.pkgCover + k.discount - k.bundleDisc + k.pointsCover + k.balanceUse;
+  const sub = k.total - k.bundleDisc, offShown = k.discount - k.bundleDisc;
   $('#coSummary').innerHTML = `
     <div class="amount-panel">
       <div class="lbl">本次實收 · AMOUNT DUE</div>
       <div class="num ${k.paid?'':'zero'}">${money(k.paid)}</div>
       <div class="pills">
-        <span class="dark">小計 ${money(k.total)}</span>
+        <span class="dark">小計 ${money(sub)}</span>
         ${k.creditsUse?`<span>包套 −1 次</span>`:''}
-        ${k.discount?`<span>優惠 −${money(k.discount)}</span>`:''}
+        ${offShown?`<span>優惠 −${money(offShown)}</span>`:''}
         ${k.ptsUse?`<span>點數 −${money(k.pointsCover)}</span>`:''}
         ${k.balanceUse?`<span>儲值金 −${money(k.balanceUse)}</span>`:''}
       </div>
     </div>
-    ${k.lines.length ? k.lines.map(l=>`<div class="line"><span>${esc(l.name)} × ${l.qty}</span><span>${money(l.price*l.qty)}</span></div>`).join('')
+    ${k.lines.length ? groupLines(k.lines, k.bundleList).map(l=>`<div class="line"><span>${esc(l.name)} × ${l.qty}</span><span>${money(l.price*l.qty)}</span></div>`).join('')
       : '<div class="muted">尚未選擇任何品項</div>'}
-    <div class="line" style="margin-top:6px;color:var(--sub)"><span>小計</span><span>${money(k.total)}</span></div>
+    <div class="line" style="margin-top:6px;color:var(--sub)"><span>小計</span><span>${money(sub)}</span></div>
     ${k.creditsUse?`<div class="line deduct"><span>扣抵包套 1 次</span><span>−${money(k.pkgCover)}</span></div>`:''}
-    ${k.bundleList.map(x=>`<div class="line deduct"><span>組合優惠・${esc(x.name)}</span><span>−${money(x.off)}</span></div>`).join('')}
     ${k.couponDisc?`<div class="line deduct"><span>${esc(k.coupon.name)}（${couponLabel(k.coupon)}）</span><span>−${money(k.couponDisc)}</span></div>`:''}
     ${k.manualDisc?`<div class="line deduct"><span>手動折扣</span><span>−${money(k.manualDisc)}</span></div>`:''}
     ${k.ptsUse?`<div class="line deduct"><span>點數折抵（${k.ptsUse} 點）</span><span>−${money(k.pointsCover)}</span></div>`:''}
     ${k.balanceUse?`<div class="line deduct"><span>扣抵儲值金</span><span>−${money(k.balanceUse)}</span></div>`:''}
     <div class="line total-line"><span>實收${k.paid?`（${PAY_METHODS[co.payMethod].label}）`:''}</span><span>${money(k.paid)}</span></div>
-    ${k.lines.length ? `<div class="recon">核對　折抵 ${money(deducted)} ＋ 實收 ${money(k.paid)} ＝ 小計 ${money(k.total)}</div>` : ''}
+    ${k.lines.length ? `<div class="recon">核對　折抵 ${money(deducted)} ＋ 實收 ${money(k.paid)} ＝ 小計 ${money(sub)}</div>` : ''}
     ${c && k.ptsEarn ? `<div class="recon">本次消費可獲得 ${k.ptsEarn} 點</div>` : ''}
     ${rebook ? `<div class="rebook">
       <div><div class="lbl">建議下次回訪 · REBOOK</div><b>${fmtDW(rebook.date)}</b></div>
@@ -1984,7 +1994,7 @@ function confirmCheckout(){
     customerId:c?c.id:'', customerName:c?c.name:'散客',
     lines:k.lines.map(({name,price,qty,cat})=>({name,price,qty,cat})), total:k.total,
     creditsUsed:k.creditsUse, pkgCover:k.pkgCover, packageName:c?.packageName||'',
-    discount:k.discount, bundleDisc:k.bundleDisc, bundleNames:k.bundleList.map(x=>x.name).join('、'), discountOff:k.off, couponName:k.coupon?.name||'', couponDisc:k.couponDisc, manualDisc:k.manualDisc, bdayCoupon:k.coupon?.cond==='bday',
+    discount:k.discount, bundleDisc:k.bundleDisc, bundleNames:k.bundleList.map(x=>x.name).join('、'), bundleLines:k.bundleList.map(({name,price,parts})=>({name,price,parts})), discountOff:k.off, couponName:k.coupon?.name||'', couponDisc:k.couponDisc, manualDisc:k.manualDisc, bdayCoupon:k.coupon?.cond==='bday',
     pointsUsed:k.ptsUse, pointsCover:k.pointsCover, pointsEarned:c ? k.ptsEarn : 0, pointsAfter:c ? c.points : null,
     balanceUsed:k.balanceUse,
     paid:k.paid, payMethod:k.paid ? co.payMethod : null,
@@ -2035,7 +2045,7 @@ function buildReceipt(o){
   out.push(`日期：${fmtDT(o.date)}`);
   out.push(L);
   out.push('【項目明細】');
-  o.lines.forEach(l=>{
+  (o.type==='topup' ? o.lines : groupLines(o.lines, o.bundleLines)).forEach(l=>{
     if(o.type==='topup') out.push(`・${l.name}`);
     else out.push(`・${l.name}${l.qty>1?' ×'+l.qty:''}　${money(l.price*l.qty)}`);
   });
@@ -2044,9 +2054,9 @@ function buildReceipt(o){
     out.push(`付款方式：${PAY_METHODS[o.method].label}`);
     out.push(`實收金額：${money(o.paid)}`);
   } else {
-    out.push(`消費小計：${money(o.total)}`);
+    out.push(`消費小計：${money(shownTotal(o))}`);
     if(o.creditsUsed) out.push(`扣抵包套：${o.creditsUsed} 次${o.pkgCover?`（折抵 ${money(o.pkgCover)}）`:''}`);
-    if(o.bundleDisc) out.push(`組合優惠（${o.bundleNames}）：−${money(o.bundleDisc)}`);
+    if(o.bundleDisc && !o.bundleLines) out.push(`組合優惠（${o.bundleNames}）：−${money(o.bundleDisc)}`);
     if(o.couponName) out.push(`${o.bdayCoupon?'🎂':'🏷'} ${o.couponName}：−${money(o.couponDisc)}`);
     if(o.manualDisc) out.push(`手動折扣：−${money(o.manualDisc)}`);
     if(o.discount && !('couponName' in o)) out.push(`🎂 壽星優惠（${zhe(o.discountOff)}）：−${money(o.discount)}`);   // 舊版紀錄
@@ -2102,12 +2112,12 @@ function receiptCard(o){
     </div>
     <div class="rc-sep"></div>
     <div class="rc-sec">消費明細</div>
-    ${o.lines.map(l => sale ? row(`${esc(l.name)}${l.qty>1?` <em>× ${l.qty}</em>`:''}`, money(l.price*l.qty)) : row(esc(l.name), '')).join('')}
+    ${(sale ? groupLines(o.lines, o.bundleLines) : o.lines).map(l => sale ? row(`${esc(l.name)}${l.qty>1?` <em>× ${l.qty}</em>`:''}`, money(l.price*l.qty)) : row(esc(l.name), '')).join('')}
     ${sale ? `
       <div class="rc-sep thin"></div>
-      ${row('小計', money(o.total), 'muted')}
+      ${row('小計', money(shownTotal(o)), 'muted')}
       ${o.creditsUsed ? row(`扣抵包套 ${o.creditsUsed} 次`, o.pkgCover ? '−'+money(o.pkgCover) : '—', 'deduct') : ''}
-      ${o.bundleDisc ? row(`組合優惠・${esc(o.bundleNames)}`, '−'+money(o.bundleDisc), 'deduct') : ''}
+      ${o.bundleDisc && !o.bundleLines ? row(`組合優惠・${esc(o.bundleNames)}`, '−'+money(o.bundleDisc), 'deduct') : ''}
       ${o.couponName ? row(esc(o.couponName), '−'+money(o.couponDisc), 'deduct') : ''}
       ${o.manualDisc ? row('手動折扣', '−'+money(o.manualDisc), 'deduct') : ''}
       ${o.discount && !('couponName' in o) ? row(`壽星優惠（${zhe(o.discountOff)}）`, '−'+money(o.discount), 'deduct') : ''}
@@ -3217,11 +3227,11 @@ function thermalHTML(o){
     ${row('顧客', esc(o.customerName))}
     ${o.staff ? row('服務師', esc(o.staff)) : ''}
     <div class="t-hr"></div>
-    ${o.lines.map(l => sale ? row(`${esc(l.name)}${l.qty>1?` x${l.qty}`:''}`, money(l.price*l.qty)) : row(esc(l.name), '')).join('')}
+    ${(sale ? groupLines(o.lines, o.bundleLines) : o.lines).map(l => sale ? row(`${esc(l.name)}${l.qty>1?` x${l.qty}`:''}`, money(l.price*l.qty)) : row(esc(l.name), '')).join('')}
     <div class="t-hr"></div>
-    ${sale ? row('小計', money(o.total)) : ''}
+    ${sale ? row('小計', money(shownTotal(o))) : ''}
     ${o.creditsUsed > 0 ? row(`扣抵包套 ${o.creditsUsed} 次`, o.pkgCover ? '-'+money(o.pkgCover) : '') : ''}
-    ${o.bundleDisc ? row('組合優惠', '-'+money(o.bundleDisc)) : ''}
+    ${o.bundleDisc && !o.bundleLines ? row('組合優惠', '-'+money(o.bundleDisc)) : ''}
     ${o.couponName ? row(esc(o.couponName), '-'+money(o.couponDisc)) : ''}
     ${o.manualDisc ? row('手動折扣', '-'+money(o.manualDisc)) : ''}
     ${o.pointsUsed ? row(`點數折抵 ${o.pointsUsed} 點`, '-'+money(o.pointsCover)) : ''}
@@ -3302,19 +3312,15 @@ function resetCareEdit(id){ delete co.careEdit[id]; renderCheckout(); }
 const careTextOf = t => (co.careEdit[t.id] ?? t.text).trim();
 
 /* ================= LINE 快速連動 ================= */
-// share：開啟 LINE 選擇聊天室（傳給顧客）；oa：開啟與店家官方帳號的聊天並帶入文字
+// biz：用官方帳號回覆顧客（開啟官方帳號聊天後台）；share：用個人 LINE 選聊天室；copy：只複製
 function lineURL(text){
-  const id = (db.lineId||'').trim().replace(/^https?:\/\/[^@]*/,'');
-  if(db.lineMode==='oa' && id){
-    const oa = id.startsWith('@') ? id : '@' + id;
-    return `https://line.me/R/oaMessage/${encodeURIComponent(oa)}/?${encodeURIComponent(text)}`;
-  }
+  if(db.lineMode==='biz') return 'https://chat.line.biz/';
   return `https://line.me/R/share?text=${encodeURIComponent(text)}`;
 }
 async function openLine(text){
-  if(db.lineMode==='oa' && !(db.lineId||'').trim()){ toast('請先到「店家設定」填寫 LINE 官方帳號 ID'); return; }
   await copyText(text);                    // 先複製，跳到 LINE 後也能直接貼上
-  toast('已複製文字，正在開啟 LINE…');
+  if(db.lineMode==='copy'){ toast('已複製文字，請到 LINE 官方帳號 App 的顧客聊天室貼上'); return; }
+  toast(db.lineMode==='biz' ? '已複製文字，開啟官方帳號聊天後，點顧客聊天室貼上即可' : '已複製文字，正在開啟 LINE…');
   const url = lineURL(text);
   setTimeout(()=>{ const w = window.open(url, '_blank'); if(!w) location.href = url; }, 200);
 }
@@ -3353,7 +3359,7 @@ function dailyStats(date){
     revenue:sum(os,o=>o.paid), saleRevenue:sum(sales,o=>o.paid), topRevenue:sum(tops,o=>o.paid),
     pkgUsed:sum(sales,o=>o.creditsUsed), balUsed:sum(sales,o=>o.balanceUsed),
     ptsCover:sum(sales,o=>o.pointsCover), ptsEarned:sum(sales,o=>o.pointsEarned),
-    discount:sum(sales,o=>o.discount), subtotal:sum(sales,o=>o.total),
+    discount:sum(sales,o=>o.discount - (o.bundleLines ? o.bundleDisc||0 : 0)), subtotal:sum(sales,o=>shownTotal(o)),
     guests:new Set(sales.map(o=>o.customerId||o.id)).size, byMethod,
   };
 }
@@ -3380,7 +3386,7 @@ function openDaily(date){
         <div class="line"><span>LINE Pay</span><span>${money(s.byMethod.linepay)}</span></div>
         <div class="line total-line"><span>實收合計</span><span>${money(s.revenue)}</span></div>
         <div class="line" style="margin-top:10px;color:var(--sub)"><span>消費小計（折抵前）</span><span>${money(s.subtotal)}</span></div>
-        <div class="line" style="color:var(--sub)"><span>優惠折扣（組合＋優惠券＋手動）</span><span>−${money(s.discount)}</span></div>
+        <div class="line" style="color:var(--sub)"><span>優惠折扣（優惠券＋手動）</span><span>−${money(s.discount)}</span></div>
         ${ptsOn() ? `<div class="line" style="color:var(--sub)"><span>點數折抵 / 本日發放點數</span><span>−${money(s.ptsCover)}・+${s.ptsEarned} 點</span></div>` : ''}
         <div class="line" style="color:var(--sub)"><span>加值收入（儲值 / 包套）</span><span>${money(s.topRevenue)}</span></div>
       </div>
@@ -3420,7 +3426,6 @@ async function copyDaily(date){
 /* ================= 設定頁 ================= */
 function renderSettings(){
   $('#setFooter').value = db.footer || '';
-  $('#setLineId').value = db.lineId || '';
   $('#careCount').textContent = db.careTips.length;
   renderLineMode();
   $('#setFollowDays').value = db.followDays;
@@ -3437,18 +3442,18 @@ function renderSettings(){
 }
 function saveShop(){
   db.footer = $('#setFooter').value.trim();
-  db.lineId = $('#setLineId').value.trim();
   db.followDays = Math.min(30, Math.max(0, parseInt($('#setFollowDays').value)||0));
   db.pointsEvery = Math.max(0, parseFloat($('#setPtsEvery').value)||0);
   db.pointValue = Math.max(0, parseFloat($('#setPtsValue').value)||0);
   save(); toast('已儲存設定');
 }
 const LINE_MODES = {
-  share:'開啟 LINE 選擇聊天室（建議）：可直接選顧客的聊天室貼上傳送',
-  oa:'開啟店家官方帳號聊天並帶入文字（line.me/R/oaMessage），適合轉傳或店內測試',
+  biz:'用店家官方帳號傳給顧客：自動複製收據並開啟官方帳號聊天（chat.line.biz），點顧客聊天室、長按輸入框貼上。第一次使用請先登入官方帳號',
+  copy:'只複製收據文字，不開啟其他畫面；自己切換到「LINE 官方帳號」App，點顧客聊天室貼上',
+  share:'用 iPad 上的個人 LINE 傳送：開啟 LINE 選擇聊天室',
 };
 function renderLineMode(){
-  $('#lineModeSeg').innerHTML = segHTML([['share','選擇聊天室傳送'],['oa','官方帳號聊天']], db.lineMode, 'setLineMode');
+  $('#lineModeSeg').innerHTML = segHTML([['biz','官方帳號'],['copy','只複製'],['share','個人 LINE']], db.lineMode, 'setLineMode');
   $('#lineModeHint').textContent = LINE_MODES[db.lineMode];
 }
 function setLineMode(v){ db.lineMode = v; save(); renderLineMode(); }
@@ -3550,7 +3555,7 @@ function bundleEditorHTML(){
     <div class="card-head"><h3>熱門組合</h3><p>結帳時點一下組合，即可一次帶入多個服務與產品</p></div>
     ${db.bundles.length ? db.bundles.map(b=>`
       <div class="list-item">
-        <div class="grow"><div style="font-weight:700">${esc(b.name)}</div><div class="muted">${esc(bundleItems(b).map(x=>x.item.name+(x.qty>1?`×${x.qty}`:'')).join(' + '))}・${bundleDeal(b) ? `原價 <s>${money(bundlePrice(b))}</s>・組合價 <b style="color:var(--rose-deep)">${money(bundleDeal(b))}</b>` : money(bundlePrice(b))}</div></div>
+        <div class="grow"><div style="font-weight:700">${esc(b.name)}</div><div class="muted">${esc(bundleItems(b).map(x=>x.item.name+(x.qty>1?`×${x.qty}`:'')).join(' + '))}・${bundleDeal(b) ? `組合價 <b style="color:var(--rose-deep)">${money(bundleDeal(b))}</b>（單點合計 ${money(bundlePrice(b))}）` : money(bundlePrice(b))}</div></div>
         <button class="btn sm light" onclick="editBundle('${b.id}')">編輯</button>
         <button class="btn sm danger" onclick="deleteBundle('${b.id}')">刪除</button>
       </div>`).join('') : '<div class="muted">尚無熱門組合</div>'}
@@ -3560,8 +3565,8 @@ function bundleEditorHTML(){
     <label class="field"><span>組合名稱</span><input type="text" id="bdName" value="${esc(bDraft.name)}" placeholder="例：經典水飛梭淨膚套餐" oninput="bDraft.name=this.value"></label>
     <div class="sub-title">服務項目</div>${pick('service')}
     <div class="sub-title">居家保養品</div>${pick('product')}
-    <div class="summary"><div class="line" style="margin-top:14px"><span>原價合計</span><span>${money(draftTotal)}</span></div></div>
-    <label class="field" style="margin-top:14px"><span>組合優惠價（選填，留空＝原價）</span>
+    <div class="summary"><div class="line" style="margin-top:14px"><span>品項加總</span><span>${money(draftTotal)}</span></div></div>
+    <label class="field" style="margin-top:14px"><span>組合價格（選填，留空＝各品項加總）</span>
       <input type="number" id="bdPrice" min="0" inputmode="numeric" value="${bDraft.price||''}" placeholder="例：2999" oninput="bDraft.price=this.value;bdSaving()"></label>
     <div class="muted" id="bdSaving" style="margin-top:-6px">${bdSavingText(draftTotal)}</div>
     ${bDraft.id ? `<div class="grid2" style="margin-top:14px">
@@ -3572,7 +3577,7 @@ function bundleEditorHTML(){
 }
 function bdSavingText(t){
   const d = Math.round(Number(bDraft.price)||0);
-  return !d ? '結帳時以原價計算' : d >= t ? '優惠價需低於原價合計' : `結帳時顯示原價 ${money(t)}，折抵 ${money(t-d)}，實收 ${money(d)}`;
+  return !d ? '結帳時以各品項價格加總' : d >= t ? '組合價格需低於品項加總' : `結帳與收據只顯示「組合 ${money(d)}」一行，不顯示原價`;
 }
 function bdSaving(){ const t = Object.entries(bDraft.items).reduce((s,[id,q])=>s+(db.items.find(i=>i.id===id)?.price||0)*q,0); const el = $('#bdSaving'); if(el) el.textContent = bdSavingText(t); }
 function bdQty(id, d){ bDraft.items[id] = Math.max(0, (bDraft.items[id]||0) + d); renderShopSettings(); }

@@ -1,5 +1,5 @@
 // 離線快取：主程式採「網路優先、離線用快取」，確保有網路時永遠拿到最新版
-const CACHE = 'skincare-crm-v6';
+const CACHE = 'skincare-crm-v7';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {
