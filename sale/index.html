@@ -17,8 +17,8 @@
 <script>
 /* ===== 銷售設定：改這裡即可 ===== */
 const CONFIG = {
-  price: '0,000',                        // 一次買斷價格（例：'3,980'）
-  originalPrice: '',                     // 原價（選填，留空不顯示；例：'5,980'）
+  price: '1,280',                        // 一次買斷價格（例：'3,980'）
+  originalPrice: '1,980',                   // 原價（選填，留空不顯示；例：'5,980'）
   payUrl: '',                            // 付款連結（綠界、藍新、Portaly 等收款連結）；付款完成請導回 welcome.html
   lineUrl: 'https://line.me/R/ti/p/@799vhtvj',   // 官方帳號：未設定付款連結時，購買按鈕改為私訊購買
 };
@@ -292,10 +292,10 @@ const CONFIG = {
       <h2>一次購買，長期使用</h2>
     </div>
     <div class="price-card reveal">
-      <span class="tag">ONE-TIME</span>
+      <span class="tag">EARLY BIRD・限量 20 家</span>
       <div class="was js-was" hidden>原價 NT$ <span></span></div>
       <div class="price"><small>NT$</small><span class="js-price"></span></div>
-      <div class="price-sub">無需月費</div>
+      <div class="price-sub">早鳥價・一次購買，無需月費</div>
       <ul class="incl">
         <li>顧客檔案、膚況紀錄與照片前後對比</li>
         <li>結帳：包套、儲值金、點數與優惠</li>
@@ -332,7 +332,7 @@ const CONFIG = {
   <div class="wrap">
     <div class="eyebrow">SKIN ATELIER</div>
     <h2>讓專業，被細膩地呈現。</h2>
-    <p class="lead">一次購買 NT$ <span class="js-price"></span>，付款完成即可開始使用。</p>
+    <p class="lead">早鳥價 NT$ <span class="js-price"></span>（原價 NT$ 1,980），限量 20 家，付款完成即可開始使用。</p>
     <a class="btn buy-now" href="#">立即購買</a>
   </div>
 </section>
