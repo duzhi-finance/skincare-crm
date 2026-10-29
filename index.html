@@ -734,6 +734,32 @@
 .guide .grow{flex:1;min-width:0}
 .guide .grow b{font-family:var(--serif);font-weight:500;letter-spacing:.04em}
 .tab-sep{flex:none;align-self:center;width:1px;height:20px;background:var(--border);margin:0 4px}
+/* ===== 顧客同意書 ===== */
+.consent-doc h3{font-size:19px;letter-spacing:.1em;text-align:center;margin:4px 0 6px}
+.consent-doc .shop{text-align:center;font-family:var(--serif);color:var(--label,#8C8380);letter-spacing:.18em;font-size:13px}
+.consent-doc .intro{color:var(--label,#8C8380);font-size:14.5px;line-height:1.9;margin:14px 0 6px}
+.consent-item{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--border);cursor:pointer;font-size:15px;line-height:1.8}
+.consent-item:first-of-type{border-top:none}
+.consent-item input{flex:none;width:22px;height:22px;margin-top:3px;accent-color:var(--rose)}
+.consent-item em{font-style:normal;font-size:12px;color:var(--rose-deep);border:1px solid var(--rose-line);border-radius:999px;padding:0 8px;margin-left:6px;white-space:nowrap}
+.consent-item em.opt{color:var(--label,#8C8380);border-color:var(--border)}
+.sig-wrap{position:relative;border:1.5px dashed var(--border-strong);border-radius:18px;background:#fff;height:190px;touch-action:none;overflow:hidden}
+.sig-wrap canvas{width:100%;height:100%;display:block}
+.sig-wrap .ph{position:absolute;inset:0;display:grid;place-items:center;color:#C9BDB8;font-family:var(--serif);letter-spacing:.2em;pointer-events:none}
+.sig-wrap.drawn .ph{display:none}
+.sig-line{position:absolute;left:24px;right:24px;bottom:40px;border-bottom:1px solid var(--border);pointer-events:none}
+.consent-view li{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--border);font-size:14.5px;line-height:1.8}
+.consent-view li:first-child{border-top:none}
+.consent-view li b{flex:none;font-weight:600;width:52px;color:var(--rose-deep)}
+.consent-view li.no b{color:var(--label,#8C8380)}
+.consent-view ul{list-style:none;margin:0;padding:0}
+.consent-view .sig{max-width:340px;border:1px solid var(--border);border-radius:14px;margin-top:8px;background:#fff}
+.consent-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 4px;padding:14px 18px;border:1px solid var(--border);border-radius:18px;background:var(--bg-soft)}
+.consent-row .grow{min-width:0}
+.consent-row b{font-family:var(--serif);font-weight:500;letter-spacing:.06em}
+.consent-edit{display:grid;gap:8px;padding:14px 0;border-top:1px solid var(--border)}
+.consent-edit:first-of-type{border-top:none}
+.consent-edit .acts{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 /* ===== 內文：明體（襯線）一般字重、柔和暖灰（標籤、說明、提示、導覽） ===== */
   :root{ --label:#8C8380; }
   .section-title,.sub-title,.field-label,label.field>span,.card-head p,.muted,.hint,
@@ -949,11 +975,12 @@
 
     <div class="group-title">進階 · ADVANCED</div>
     <div class="card">
-      <div class="card-head"><h3>進階設定</h3><p>服務範圍、大類、衛教叮嚀與標籤，設定一次之後很少需要更動</p></div>
+      <div class="card-head"><h3>進階設定</h3><p>服務範圍、大類、衛教叮嚀、同意書與標籤，設定一次之後很少需要更動</p></div>
       <div class="chips" style="margin:4px 0 0">
         <button onclick="openShopSettings('template')">我的服務範圍</button>
         <button onclick="openShopSettings('category')">服務大類</button>
         <button onclick="openShopSettings('care')">衛教叮嚀（<span id="careCount">0</span>）</button>
+        <button onclick="openShopSettings('consent')">顧客同意書</button>
         <button onclick="openShopSettings('tags')">顧客標籤</button>
         <button onclick="openSetup()">重新開店設定</button>
       </div>
@@ -1138,6 +1165,18 @@ function defaultData(){
   }, 'skin');
 }
 // 補齊舊版資料缺少的欄位（回訪週期、叮嚀、熱門組合、標籤…）
+// 顧客同意書預設條文（可在「店務設定 → 同意書」修改）；kind：photo＝拍照紀錄、share＝社群分享
+const DEFAULT_CONSENT = () => ({
+  title:'顧客服務同意書', remind:true,
+  intro:'為提供安全、適切的美容服務，請詳閱以下內容並勾選。您的資料僅保存於本店裝置，不會提供給第三人。',
+  items:[
+    {text:'本人同意本店蒐集姓名、聯絡方式、生日及膚況等個人資料，僅用於服務紀錄、預約與聯繫。', req:true},
+    {text:'本人已如實告知過敏史、用藥、孕期及近期醫美療程等健康狀況；如有隱瞞，相關風險由本人自行承擔。', req:true},
+    {text:'美容師已向本人說明療程內容、可能出現的反應（如泛紅、脫皮、敏感）與術後注意事項。', req:true},
+    {text:'同意拍攝療程前後照片，僅作為服務紀錄與膚況追蹤使用。', req:false, kind:'photo'},
+    {text:'同意照片經去識別化後，用於本店社群與宣傳分享。', req:false, kind:'share'},
+  ].map((x,i)=>({id:'cs'+(i+1), kind:'', ...x})),
+});
 function migrate(d){
   d.items.forEach(i=>{
     if(i.cat==='service' && i.cycle===undefined){
@@ -1165,6 +1204,7 @@ function migrate(d){
   if(d.couponsOn===undefined) d.couponsOn = false;
   if(d.plansOn===undefined) d.plansOn = false;
   // 新手引導：已有消費紀錄的舊資料不再顯示
+  if(!d.consent || !Array.isArray(d.consent.items)) d.consent = DEFAULT_CONSENT();
   if(!d.guide) d.guide = {items:false, staff:false, hide:(d.orders||[]).length > 0};
   if(d.followDays===undefined) d.followDays = 3;          // 術後關心追蹤天數
   if(!d.contactLog || typeof d.contactLog!=='object') d.contactLog = {};
@@ -1244,6 +1284,7 @@ const soft = (t, tone) => `<span class="soft ${tone}">${esc(t)}</span>`;
 function badgesHTML(c, maxCaution = 99){
   const cs = c.cautions || [];
   const arr = [
+    ...(db.consent?.remind && !lastConsent(c) ? [soft('未簽同意書','ochre')] : []),
     ...(isBdayMonth(c) ? [soft('本月壽星','rose')] : []),
     ...pkgAlerts(c).map(t=>soft(t,'ochre')),
     ...cs.slice(0,maxCaution).map(t=>soft(t,'taupe')),
@@ -1434,11 +1475,12 @@ function saveCustomer(id){
     note: $('#fNote').value.trim(),
     updatedAt: Date.now(),
   };
+  let nid = id;
   if(id){ Object.assign(getCust(id), data); }
-  else { db.customers.push({id:uid(), records:[], createdAt:Date.now(), ...data}); }
+  else { nid = uid(); db.customers.push({id:nid, records:[], createdAt:Date.now(), ...data}); }
   save(); toast(id?'已更新顧客資料':'已新增顧客');
   renderCustomers();
-  if(id) openDetail(id); else closeModal();
+  if(id) openDetail(id); else openConsent(nid, true);   // 新顧客：接著簽同意書，可稍後再簽
 }
 function deleteCustomer(id){
   const c = getCust(id);
@@ -1446,6 +1488,152 @@ function deleteCustomer(id){
   (c.records||[]).forEach(deleteRecordPhotos);
   db.customers = db.customers.filter(x=>x.id!==id);
   save(); closeModal(); renderCustomers(); toast('已刪除顧客');
+}
+
+/* ================= 顧客同意書：勾選＋手寫簽名 ================= */
+const lastConsent = c => (c.consents||[]).slice(-1)[0] || null;
+const consentOk = (c, kind) => { const k = lastConsent(c); return !!k && k.items.some(x=>x.kind===kind && x.ok); };
+function photoConsentHint(c){
+  if(!lastConsent(c)) return '顧客尚未簽署同意書，拍照前請先取得同意';
+  return consentOk(c,'photo') ? '' : '顧客未同意拍照，請勿拍攝';
+}
+function consentRowHTML(c){
+  const k = lastConsent(c);
+  return k ? `<div class="consent-row"><div class="grow"><b>同意書・已簽署</b><div class="muted">${fmtD(ymd(new Date(k.date)))}${consentOk(c,'photo')?'・同意拍照':'・未同意拍照'}${consentOk(c,'share')?'・同意社群分享':''}</div></div>
+      <button class="btn sm light" onclick="viewConsent('${c.id}')">查看</button></div>`
+    : `<div class="consent-row"><div class="grow"><b>同意書・尚未簽署</b><div class="muted">請顧客勾選並在 iPad 上簽名</div></div>
+      <button class="btn sm" onclick="openConsent('${c.id}')">立即簽署</button></div>`;
+}
+let sig = null;   // 簽名板狀態
+function openConsent(cid, fromNew){
+  const c = getCust(cid); if(!c) return;
+  const d = db.consent;
+  openModal(`
+    <div class="sheet-head"><h2>簽署同意書</h2><button class="close" onclick="openDetail('${cid}')">✕</button></div>
+    <div class="card consent-doc">
+      <div class="shop">${esc(db.shopName||'')}</div>
+      <h3>${esc(d.title)}</h3>
+      <p class="intro">${esc(d.intro)}</p>
+      ${d.items.map(x=>`<label class="consent-item"><input type="checkbox" name="csItem" value="${x.id}" ${x.req?'':''}><span>${esc(x.text)}<em class="${x.req?'':'opt'}">${x.req?'必填':'選填'}</em></span></label>`).join('')}
+    </div>
+    <div class="card">
+      <div class="field-label" style="margin-top:0">顧客簽名・${esc(c.name)}<span class="hint">${fmtD(todayStr())}</span></div>
+      <div class="sig-wrap" id="sigWrap"><canvas id="sigPad"></canvas><div class="sig-line"></div><div class="ph">請在此簽名</div></div>
+      <div class="grid2" style="margin-top:12px">
+        <button class="btn ghost" onclick="clearSig()">重寫</button>
+        <button class="btn" onclick="saveConsent('${cid}')">確認簽署</button>
+      </div>
+    </div>
+    ${fromNew ? `<button class="btn light block" onclick="openDetail('${cid}')">稍後再簽</button>` : ''}
+  `);
+  setupSig();
+}
+function setupSig(){
+  const cv = $('#sigPad'), wrap = $('#sigWrap'); if(!cv) return;
+  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 2.4; ctx.strokeStyle = '#2F2B2A';
+  sig = {cv, ctx, drawn:false, last:null};
+  const pt = e => { const b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+  cv.onpointerdown = e => { e.preventDefault(); cv.setPointerCapture(e.pointerId); sig.last = pt(e); ctx.beginPath(); ctx.arc(sig.last[0], sig.last[1], 1.1, 0, 7); ctx.fillStyle = '#2F2B2A'; ctx.fill(); };
+  cv.onpointermove = e => {
+    if(!sig.last) return; e.preventDefault();
+    const p = pt(e); ctx.beginPath(); ctx.moveTo(...sig.last); ctx.lineTo(...p); ctx.stroke();
+    sig.last = p; if(!sig.drawn){ sig.drawn = true; wrap.classList.add('drawn'); }
+  };
+  cv.onpointerup = cv.onpointercancel = () => { sig.last = null; };
+}
+function clearSig(){ if(!sig) return; sig.ctx.clearRect(0,0,sig.cv.width,sig.cv.height); sig.drawn = false; $('#sigWrap').classList.remove('drawn'); }
+// 簽名縮小成 600px 寬的 PNG，存進顧客資料（會跟著備份匯出）
+function sigDataURL(){
+  const w = 600, h = Math.round(sig.cv.height * w / sig.cv.width);
+  const out = document.createElement('canvas'); out.width = w; out.height = h;
+  out.getContext('2d').drawImage(sig.cv, 0, 0, w, h);
+  return out.toDataURL('image/png');
+}
+function saveConsent(cid){
+  const c = getCust(cid); if(!c) return;
+  const on = new Set([...document.querySelectorAll('input[name=csItem]:checked')].map(i=>i.value));
+  const miss = db.consent.items.filter(x=>x.req && !on.has(x.id));
+  if(miss.length){ toast(`請勾選 ${miss.length} 項必填條款`); return; }
+  if(!sig?.drawn){ toast('請顧客在簽名框內簽名'); return; }
+  (c.consents ||= []).push({
+    id:uid(), date:new Date().toISOString(), title:db.consent.title, intro:db.consent.intro,
+    items:db.consent.items.map(x=>({text:x.text, req:x.req, kind:x.kind||'', ok:on.has(x.id)})),
+    sig:sigDataURL(),
+  });
+  c.updatedAt = Date.now();
+  save(); renderCustomers(); toast('已完成簽署');
+  openDetail(cid);
+}
+function viewConsent(cid){
+  const c = getCust(cid), k = c && lastConsent(c); if(!k) return;
+  openModal(`
+    <div class="sheet-head"><h2>同意書</h2><button class="close" onclick="openDetail('${cid}')">✕</button></div>
+    <div class="card consent-doc consent-view">
+      <div class="shop">${esc(db.shopName||'')}</div>
+      <h3>${esc(k.title)}</h3>
+      <p class="intro">${esc(k.intro||'')}</p>
+      <ul>${k.items.map(x=>`<li class="${x.ok?'':'no'}"><b>${x.ok?'同意':'未同意'}</b><span>${esc(x.text)}</span></li>`).join('')}</ul>
+      <div class="field-label">顧客簽名・${esc(c.name)}<span class="hint">簽署時間 ${fmtDT(k.date)}</span></div>
+      <img class="sig" src="${k.sig}" alt="${esc(c.name)} 的簽名">
+      ${(c.consents||[]).length > 1 ? `<p class="muted" style="margin:12px 0 0">共簽署 ${c.consents.length} 次，顯示最新一份</p>` : ''}
+    </div>
+    <div class="grid2">
+      <button class="btn ghost" onclick="openDetail('${cid}')">返回顧客檔案</button>
+      <button class="btn" onclick="openConsent('${cid}')">重新簽署</button>
+    </div>
+  `);
+}
+/* ===== 店務設定：同意書條文 ===== */
+function consentTabHTML(){
+  const d = db.consent;
+  return `<div class="card">
+    <div class="card-head"><h3>同意書內容</h3><p>新增顧客後會請顧客勾選並簽名；修改只影響之後的簽署，已簽的同意書保留當時內容。修改後自動儲存</p></div>
+    <label class="field"><span>標題</span><input type="text" value="${esc(d.title)}" onchange="updateConsent('title',this.value)"></label>
+    <label class="field"><span>前言</span><textarea onchange="updateConsent('intro',this.value)">${esc(d.intro)}</textarea></label>
+    <label class="option-row first" style="margin-bottom:0">
+      <div><b>提醒未簽署的顧客</b><div class="muted">顧客列表、結帳與顧客檔案顯示「未簽同意書」</div></div>
+      <span class="switch"><input type="checkbox" ${d.remind?'checked':''} onchange="updateConsent('remind',this.checked)"><i></i></span>
+    </label>
+  </div>
+  <div class="card">
+    <div class="card-head"><h3>條款</h3><p>「必填」沒勾就無法完成簽署；「拍照」「社群分享」條款會顯示在顧客檔案，提醒美容師</p></div>
+    ${d.items.map((x,i)=>`<div class="consent-edit">
+      <textarea class="note-mini" onchange="updateConsentItem('${x.id}','text',this.value)" aria-label="條款 ${i+1}">${esc(x.text)}</textarea>
+      <div class="acts">
+        <label class="check" style="margin:0"><input type="checkbox" ${x.req?'checked':''} onchange="updateConsentItem('${x.id}','req',this.checked)"> 必填</label>
+        <select class="mini-sel" onchange="updateConsentItem('${x.id}','kind',this.value)" aria-label="條款用途">
+          <option value="" ${!x.kind?'selected':''}>一般條款</option><option value="photo" ${x.kind==='photo'?'selected':''}>同意拍照</option><option value="share" ${x.kind==='share'?'selected':''}>同意社群分享</option>
+        </select>
+        <button class="btn sm danger" style="margin-left:auto" onclick="deleteConsentItem('${x.id}')">刪除</button>
+      </div>
+    </div>`).join('') || '<div class="muted">尚無條款</div>'}
+    <label class="field" style="margin-top:14px"><span>新增條款</span><textarea id="csNew" class="note-mini" placeholder="例：本人了解療程效果因人而異，不保證特定成效。"></textarea></label>
+    <div class="grid2">
+      <button class="btn" onclick="addConsentItem()">＋ 新增條款</button>
+      <button class="btn ghost" onclick="resetConsent()">還原預設條文</button>
+    </div>
+    <p class="muted" style="margin:14px 0 0">預設條文僅供參考，正式使用前建議請專業人士審閱。</p>
+  </div>`;
+}
+function updateConsent(k, v){ db.consent[k] = typeof v === 'string' ? (v.trim() || db.consent[k]) : v; save(); toast('已更新同意書'); }
+function updateConsentItem(id, k, v){
+  const x = db.consent.items.find(i=>i.id===id); if(!x) return;
+  x[k] = k==='text' ? (v.trim() || x.text) : v; save(); toast('已更新條款');
+}
+function addConsentItem(){
+  const t = $('#csNew').value.trim(); if(!t){ toast('請輸入條款內容'); return; }
+  db.consent.items.push({id:uid(), text:t, req:false, kind:''}); save(); renderShopSettings(); toast('已新增條款');
+}
+function deleteConsentItem(id){
+  if(!confirm('確定刪除此條款？（已簽署的同意書不受影響）')) return;
+  db.consent.items = db.consent.items.filter(x=>x.id!==id); save(); renderShopSettings();
+}
+function resetConsent(){
+  if(!confirm('還原為預設同意書條文？目前的修改會被取代。')) return;
+  db.consent = DEFAULT_CONSENT(); save(); renderShopSettings(); toast('已還原預設條文');
 }
 
 /* ================= 顧客詳情 + 皮膚管理紀錄 ================= */
@@ -1478,6 +1666,7 @@ function openDetail(id){
         </div>
         <div class="stat"><div class="k">儲值金餘額</div><div class="v">${money(c.balance)}</div>${ptsOn()?`<div class="muted">會員點數 ${c.points||0} 點</div>`:''}</div>
       </div>
+      ${consentRowHTML(c)}
       <button class="btn ghost block" style="min-height:52px;font-size:15.5px" onclick="openTopup('${id}')">＋ 儲值 / 加購包套</button>
       ${(()=>{ const up = db.appointments.filter(a=>a.customerId===id && a.status==='booked').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
         return up.length ? `<div class="badges" style="margin-top:12px">${up.map(a=>soft(`已預約 ${apptWhen(a)}`,'rose')).join('')}</div>` : ''; })()}
@@ -1492,7 +1681,7 @@ function openDetail(id){
       <div class="field-label">本次膚況速記</div>
       ${quickTagsHTML('rNote')}
       <label class="field"><span>美容項目 / 備註說明</span><textarea id="rNote" placeholder="點選上方標籤快速帶入，或自行輸入…"></textarea></label>
-      <div class="field-label">皮膚照片<span class="hint">最多 ${MAX_PHOTOS} 張・自動壓縮為 1024px 存在本機</span></div>
+      <div class="field-label">皮膚照片<span class="hint">${photoConsentHint(c) || `最多 ${MAX_PHOTOS} 張・自動壓縮為 1024px 存在本機`}</span></div>
       <div class="ph-grid" id="rPhotos" style="margin-bottom:16px"></div>
       <button class="btn ghost block" onclick="addRecord('${id}')">儲存施作紀錄</button>
     </div>
@@ -2706,7 +2895,7 @@ function renderTaskSeg(){
 function setTaskTab(t){ taskTab = t; renderAppointments(); }
 
 /* ================= 店家設定匯出 / 匯入（複製到其他 iPad） ================= */
-const SETTINGS_KEYS = ['shopName','footer','template','categories','staff','items','bundles','careTips','tags','coupons','packagePlans','lineId','lineMode','pointsOn','couponsOn','plansOn','pointsEvery','pointValue','followDays'];
+const SETTINGS_KEYS = ['shopName','footer','template','categories','staff','items','bundles','careTips','tags','coupons','packagePlans','lineId','lineMode','pointsOn','couponsOn','plansOn','pointsEvery','pointValue','followDays','consent'];
 const settingsPayload = () => ({type:'skincare-crm-settings', version:1, exportedAt:new Date().toISOString(),
   settings:Object.fromEntries(SETTINGS_KEYS.map(k=>[k, db[k]]))});
 function downloadJSON(obj, filename){
@@ -3471,7 +3660,7 @@ function setFeature(k, on){
 let shopTab = 'shop';
 let bDraft = {id:null, name:'', items:{}, price:''};
 // 頁籤分三組：常用 / 會員方案（依功能開關顯示）/ 進階；'|' 為分隔線
-const SHOP_TABS = [['shop','店家資訊'],['items','服務項目'],['staff','服務師'],['bundle','熱門組合'],'|',['plan','多堂方案'],['coupon','優惠券'],'|',['template','我的服務範圍'],['category','服務大類'],['care','衛教叮嚀'],['tags','顧客標籤']];
+const SHOP_TABS = [['shop','店家資訊'],['items','服務項目'],['staff','服務師'],['bundle','熱門組合'],'|',['plan','多堂方案'],['coupon','優惠券'],'|',['template','我的服務範圍'],['category','服務大類'],['care','衛教叮嚀'],['consent','同意書'],['tags','顧客標籤']];
 function shopTabs(){
   const t = SHOP_TABS.filter(x=>!(x[0]==='plan' && !plansOn() && shopTab!=='plan') && !(x[0]==='coupon' && !couponsOn() && shopTab!=='coupon'));
   return t.filter((x,i)=>x!=='|' || (i>0 && t[i-1]!=='|'));
@@ -3492,7 +3681,7 @@ function renderShopSettings(){
   el.innerHTML = `
     <div class="sheet-head"><h2>店務設定</h2><button class="close" onclick="closeShopSettings()">✕</button></div>
     <div class="chips">${shopTabs().map(x=>x==='|' ? '<span class="tab-sep"></span>' : `<button class="${shopTab===x[0]?'active':''}" onclick="setShopTab('${x[0]}')">${x[1]}</button>`).join('')}</div>
-    ${(markGuide(), '')}${({shop:shopInfoHTML, bundle:bundleEditorHTML, template:templateTabHTML, tags:tagsTabHTML, care:careTabHTML, coupon:couponsTabHTML, plan:plansTabHTML, category:categoryTabHTML, staff:staffTabHTML}[shopTab] || itemsTabHTML)()}
+    ${(markGuide(), '')}${({shop:shopInfoHTML, bundle:bundleEditorHTML, template:templateTabHTML, tags:tagsTabHTML, care:careTabHTML, consent:consentTabHTML, coupon:couponsTabHTML, plan:plansTabHTML, category:categoryTabHTML, staff:staffTabHTML}[shopTab] || itemsTabHTML)()}
   `;
   $('#sheet').scrollTop = sc;
   const ch = el.querySelector('.chips'), act = ch?.querySelector('.active');
